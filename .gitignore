@@ -1,0 +1,36 @@
+# Credenciales y entorno local
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+.venv/
+**/.venv/
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+tmp/
+material-privado/
+# Documentos de estudio y kit con copias privadas: conservar localmente.
+output/
+*.log
+
+# Configuración personal de herramientas: revisar antes de cualquier publicación.
+/opencode.json
+/.opencode/
+
+# Respaldos de entornos y artefactos de desarrollo locales.
+.venv-*/
+.venv.*/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
