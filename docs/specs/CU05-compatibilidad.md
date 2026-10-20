@@ -1,10 +1,15 @@
 # CU05 — contrato documental mínimo de compatibilidad
 
-Fecha 2026-10-20. Propuesta `cu05-doc-25.1`; reglas `rules-demo-25.1-draft`, datos `hardware-demo-25.1`, política `power-policy-25.1-draft`. **Sin motor, API, fixtures ejecutables ni tests implementados.** Fuentes F01–F25, piezas P01–P18 y ofertas O01–O05: [HARDWARE_DEMO.md](../HARDWARE_DEMO.md). No se reduce V1 ni se acepta stack adicional.
+Base documental de 2026-10-20: propuesta `cu05-doc-25.1`, datos `hardware-demo-25.1`, política `power-policy-25.1-draft`, conservada para los pendientes. **Etapa 28: dominio parcial ejecutable `cu05-28.1`, dos subreglas y agregación conservadora con pruebas; sin API CU05 ni motor completo.** El inventario ejecutable reemplaza el nombre de reglas borrador solo para este incremento interno; no implementa ni acepta la política de potencia. Fuentes F01–F25, piezas P01–P18 y ofertas O01–O05: [HARDWARE_DEMO.md](../HARDWARE_DEMO.md). No se reduce V1 ni se acepta stack adicional. Alcance ejecutado en sección 8.
 
 ## 1. Decisiones y alcance
 
 Aceptadas tras etapa 23: **veredictos/cobertura explícita**, **RAM como conjunto completo**, **evaluaciones versionadas**. Son coherentes con [AGENTS.md](../../AGENTS.md). Los nombres de campos, catálogo, selección de piezas, predicados, políticas y escenarios nuevos de este documento son **propuestas revisables**, no aceptación del usuario.
+
+Aceptación adicional acotada de etapa 28: contrato interno de datos ya resueltos,
+inventario no reducible por el consumidor, agregación conservadora y subreglas
+R04.largo/R06.ramales_adaptador, con ejemplos y pruebas. No acepta todo lo propuesto
+en etapa 25, ni altera R10/potencia, ni declara PCs compatibles completas.
 
 Objetivo de cierre futuro: dos bases y al menos una sustitución compatible por CPU, motherboard, RAM, GPU, fuente y gabinete, con todas las dependencias aplicables y recorrido fuente→GPU. Tres familias internas no equivalen a cobertura final. En esta etapa se registra expresamente qué falta; `requiere_verificacion` no es una estrategia para declarar terminada la demo.
 
@@ -82,7 +87,7 @@ No se implementa todavía esta política. El negativo R06 P07+P15 tiene evidenci
 
 ## 6. Escenarios documentales esperados
 
-**No son tests ejecutados.** “Fundamentado” refiere a la conclusión documental indicada, no a implementación. Para positivos abiertos se distingue objetivo `compatible` de conclusión hoy defendible: sin otro fallo y con esos faltantes sería `requiere_verificacion`; no es el resultado de un motor existente. Bloqueos comunes **E**=R05 demanda/reserva; **G**=R04/R06/R07 espacio/recorridos efectivos; **C**=R08 interferencias/capacidad no verificadas; **U**=R10 encaje P14. Los bloqueos nunca se sustituyen por una casilla de “resto validado”.
+**Tabla documental conservada de etapa 25.** Salvo las ejecuciones parciales de S08/S10 identificadas abajo y en sección 8, no son tests ejecutados. “Fundamentado” refiere a la conclusión documental indicada, no a implementación completa. Para positivos abiertos se distingue objetivo `compatible` de conclusión defendible: sin otro fallo y con esos faltantes sería `requiere_verificacion`; no se implementaron esos escenarios completos. Bloqueos comunes **E**=R05 demanda/reserva; **G**=R04/R06/R07 espacio/recorridos efectivos; **C**=R08 interferencias/capacidad no verificadas; **U**=R10 encaje P14. Los bloqueos nunca se sustituyen por una casilla de “resto validado”.
 
 | ID / entrada o restricción | Objetivo/expectativa | Estado y fundamento exacto |
 |---|---|---|
@@ -93,9 +98,9 @@ No se implementa todavía esta política. El negativo R06 P07+P15 tiene evidenci
 | S05 B placa P03→P18 | compatible | **Abierto E/G/C**; F04 P02/P2.30 documentado en índice histórico. Mapa USB/rear/fans/SSD/power preservado; EPS4 opcional y segundo cable disponible. Falta interferencia P12/P18 y recorrido efectivo; pasta y eventual provisión BIOS sin costo cerrado |
 | S06 B gabinete P10→P09 + P14 explícito | incompatible bajo requisito de conservación; sustituto positivo pendiente | **Fallo R10 fundamentado**: pierde un USB-A y reset, cambia audio a jack combinado. P14 solo habilita USB-C, no restaura funciones; además persisten E/G/C/U. Queda abierta la elección del candidato positivo: otro gabinete documentado o dependencias reales, sin incluirlas automáticamente |
 | S07 A fuente P07→P08 sola | compatible como etapa intermedia operativa | **Abierto E/G/C/U** de configuración resultante; ATX/EPS/PCIe8 documentados, nuevo juego sustituye viejo; falta potencia integral/recorrido y demás reglas base. No afirmar operatividad comprobada |
-| S08 A GPU P06→P15 sola | incompatible | **Fundamentado R06**: P07 solo un ramal PCIe para adaptador que exige dos independientes. Incluye adaptador, por tanto fallo no es “sin16-pin”. E/G/C/U persisten; umbral550<750 solo política adicional propuesta |
+| S08 A GPU P06→P15 sola | incompatible | **Fundamentado R06; extracto ejecutado en etapa 28** ([fixture](../../backend/upgradejusto/compatibility/examples.py), [runner](../../backend/upgradejusto/compatibility/demo.py)): P07 solo un ramal PCIe para adaptador que exige dos independientes. Incluye adaptador; fallo no es “sin16-pin” ni watts. Datos ya resueltos, sin implementar sustitución. Resto de cobertura pendiente |
 | S09 A tras S07: P06→P15 | compatible | **Abierto E/G/C/U**; P08 nativo y L304<416 sustentados. Falta envolvente enchufe/cable y regla R03 negociación aplicable; no usar49 mm nominales como certificación |
-| S10 B GPU P06→P16 | incompatible | **Fundamentado R04** L329>315 con front fans, exceso14 mm; conservar faltantes eléctricos/laterales/cooler sin ocultarlos |
+| S10 B GPU P06→P16 | incompatible | **Fundamentado R04; extracto ejecutado en etapa 28** ([fixture](../../backend/upgradejusto/compatibility/examples.py), [runner](../../backend/upgradejusto/compatibility/demo.py)): L329>315 con front fans, exceso14 mm. No oculta faltantes eléctricos/laterales/cooler ni implementa sustitución |
 | S11 A con P03 BIOS P1.20 explícita, P01 | incompatible por soporte | **Fundamentado R01** requisito oficial desdeP2.30 incumplido; P1.20 es condición alternativa del fixture, no BIOS observada. No afirmar imposibilidad física de POST; demás faltantes se mantienen |
 | S12 A con BIOS instalada omitida intencionalmente | requiere_verificacion | **Fundamentado como falta R01**, sin fallos conocidos en otros datos; además E/G/C/U aún no cerrados. Resolver BIOS con registro verificable de versión, no asumir última. Para aislar solo esta falta en aceptación, cerrar antes positivos base |
 | S13 S10 con BIOS desconocida | incompatible y missing BIOS | **Fundamentado**: falla largo domina; se conserva missing R01 y todos los otros faltantes |
@@ -114,3 +119,95 @@ CPU/RAM negativo de referencia se cubre por soporte/BIOS S11, no se inventa una 
 3. En ese incremento futuro: probar límites/unidades, desconocidos y dominancia sin cortocircuito; retirada real de componentes, RAM completa, asignación única de cables, stock/OC/BIOS, paquete versus pieza sola, planes acumulados, propiedad/revisión y simulación sin guardado. Fixtures sintéticos complementan, no reemplazan hardware real.
 
 La etapa25 solo verifica documentación/aritmética. Pendientes visuales y nuevas cotizaciones pueden avanzar junto con la base técnica; faltantes de compatibilidad impiden etiquetar positivos y cerrar demo, no autorizan a implementar nada ahora.
+
+## 8. Incremento interno ejecutado — etapa 28
+
+Fecha 2026-10-20. [Código de dominio](../../backend/upgradejusto/compatibility/)
+con Pydantic ya instalado y biblioteca estándar; sin FastAPI/BD/LLM/red dentro del
+dominio. No crea endpoint, persistencia, UUID, resolución pc_id/propiedad/catálogo,
+sustituciones ni planes. `evaluate(configuration)` acepta solo datos resueltos;
+no hay parámetros públicos para aportar resultados, omitir reglas o preaprobar PCs.
+
+### Contrato ejecutable
+
+- `ResolvedConfiguration`: `pc_revision`, `data_revision`, instancias con ID/categoría/
+  cantidad y condiciones declaradas, datos opcionales de largo y ruta adaptada.
+  Las revisiones de ejemplos son etiquetas documentales, no revisiones persistidas
+  inventadas. Modelos estrictos, congelados y sin campos extra; colecciones en tuplas,
+  sin mutar entradas. El evaluador revalida instancias recibidas.
+- Medición positiva finita, mm/eje longitudinal; bool, strings, cero/negativos,
+  NaN/infinito y unidades/ejes inválidos producen errores de validación, no veredictos.
+  Cantidades enteras positivas; cada ID referenciado designa una instancia física.
+  Referencias de instancia/categoría incorrectas, IDs duplicados y asignar un conector
+  o entrada más de una vez son errores de entrada separados.
+- Evidencia: ID de fuente, URL, sección/localizador y fecha. Sin consultar red para
+  evaluar. El productor de datos resueltos debe marcar conflictos como `conflict`;
+  el motor no los resuelve ni elige una observación. Datos/procedencia/condiciones
+  indispensables ausentes o conflictivos → `unknown` con ruta concreta de faltante.
+  Pass/fail no admiten referencias vacías; no_aplica necesita evidencia y justificación.
+- Resultado de subregla: `rule_id`, `family`, `state`, `facts`, `evidence`, `conditions`,
+  `missing_fields`. Salida de evaluación: `verdict`, `rule_results`, `missing_fields`,
+  `rules_version`, `data_revision`, `pc_revision`, `coverage`.
+
+### Inventario y cobertura
+
+Versión fija `cu05-28.1`: **12 comprobaciones**, mostrando las diez familias:
+
+| Comprobación | Estado de implementación |
+|---|---|
+| R01, R02, R03 | Pendientes |
+| R04.largo | Implementada; compara solo largo efectivo bajo montaje documentado |
+| R04.altura_espesor_slots_cable_interferencias | Pendiente; largo aprobado no cierra geometría |
+| R05 | Pendiente; fuente/potencia sigue en alcance, no aprobada por ramales |
+| R06.ramales_adaptador | Implementada solo para la ruta descrita abajo |
+| R06.otros_conectores | Pendiente; ATX/EPS/periféricos, alcance y resto de alimentación |
+| R07, R08, R09, R10 | Pendientes; sin cambios de políticas |
+
+Lo pendiente se emite como `not_implemented` y `implementation.<ID>`, no no_aplica.
+Cobertura enumera necesarias, implementadas, evaluadas, pass/fail/unknown/no_aplica/
+pendientes. `coverage.complete` significa todas necesarias resueltas con evidencia
+(pass/fail/no_aplica); no significa compatible si alguna falla. Las dos subreglas se
+evalúan siempre; fail domina y conserva desconocidos/pendientes. Sin fail pero con
+faltantes → requiere_verificacion. Inventario vacío/incompleto no produce compatible.
+La rama compatible se prueba únicamente en el agregador privado con inventario
+sintético completo creado en tests; no hay modo de producción para retirar pendientes.
+
+### Semántica precisa de las subreglas
+
+- **R04.largo:** GPU mayor al límite efectivo aplicable → fail; menor o igual → pass
+  de esta subregla únicamente. El límite identifica montaje y condiciones; montaje
+  distinto/desconocido o evidencia faltante no habilita comparación concluyente.
+- **R06.ramales_adaptador:** alcance actual: dos entradas PCIe8 con exigencia documentada
+  de cables independientes, inventario PCIe8/6+2 completo y asignación explícita.
+  Dos puntas del mismo ramal cuentan una vez; ocupados no están disponibles y
+  topología/ocupación desconocidas no se toman por libres. Lista desconocida es
+  distinta de inventario completo vacío. No se hace asignación automática.
+- Un déficit documentado con inventario completo y exclusión documentada de otras
+  rutas permite fail. Sin esa exclusión se informa unknown: una ruta fallida no
+  demuestra que no exista otra. Si hay capacidad pero la asignación es incompleta o
+  no usa ramales distintos, queda unknown; no se elige cableado alternativo en silencio.
+  Ruta nativa, otro tipo/cantidad de entradas o requisito de independencia no soportado
+  queda `not_implemented`, no rechazo por parecerse poco al fixture. La exigencia
+  de independencia desconocida es unknown, distinta de False explícito.
+
+### Evidencia de ejecución, no cierre de demo
+
+`python -m upgradejusto.compatibility.demo`, desde backend, emite JSON con el mismo
+evaluador probado. Extracto de datos `hardware-demo-25.1/extract-28.1`, fuentes y
+condiciones transcritas del registro, sin nueva investigación:
+
+| Ejemplo | Resultado ejecutado | Cobertura que permanece |
+|---|---|---|
+| S08 P15/P07, F07/F09/F19 | incompatible; 2 entradas, 2 conectores en 1 ramal | R04.largo unknown; 10 pendientes |
+| S10 P16/P10, F08/F13 | incompatible; 329−315=14 mm | R06.ramales_adaptador unknown; 10 pendientes |
+| D01-S10-omitted-length | requiere_verificacion; largo omitido intencionalmente, sin fallos conocidos | 2 unknown y 10 pendientes |
+
+D01 es un derivado de S10, no tercera PC real ni medición alterada presentada como
+real. Los extractos no duplican la configuración completa ni aseguran el resto de reglas.
+Pruebas ejecutadas: **66 aprobadas incluyendo salud**, Ruff lint/formato y
+sincronización desde lock aprobados; demo código0. Casos sintéticos separados de los
+ejemplos documentales: límites, validación, evidencia, ocupación/ramales, dominancia,
+inventarios vacíos/incompletos, determinismo y no mutación. Proceso rojo/verde y
+resultados en [bitácora28](../ai-log/2026-10-20-etapa28-dominio-compatibilidad.md).
+Positivos globales de las seis categorías siguen abiertos. No se implementó R10
+ni la política de potencia; la demo final/CU05 completo no están terminados.

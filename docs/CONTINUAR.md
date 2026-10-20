@@ -1,11 +1,29 @@
-# Continuar — base backend de etapa 27
+# Continuar — dominio parcial de etapa 28
 
-2026-10-20. Base mínima FastAPI instalada y verificada: `/health` responde HTTP 200 con JSON exacto `{"status":"ok"}`; importación, un test pytest y Ruff lint/formato aprobados, entorno sincronizado con `uv.lock`. Servidor propio de verificación detenido. No hay motor, frontend, BD ni IA; salud no declara esas conexiones. Se conservaron Python 3.12.13, uv 0.11.16, `.venv` y el pin.
+2026-10-20. Incremento interno autorizado y ejecutado: contrato estricto de datos
+resueltos, agregación conservadora e inventario fijo de 12 comprobaciones R01–R10;
+solo R04.largo y R06.ramales_adaptador implementadas. S08/S10 dan incompatible por
+el fallo documentado de cada subregla; derivado con largo omitido da requiere_verificacion.
+Los tres conservan diez pendientes y ninguno es compatible global. **66 pruebas**
+incluyendo salud, Ruff, demo y sync --check aprobados. Sin dependencias nuevas,
+cambios de pyproject/lock/pin, servidor HTTP adicional ni endpoint CU05.
+
+- [Contrato y alcance ejecutable](specs/CU05-compatibilidad.md#8-incremento-interno-ejecutado--etapa-28).
+- [Comandos de backend/demo](../backend/README.md) y [bitácora28](ai-log/2026-10-20-etapa28-dominio-compatibilidad.md).
+- La autorización no acepta todas las políticas/selección del 25 ni termina CU05/demo.
+- **Próximo incremento pendiente de definición:** elegir la siguiente comprobación
+  necesaria, sus datos/evidencia y criterio de aceptación antes de implementarla.
+  No ampliar ahora a sustituciones/planes, persistencia o API. Conservar los diez CU
+  y seis módulos y separar restricciones técnicas de preferencias/políticas aún propuestas.
+
+## Base backend conservada de etapa 27
+
+2026-10-20, etapa 27. Base mínima FastAPI instalada y verificada: `/health` responde HTTP 200 con JSON exacto `{"status":"ok"}`; importación, un test pytest y Ruff lint/formato aprobados, entorno sincronizado con `uv.lock`. Servidor propio de esa verificación detenido. No había dominio de compatibilidad en esa etapa; hoy solo existe el incremento parcial arriba, sin frontend, BD ni IA. Salud no declara esas conexiones. Se conservaron Python 3.12.13, uv 0.11.16, `.venv` y el pin.
 
 - [Arranque y comandos](../backend/README.md), siempre desde `backend/`, con códigos de salida comprobados.
 - [Registro etapa 27](ai-log/2026-10-20-etapa27-base-backend.md): resolución, verificaciones y Git local. Sin publicación.
 - Aceptación acotada: backend de salud, FastAPI/Pydantic/Uvicorn, pytest/Ruff/httpx2 y lockfile. No acepta el resto del stack ni las políticas de hardware. Python 3.12.15 requiere resolver mantenimiento antes de exposición/despliegue.
-- Próximo incremento del motor: **pendiente de definición y aceptación**. No implementarlo por esta nota. Mantener dominio independiente de HTTP/BD/LLM y los diez CU/seis módulos.
+- El incremento interno definido después del plan26 es solo el de etapa28 descrito arriba. Lo que siga requiere definición y aceptación; mantener dominio independiente de HTTP/BD/LLM y los diez CU/seis módulos.
 
 ## Estado documental conservado de etapa 25
 

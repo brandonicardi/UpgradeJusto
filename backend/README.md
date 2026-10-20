@@ -17,8 +17,9 @@ responde: no comprueba motor de compatibilidad, base de datos ni proveedor IA.
 
 Las dependencias directas se fijan en `pyproject.toml` y las transitivas, artefactos
 y hashes en `uv.lock`, generado por uv. No editar el lockfile a mano. El directorio
-`upgradejusto/api` es entrada HTTP, `main.py` compone la app; todavía no hay dominio,
-repositorios o servicios de producto. No se crearon seis módulos vacíos.
+`upgradejusto/api` es entrada HTTP y `main.py` compone la app. Etapa 28 incorpora
+`upgradejusto/compatibility` como dominio parcial independiente de HTTP/BD/LLM/red;
+no hay repositorios o servicios de persistencia. No se crearon seis módulos vacíos.
 
 ## Instalación desde el lockfile
 
@@ -63,9 +64,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Falló Ruff lint' }
 if ($LASTEXITCODE -ne 0) { throw 'Falló Ruff formato' }
 ```
 
-Resultado observado: importación `FastAPI`, un test aprobado, lint y formato
-aprobados. El test usa TestClient como context manager y comprueba HTTP, JSON
-exacto y Content-Type; no fabrica eventos de arranque ni verifica CU05.
+Resultado de etapa 27: importación `FastAPI`, un test de salud, lint y formato
+aprobados. El test de salud usa TestClient como context manager y comprueba HTTP,
+JSON exacto y Content-Type; no fabrica eventos de arranque. En etapa 28 la suite
+completa aprobó **66 pruebas**, incluyendo salud y el dominio parcial descrito abajo.
 
 ## Arranque local
 
@@ -96,6 +98,51 @@ ambos comandos; nunca terminar procesos ajenos. La verificación automatizada de
 esta etapa usó un proceso oculto propio, timeout y limpieza en `finally`, siguiendo
 también al hijo Python del lanzador de Windows. Confirmó HTTP real en 127.0.0.1:8000
 y terminó ambos procesos; logs solo en `../tmp/`, ignorado por Git.
+
+## Dominio CU05 parcial y demo local (etapa 28)
+
+Desde `backend/`, sin iniciar un servidor:
+
+```powershell
+& .\.venv\Scripts\python.exe -m upgradejusto.compatibility.demo
+if ($LASTEXITCODE -ne 0) { throw 'Falló la demo de dominio' }
+```
+
+Emite un array JSON de tres casos con veredicto, resultados de subregla, evidencia,
+condiciones, faltantes, revisiones y cobertura. No guarda ni cambia configuraciones.
+
+- **S08**: PRIME-RTX5070-O12G y CX550 CP-9020277; incompatible por un solo ramal para
+  dos entradas independientes del adaptador incluido (F07/F09/F19). No falla por
+  ausencia de cable nativo ni por comparar 550/750 W.
+- **S10**: TUF-RTX5070-O12G-GAMING 329 mm y Meshify C 315 mm con fans delanteros;
+  incompatible por R04.largo, exceso 14 mm (F08/F13).
+- **D01-S10-omitted-length**: derivado explícito con largo omitido intencionalmente;
+  requiere_verificacion, sin fallos conocidos. No es otra PC real.
+
+Los fixtures son extractos locales versionados de HARDWARE_DEMO, sin consultas web
+en runtime. Cada caso conserva diez comprobaciones sin implementar; la otra
+subregla queda unknown en S08/S10 y ambas quedan unknown en D01. Ningún ejemplo
+declara una PC compatible completa. Las subreglas no aprueban toda R04 o R06.
+
+Entrada pública Python: `evaluate(ResolvedConfiguration(...))` en
+`upgradejusto.compatibility.evaluation`, con modelos en `models.py`. Datos ya
+resueltos, referencias de evidencia y revisiones obligatorias; mediciones/tipos
+estrictos, modelos congelados con tuplas. Errores de entrada son ValidationError/
+ValueError separados del veredicto. Unknown/conflict no se convierten en cero o
+compatibilidad; evidencia vacía no fundamenta pass/fail.
+
+Inventario interno fijo `cu05-28.1`, 12 comprobaciones R01–R10. El consumidor no
+puede elegir reglas ni enviar resultados preaprobados. Solo se implementaron largo
+GPU y ruta de adaptador de dos PCIe8 independientes; rutas nativas/otros requisitos
+no soportados quedan pendientes. Potencia, EPS/ATX, espacio lateral y demás reglas
+siguen pendientes. No hay endpoint CU05, resolución de usuario/pc_id/catálogo,
+sustitución ni plan. Rama compatible del agregador probada solo con inventario
+sintético interno, nunca habilitada en los ejemplos parciales.
+
+Las verificaciones de etapa 28 usaron pytest completo, Ruff y demo sin servidor
+HTTP adicional, y `uv sync --check --locked --group dev --python 3.12.13 --no-python-downloads`.
+Detalle del contrato en [CU05](../docs/specs/CU05-compatibilidad.md) y resultados en
+la [bitácora28](../docs/ai-log/2026-10-20-etapa28-dominio-compatibilidad.md).
 
 ## Límites y mantenimiento
 
