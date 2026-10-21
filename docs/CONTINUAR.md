@@ -10,6 +10,12 @@
 - 31c revisa privacidad y registra29/30/31b en commits locales, sin push ni32.
   Identidad Git existente conservada por autorización expresa; no se cambió autoría.
 
+Snapshot integrado creado: `347a87a6f5f8f0641b4dbeec8df2b14bf32b16c2` (64 archivos,
+documentación29/30 y catálogo web31b/preparación PG saneados). El commit de cierre
+documental posterior registra este hash previo; su propio hash solo va en la entrega.
+Verificación nueva31c:118 pytest,12 Vitest,2 Playwright, tipos/lint/build/Ruff/sync0;
+incidencia de captura PowerShell y warning de caché documentados, no ocultados.
+
 ## Ejecución y evidencia
 
 [README](../README.md) para arranque/checks; [SPRINT31B](SPRINT31B.md) y

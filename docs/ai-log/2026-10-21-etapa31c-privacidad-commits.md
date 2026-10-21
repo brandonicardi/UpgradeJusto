@@ -94,7 +94,34 @@ Los118/12/2 de la bitácora31b siguen rotulados históricos, no sustituyen esta 
 
 Staging por rutas literales explícitas; revisión completa del índice, nombres/stat/check,
 contenido, privacidad y exclusiones antes de cada commit. Sin saltar hooks.
-Hashes y resultado final se completan tras crear el primer commit.
+## Commits y comprobaciones de conservación
+
+Primer commit creado: `347a87a6f5f8f0641b4dbeec8df2b14bf32b16c2`,
+`feat: conservar avances 29-31b saneados y catalogo web; PG solo preparado`.
+64 archivos seleccionados por nombre literal; selección cotejada con todos los
+cambios revisados. Se examinaron name-status/stat/check y contenido del índice:
+comparación íntegra de64 blobs con el texto de trabajo revisado, patrones sobre
+todos sus bytes y recorrido estructural de valores de ambos locks. Sin categorías
+de privacidad coincidentes en el contenido actual. No solo escaneo de diff.
+
+El primer gate local de locks fue demasiado restrictivo al tratar URLs públicas de
+funding como registros: se clasificaron como metadatos públicos (no resolución de
+paquetes), manteniendo allowlist estricta de registros y rechazo de credenciales.
+No fue hallazgo de secreto ni cambio del lock. El gate corregido pasó antes de commit.
+
+Después del primer commit: índice/árbol versionable limpios,79 archivos seguidos;
+ningún candidato no ignorado quedó sin clasificar.14 rutas representativas de
+exclusión comprobadas individualmente con check-ignore; ninguna categoría excluida
+seguida.72 enlaces Markdown relativos sin destinos faltantes; ejemplo de handoff
+revisado como documentación, no configuración ejecutada. Motor/hardware/specCU05 y
+pin Python sin diff frente HEAD inicial. Sin cambios rutinarios de dependencias.
+
+El segundo commit solo modifica CONTINUAR y esta bitácora para el cierre justificado.
+Se revisa su índice completo y se comprueban estado/log/rango final tras crearlo;
+el hash definitivo se entrega fuera de este archivo, sin autorreferencia ni bucles.
+No hubo remoto/push; los3 blobs históricos con rutas siguen alcanzables y requieren
+decisión específica antes de publicar. Ninguna revisión31c de memoria o material privado.
+Los originales/escáneres/manifest local permanecen ignorados, no se agregaron al Git.
 
 ## Pendientes y límite de salida
 
