@@ -34,3 +34,13 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+
+# Etapa 29: ejecutables, memoria y respaldos locales, nunca versionados.
+/.tools/
+/.local/
+
+# Sprint31b: salidas locales de TypeScript y navegador.
+*.tsbuildinfo
+/frontend/playwright-report/
+/frontend/test-results/
+/frontend/next-env.d.ts

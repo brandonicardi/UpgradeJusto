@@ -1,53 +1,39 @@
-# Continuar — dominio parcial de etapa 28
+# Continuar — cierre local31c
 
-2026-10-20. Incremento interno autorizado y ejecutado: contrato estricto de datos
-resueltos, agregación conservadora e inventario fijo de 12 comprobaciones R01–R10;
-solo R04.largo y R06.ramales_adaptador implementadas. S08/S10 dan incompatible por
-el fallo documentado de cada subregla; derivado con largo omitido da requiere_verificacion.
-Los tres conservan diez pendientes y ninguno es compatible global. **66 pruebas**
-incluyendo salud, Ruff, demo y sync --check aprobados. Sin dependencias nuevas,
-cambios de pyproject/lock/pin, servidor HTTP adicional ni endpoint CU05.
+## Estado vigente (2026-10-21)
 
-- [Contrato y alcance ejecutable](specs/CU05-compatibilidad.md#8-incremento-interno-ejecutado--etapa-28).
-- [Comandos de backend/demo](../backend/README.md) y [bitácora28](ai-log/2026-10-20-etapa28-dominio-compatibilidad.md).
-- La autorización no acepta todas las políticas/selección del 25 ni termina CU05/demo.
-- **Próximo incremento pendiente de definición:** elegir la siguiente comprobación
-  necesaria, sus datos/evidencia y criterio de aceptación antes de implementarla.
-  No ampliar ahora a sustituciones/planes, persistencia o API. Conservar los diez CU
-  y seis módulos y separar restricciones técnicas de preferencias/políticas aún propuestas.
+- CU04 funciona: catálogo API/web real,14 piezas/seis categorías, dataset
+  `sprint31b-a-v1`, filtros/paginación/detalle/fuentes/desconocidos.
+- CU01: solo preparación PostgreSQL/Alembic/seed; **sin PostgreSQL real ni auth**.
+- CU03 y CU05 web/R01 pendientes por esas dependencias. Motor28 parcial conservado;
+  dos subreglas GPU no habilitan compatibilidad global. Los diez CU siguen como meta.
+- 31c revisa privacidad y registra29/30/31b en commits locales, sin push ni32.
+  Identidad Git existente conservada por autorización expresa; no se cambió autoría.
 
-## Base backend conservada de etapa 27
+## Ejecución y evidencia
 
-2026-10-20, etapa 27. Base mínima FastAPI instalada y verificada: `/health` responde HTTP 200 con JSON exacto `{"status":"ok"}`; importación, un test pytest y Ruff lint/formato aprobados, entorno sincronizado con `uv.lock`. Servidor propio de esa verificación detenido. No había dominio de compatibilidad en esa etapa; hoy solo existe el incremento parcial arriba, sin frontend, BD ni IA. Salud no declara esas conexiones. Se conservaron Python 3.12.13, uv 0.11.16, `.venv` y el pin.
+[README](../README.md) para arranque/checks; [SPRINT31B](SPRINT31B.md) y
+[bitácora31b](ai-log/2026-10-20-sprint31b-web.md) para resultados históricos118/12/2.
+Las comprobaciones nuevas31c y commits previos al cierre se registran en
+[bitácora31c](ai-log/2026-10-21-etapa31c-privacidad-commits.md), no se confunden con31b.
+Contratos: [CU04](specs/CU04-catalogo.md), [CU01](specs/CU01-cuentas.md),
+[CU05 parcial](specs/CU05-compatibilidad.md). Política de desarrollo:
+[ORQUESTACION](ORQUESTACION.md). No repetir pilotos29/30 o recuperación de memoria.
 
-- [Arranque y comandos](../backend/README.md), siempre desde `backend/`, con códigos de salida comprobados.
-- [Registro etapa 27](ai-log/2026-10-20-etapa27-base-backend.md): resolución, verificaciones y Git local. Sin publicación.
-- Aceptación acotada: backend de salud, FastAPI/Pydantic/Uvicorn, pytest/Ruff/httpx2 y lockfile. No acepta el resto del stack ni las políticas de hardware. Python 3.12.15 requiere resolver mantenimiento antes de exposición/despliegue.
-- El incremento interno definido después del plan26 es solo el de etapa28 descrito arriba. Lo que siga requiere definición y aceptación; mantener dominio independiente de HTTP/BD/LLM y los diez CU/seis módulos.
+## Privacidad y conservación
 
-## Estado documental conservado de etapa 25
+Documentos actuales saneados; configuración personal, memoria, credenciales,
+dependencias y artefactos permanecen ignorados. Originales documentales concretos
+se conservan localmente. No se abrieron chats, cuentas, memoria o bases de sesiones.
+El historial alcanzable previo conserva rutas locales en bitácoras25/27/28:
+sanear HEAD **no borra blobs anteriores**. No se reescribió historia. El repositorio
+no se declara listo para publicar; requiere revisión/decisión específica del
+historial y del destino/visibilidad antes de cualquier futuro push.
 
-La selección técnica sigue parcial; los siguientes faltantes no fueron resueltos ni re-investigados al preparar el backend.
+## Próximo punto exacto (no ejecutar automáticamente)
 
-- [Hardware](HARDWARE_DEMO.md): piezas P01–P18, fuentes F01–F25, conectores, precios históricos y visuales.
-- [CU05](specs/CU05-compatibilidad.md): contrato/reglas propuestos y escenarios S01–S18 con estado exacto.
-- [Registro](ai-log/2026-10-20-etapa25-curacion-hardware.md): correcciones, comprobaciones y límites.
-
-Aceptado previamente: cobertura/veredictos explícitos, RAM completa y evaluaciones versionadas. Las bases/piezas, P18 como reemplazo del candidato P17, prioridad editorial RM750e y políticas nuevas **siguen propuestas**, no stack aceptado ni implementación.
-
-## Pendientes de hardware antes de cerrar motor/demo
-
-Cerrar solo los faltantes que impiden positivos, o sustituir candidatos con evidencia mejor:
-
-1. R05: cota de demanda DC por salida/total y reserva/transitorios justificados para conjuntos resultantes; los314,32/474,32 W quedan excluidos. Revisar prioridad del manual RPS0215 sin inventar confirmación del fabricante.
-2. R04/R06/R07: H GPU/cable de Meshify, cuerpo/offset/tramo/curvatura de P15 en Pop2, colisiones/shroud y espacio/ruta efectiva de cables de fuente. Siete slots y largos nominales no cierran envolventes.
-3. R08/R10: interferencias P12 con P03/P18/RAM, evidencia térmica P01 y encaje P14. Noctua devolvió429; no se obtuvo veredicto cooler/placa. Completar también evidencia R03 de negociación aplicable.
-4. S06 gabinete: elegir candidato que conserve dos USB-A, reset y audio/mic de B o documentar dependencias reales. Pop2+CP14-E no conserva todo; no aprobarlo silenciosamente.
-
-Sustentados documentalmente: fallo CX550/adaptador P15 por un solo ramal, largo TUF329>315, requisito BIOS P2.30 y faltante al omitirlo, orden inverso bloqueado, costos históricos. S06 falla conservación funcional bajo R10 propuesto; su sustituto positivo sigue abierto. **S01–S05/S07/S09/S15 continúan abiertos**; todavía no hay dos bases ni seis sustituciones positivas cerradas. No declarar válida la etapa fuente→GPU solo porque el orden elimina un fallo.
-
-Revisión futura R10/S06: separar restricciones físicas/eléctricas de la política propuesta de conservar funciones. Perder un puerto/reset no demuestra por sí solo imposibilidad de montaje; no ocultar la pérdida ni aceptar esa política globalmente. No se modificaron HARDWARE_DEMO ni CU05 en etapa 27. Resolver evidencia con condiciones de validez, sin exigir mediciones físicas universales ni dar por conocidas cotas ausentes.
-
-Puede avanzar en paralelo con futura base técnica acordada: permisos/selección de imágenes, cotizaciones faltantes de pasta/P14/P18/gabinete. Visuales no bloquean backend; precio incompleto sí impide afirmar presupuesto de una alternativa. Mantener ofertas del24 y agregar nuevas observaciones, nunca reescribirlas.
-
-No iniciar implementación por esta lista. Primero revisar propuestas y acordar el siguiente incremento verificable; sin repetir auditoría general, instalaciones o preparación de integraciones.
+Revisar el resultado31c antes de32. PostgreSQL local exclusivo para desarrollo y
+pruebas sigue siendo requisito pendiente: migraciones/seed dos veces/reinicio y
+pruebas reales antes de cerrar CU01 y avanzar CU03/CU05 web. Sin instalar PG/OpenSpec,
+actualizar dependencias o abrir nuevas funciones en31c. Mantenimiento Python3.12.15
+y ESLint pendiente; no actualizar automáticamente. Sin remoto/publicación autorizados.

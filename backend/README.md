@@ -19,7 +19,8 @@ Las dependencias directas se fijan en `pyproject.toml` y las transitivas, artefa
 y hashes en `uv.lock`, generado por uv. No editar el lockfile a mano. El directorio
 `upgradejusto/api` es entrada HTTP y `main.py` compone la app. Etapa 28 incorpora
 `upgradejusto/compatibility` como dominio parcial independiente de HTTP/BD/LLM/red;
-no hay repositorios o servicios de persistencia. No se crearon seis módulos vacíos.
+en28 no había persistencia.31b agregó catálogo readonly y preparación PG separada,
+descritos más abajo. No se crearon seis módulos vacíos.
 
 ## Instalación desde el lockfile
 
@@ -143,6 +144,91 @@ Las verificaciones de etapa 28 usaron pytest completo, Ruff y demo sin servidor
 HTTP adicional, y `uv sync --check --locked --group dev --python 3.12.13 --no-python-downloads`.
 Detalle del contrato en [CU05](../docs/specs/CU05-compatibilidad.md) y resultados en
 la [bitácora28](../docs/ai-log/2026-10-20-etapa28-dominio-compatibilidad.md).
+
+## CU04 — Sprint31b A readonly
+
+Contrato implementado: `GET /api/catalog/components` y
+`GET /api/catalog/components/{component_id}`. Router `api/catalog.py` → servicio
+`catalog/service.py` → repositorio `catalog/repository.py` → extracto curado
+`catalog/dataset.py`, versión **sprint31b-a-v1**. No es una BD en memoria ni una
+prueba de PostgreSQL: es el dataset readonly autorizado para A, sin escrituras.
+
+Incluye 14 piezas P01–P10 y P15–P18 de HARDWARE_DEMO (líneas 9–31, 52–82,
+84–114 para atributos y 178–194 para precios). Solo categorías `cpu`,
+`motherboard`, `ram`, `gpu`, `psu`, `case`; excluye SSD, cooler, fans y adaptador.
+Los atributos son strings o null; BIOS instalada no se deduce del catálogo.
+Se conserva el conflicto F10/F11 de cables P08 como nota y cantidad desconocida.
+No calcula compatibilidad, presupuestos ni rendimiento.
+
+Lista: `{dataset_version,items,total,page,page_size}`. Filtros opcionales
+`category` y `q` (substring sobre nombre, strip, case-insensitive, máximo 100)
+combinados con AND antes de paginar. Orden lexicográfico por ID. `page` 1–10000
+(default 1); `page_size` 1–50 (default 12). Fuera de rango de resultados devuelve
+lista vacía y total conservado. Parámetros inválidos: 422 FastAPI.
+
+Detalle: el mismo componente de lista, sin envoltorio:
+`{id,category,name,attributes,sources,prices,image}`. No encontrado: 404
+`{"detail":"Component not found"}`. Referencias Fxx con URL; imágenes siempre null
+(frontend debe mostrar «Imagen no disponible»). Precios no documentados: `[]`.
+Importes decimales string positivos en ARS, fecha documentada `2026-10-20` y
+procedencia que conserva URL, observaciones y condiciones faltantes. Son históricos,
+no ofertas actuales ni garantía de stock. O05 conserva especial y tarjeta separados;
+O04 es precio por módulo, no kit. No se suponen envío ni cargos gratuitos.
+
+Las pruebas `tests/test_catalog.py` usan HTTP TestClient con el repositorio real
+curado, sin mocks. Cubren filtros AND, límites/422, recorrido sin duplicados,
+vacíos, detalle/404, readonly, desconocidos, procedencia y precios históricos.
+Ejecutar pytest, Ruff check, Ruff format --check y uv sync --check indicados arriba
+y en etapa 28, por separado. No requiere servidor PostgreSQL; su persistencia no
+está implementada ni verificada en A. No se implementaron CU01, CU03 o nuevas
+reglas CU05. Health y motor28 conservan su alcance.
+
+## Preparación Sprint31b B — bloqueado, no operativo
+
+Se prepararon `upgradejusto/persistence/`, `alembic.ini` y `alembic/` únicamente
+para el catálogo. No hay autenticación, usuarios, sesiones, endpoints CU01,
+propiedad CU03 ni ampliaciones CU05/R01. La API A continúa con su repositorio
+readonly y no importa ni conecta esta infraestructura. A quedó verificado en31b
+con códigos corroborados; B solo tiene comprobaciones unitarias/offline, no PG real.
+
+`database.build_engine` valida exclusivamente `postgresql+psycopg`, host y base
+explícitos. Importar no consulta variables ni crea engines/conexiones; construir
+el engine tampoco conecta. No hay fallback ni sustituto SQLite/memoria.
+Solo ejecutar Alembic o el CLI de seed lee `DATABASE_URL` del entorno del proceso;
+no se cargan archivos `.env`. No guardar ni imprimir la URL o credenciales.
+
+Migración inicial `31b_a_001`: tablas `catalog_datasets` y `catalog_components`,
+clave compuesta versión/ID, FK, categorías restringidas, atributos/procedencia/
+precios JSONB e imagen null. Conserva importes como strings y desconocidos null.
+No ejecuta `create_all` en arranque. El downgrade destructivo está bloqueado:
+requiere una decisión explícita y una migración revisada, no borrar datos.
+
+Seed `python -m upgradejusto.persistence.seed`: toma exactamente el dataset A;
+una transacción inserta faltantes con `ON CONFLICT DO NOTHING`, sin UPDATE,
+DELETE ni TRUNCATE. Verifica que claves ya existentes tengan el mismo contenido;
+una divergencia aborta y revierte las inserciones de ese intento. Conserva otras
+versiones/piezas; no corrige datos existentes silenciosamente. Códigos previstos
+del CLI: 0 snapshot comprobado, 1 fallo, 2 URL no configurada; no son resultados
+ejecutados en este entorno.
+
+**No ejecutar contra un servidor sin autorización.** Cuando Build disponga de
+PostgreSQL utilizable autorizado y configure el entorno sin revelar secretos,
+los comandos preparados desde `backend/` son, por separado:
+
+```powershell
+& .\.venv\Scripts\python.exe -m alembic -c alembic.ini upgrade head
+if ($LASTEXITCODE -ne 0) { throw 'Falló la migración PostgreSQL' }
+& .\.venv\Scripts\python.exe -m upgradejusto.persistence.seed
+if ($LASTEXITCODE -ne 0) { throw 'Falló el seed PostgreSQL' }
+```
+
+Después deberán comprobar migración y seed reales dos veces, preservación de
+datos ajenos y divergentes, transacción/rollback y persistencia tras reinicio.
+No se han ejecutado ni verificado aquí. `tests/test_persistence_preparation.py`
+solo valida configuración, engine lazy sin conexión, snapshot, colisiones en
+función pura y compilación SQL PostgreSQL/Alembic offline. Usa un bloqueo de
+conexión para detectar accesos accidentales; no simula integración PostgreSQL.
+Incluso si esos tests pasan, B sigue bloqueado y CU01 no queda satisfecho.
 
 ## Límites y mantenimiento
 

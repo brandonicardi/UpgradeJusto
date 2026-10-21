@@ -6,8 +6,9 @@ y Git local. No acepta todo el stack ni las políticas/selección de hardware.
 
 ## Estado previo y base documental
 
-- Raíz comprobada `D:\Proyectos\UpgradeJusto-CursoIA`; ningún marcador Git en raíz,
-  `D:\Proyectos` o `D:\`; `git rev-parse --show-toplevel` devolvió 128 (sin repo).
+- Raíz del proyecto comprobada; ningún marcador Git en raíz o sus ascendientes;
+  `git rev-parse --show-toplevel` devolvió 128 (sin repo). Rutas saneadas en31c;
+  estos son resultados históricos, no una reejecución.
 - Pin y ejecución directa confirmaron Python 3.12.13 en `backend/.venv/Scripts/python.exe`;
   uv existente 0.11.16. No se recreó entorno, actualizó pin/intérprete/uv ni instalaron
   paquetes globales. La ruta base del intérprete observada usa el enlace administrado

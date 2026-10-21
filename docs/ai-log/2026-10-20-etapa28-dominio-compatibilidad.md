@@ -6,7 +6,7 @@ en etapa25 ni cerrar demo. Se mantiene la fuente en alcance; potencia pendiente.
 
 ## Estado y decisiones de este incremento
 
-- Raíz comprobada `D:\Proyectos\UpgradeJusto-CursoIA`, rama `codex/base-backend`.
+- Raíz del proyecto comprobada, rama `codex/base-backend` (ruta saneada en31c).
   Commits previos `388818d` y `c25ff31` conservados. Al iniciar no había cambios
   seguidos/preparados; los cuatro documentos locales AGENTES/ENTORNO/MCP/PERMISOS
   estaban sin seguimiento y no se modificaron ni seleccionaron.

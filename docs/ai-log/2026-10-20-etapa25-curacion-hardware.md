@@ -4,7 +4,7 @@ Fecha: 2026-10-20. Alcance: documentación de proyecto; sin código de aplicaci�
 
 ## Trabajo realizado
 
-- Se confirmó `D:\Proyectos\UpgradeJusto-CursoIA`, se leyó AGENTS.md y se comprobó inexistencia de los cuatro documentos nuevos antes de crearlos. Se retomó la propuesta24 de esta sesión; no se consultaron carpetas privadas/históricos externos.
+- Se confirmó la raíz del proyecto, se leyó AGENTS.md y se comprobó inexistencia de los cuatro documentos nuevos antes de crearlos. Se retomó la propuesta24; no se consultaron carpetas privadas/históricos externos. Ruta saneada en31c sin reejecutar esta etapa.
 - Investigación pública dirigida: manuales ASRock B550 Pro4/B550M Pro4/B550M Steel Legend, fichas CX550/RM750e, manual RMe2025, FAQ ASUS adaptador, PRIME5070, ficha exacta Pop2 Black Solid, Meshify, CP14-E y guía de cable Corsair. No se repitió curación completa ni se refrescaron precios del24.
 - PDFs ASRock y Fractal consultados en memoria con PowerShell/.NET (sin guardar PDFs/scripts). Se extrajo texto seleccionado, no se afirma revisión visual total. Meshify PDF no entregó texto utilizable; flujo binario/no textual de extracción Pop2 no se usó como evidencia. Especificaciones de las páginas Fractal se inspeccionaron también en HTML porque Markdown omitía tablas.
 - ASRock HTML devolvió wrapper Incapsula pese a HTTP200; listas CPU directas sin contenido útil. Se conservó evidencia del índice oficial del24 distinguiéndola de revalidación. Noctua motherboard P03/P18 devolvió429; no se inventó compatibilidad obtenida.
