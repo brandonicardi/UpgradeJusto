@@ -17,6 +17,8 @@ class Closed(BaseModel):
 class CatalogInput(Closed):
     q: Annotated[str, StringConstraints(strict=True, max_length=100)] = ""
     category: Category | None = None
+    page: Annotated[int, Field(strict=True, ge=1)] = 1
+    page_size: Annotated[int, Field(strict=True, ge=1, le=20)] = 12
 
 
 class PCInput(Closed):
@@ -58,4 +60,8 @@ INPUTS = {
 def validate_call(name, arguments):
     if name not in INPUTS:
         raise ValueError("Unknown tool")
+    if name in {"evaluate_pc", "simulate_pc", "preview_recommendations"}:
+        from .tower_inputs import validate_selection
+
+        return validate_selection(name, arguments)
     return INPUTS[name].model_validate(arguments)

@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
+from .tower_context import TurnContext
+
 
 class Input(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
@@ -23,3 +25,4 @@ class MessageCreate(BaseModel):
         ),
     ]
     client_request_id: UUID
+    context: TurnContext | None = None

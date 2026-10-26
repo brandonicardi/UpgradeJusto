@@ -12,6 +12,25 @@ Aceptación: herramientas con torre/declarados/propiedad y streaming/UUID/cancel
 cuotas37, pocas llamadas reales justificadas; no atribuir mocks a Groq real.
 No es cierre38; resultados inferiores conservados para sus incrementos.
 
+### Contrato torre aceptado antes de implementación
+
+[Asistente38](../../backend/INTEGRAL38_ASSISTANT_CONTRACT.md) conserva exactamente
+`catalog_search/get_pc/evaluate_pc/simulate_pc/preview_recommendations/get_plan/
+search_public_docs`, todas de lectura. No guardar/confirmar/compartir por argumento
+del modelo. Nueva proyección2 discrimina torre sin truncar líneas/cobertura; legacy
+mantiene proyección1 y valores históricos. Overflow explícito obliga a interfaz
+completa, nunca recorte parcial con verde. Catálogo completo paginado y lookup porID
+independiente de página; sin JSON técnico crudo como instrucciones.
+Contexto opcional por turno, cerrado/versionado, obtiene PC propia/revisión en servidor
+antes de reservar generación. No notas, permisos ni snapshot autoritativo del cliente;
+contexto tratado como datos, no mensaje de autoridad. Conversaciones conservan texto,
+respuesta/citas/estados persistentes; selección por turno no se promete persistida.
+Sesión/conversación/propiedad se revalidan también en MCP; conservar cotas37,
+cancelación/cleanup/UUID idempotente y siete nombres sin dispatcher alternativo.
+Lectura de planes torre espera interfaz real del autor y gate propio: no simular
+esa rama ni adaptar snapshot privado por conjetura. Contrato aceptado no acredita
+implementación de siete ramas, proveedor real ni ampliación de cuotas/timeout.
+
 ## Estado vigente24/10 — FUNCIONAL LOCAL VERIFICADO
 
 Revisor independiente FINAL: incremental APROBADO sin bloqueantes. CierreBuild

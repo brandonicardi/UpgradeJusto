@@ -100,6 +100,9 @@ class AssistantService:
                 code = (
                     "round_limit"
                     if isinstance(exc, RoundLimit)
+                    else "tool_output_limit_full_api_required"
+                    if isinstance(exc, ToolFailure)
+                    and str(exc) == "tool_output_limit_full_api_required"
                     else "generation_failed"
                 )
                 try:

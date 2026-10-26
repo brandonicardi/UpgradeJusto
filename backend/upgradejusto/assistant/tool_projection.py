@@ -163,6 +163,15 @@ def project_tool_result(name, result):
         raise ToolFailure("unknown_tool")
     try:
         raw = _payload(result)
+        if "configuration_schema" in raw:
+            if (
+                type(raw["configuration_schema"]) is not int
+                or raw["configuration_schema"] != 2
+            ):
+                raise ToolFailure("invalid_tool_output")
+            from .tower_projection import project_tower
+
+            return project_tower(name, raw)
         # Validate as JSON transport: strict domain tuples legitimately arrive as
         # JSON arrays. This does not enable Python scalar coercions/strict=False.
         data = SCHEMAS[name].model_validate_json(_json(raw)).model_dump(mode="json")
@@ -188,6 +197,14 @@ def project_tool_result(name, result):
             for citation in data["citations"]:
                 _url(citation["url"], canonical=True)
             citations = tuple(data["citations"])
+        elif name == "catalog_search":
+            for component in data["items"]:
+                component["attributes"].pop("basic_stock_v1", None)
+                component["attributes"].pop("tower_stock_v1", None)
+                for source in component["sources"]:
+                    _url(source["url"])
+                for offer in component.get("offers", []):
+                    _url(offer["source_url"])
         envelope = {"projection_version": "1", "tool": name, "data": data}
         if evidence:
             envelope.update(evidence=evidence, source_urls=urls)

@@ -2,7 +2,7 @@
 
 import os
 from functools import wraps
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from mcp.server import MCPServer
@@ -14,18 +14,19 @@ from upgradejusto.auth.service import AuthService
 from upgradejusto.catalog.models import Category
 from upgradejusto.catalog.postgres import PostgresCatalogRepository
 from upgradejusto.catalog.service import CatalogService
-from upgradejusto.compatibility.application import CompatibilityService
 from upgradejusto.compatibility.http_models import EvaluateRequest, SimulateRequest
+from upgradejusto.compatibility.tower_http_models import TowerSimulationDTO
 from upgradejusto.pcs.repository import PCRepository
 from upgradejusto.pcs.service import PCService
 from upgradejusto.persistence.runtime import runtime_engine
-from upgradejusto.plans.repository import PlanRepository
-from upgradejusto.plans.service import PlanService
 from upgradejusto.recommendations.models import PreviewRequest
-from upgradejusto.recommendations.service import RecommendationService
+from upgradejusto.recommendations.tower_models import TowerPreviewRequest
 
 from .middleware import validate_raw_tool_call
 from .repository import Repository
+from .tool_inputs import validate_call
+from .tower_plans import read_owned_plan
+from .tower_tools import TowerReadTools
 
 
 def safe_tool(function):
@@ -50,6 +51,7 @@ def build_server():
     auth = AuthService(AuthRepository(engine))
     catalog = CatalogService(PostgresCatalogRepository())
     pcs = PCService(PCRepository(engine), catalog)
+    tower_tools = TowerReadTools(engine, catalog, pcs)
     server = MCPServer(
         "UpgradeJusto read-only tools", middleware=[validate_raw_tool_call]
     )
@@ -64,58 +66,81 @@ def build_server():
     def catalog_search(
         q: Annotated[str, StringConstraints(max_length=100)] = "",
         category: Category | None = None,
+        page: Annotated[int, Field(strict=True, ge=1)] = 1,
+        page_size: Annotated[int, Field(strict=True, ge=1, le=20)] = 12,
     ) -> dict[str, Any]:
         """Buscar catálogo curado. No inventa precios ni atributos."""
         owner()
         return catalog.list_components(
-            category=category, q=q, page=1, page_size=12
+            category=category, q=q, page=page, page_size=page_size
         ).model_dump(mode="json")
 
     @server.tool(structured_output=True)
     @safe_tool
     def get_pc(pc_id: UUID) -> dict[str, Any]:
         """Obtener exclusivamente una PC de la sesión actual."""
-        return pcs.get(owner(), pc_id).model_dump(mode="json")
+        return tower_tools.get_pc(owner(), pc_id)
 
     @server.tool(structured_output=True)
     @safe_tool
-    def evaluate_pc(pc_id: UUID, data: EvaluateRequest) -> dict[str, Any]:
+    def evaluate_pc(
+        pc_id: UUID, data: EvaluateRequest, configuration_schema: Literal[1, 2] = 1
+    ) -> dict[str, Any]:
         """Evaluar con motor determinístico, conserva faltantes y cobertura."""
-        return (
-            CompatibilityService(pcs, catalog)
-            .run(owner(), pc_id, data)
-            .model_dump(mode="json")
+        identity = owner()
+        selection = validate_call(
+            "evaluate_pc",
+            {
+                "pc_id": pc_id,
+                "data": data.model_dump(exclude_unset=True),
+                "configuration_schema": configuration_schema,
+            },
         )
+        return tower_tools.evaluate(identity, selection)
 
     @server.tool(structured_output=True)
     @safe_tool
-    def simulate_pc(pc_id: UUID, data: SimulateRequest) -> dict[str, Any]:
+    def simulate_pc(
+        pc_id: UUID,
+        data: SimulateRequest | TowerSimulationDTO,
+        configuration_schema: Literal[1, 2] = 1,
+    ) -> dict[str, Any]:
         """Sustitución efímera: RAM reemplaza conjunto. No guarda la PC."""
-        return (
-            CompatibilityService(pcs, catalog)
-            .run(owner(), pc_id, data)
-            .model_dump(mode="json")
+        identity = owner()
+        selection = validate_call(
+            "simulate_pc",
+            {
+                "pc_id": pc_id,
+                "data": data.model_dump(exclude_unset=True),
+                "configuration_schema": configuration_schema,
+            },
         )
+        return tower_tools.evaluate(identity, selection)
 
     @server.tool(structured_output=True)
     @safe_tool
-    def preview_recommendations(pc_id: UUID, data: PreviewRequest) -> dict[str, Any]:
+    def preview_recommendations(
+        pc_id: UUID,
+        data: PreviewRequest | TowerPreviewRequest,
+        configuration_schema: Literal[1, 2] = 1,
+    ) -> dict[str, Any]:
         """Comparar alternativas explícitas con presupuesto ARS, sin persistir."""
-        return (
-            RecommendationService(pcs, catalog)
-            .preview(owner(), pc_id, data)
-            .model_dump(mode="json")
+        identity = owner()
+        selection = validate_call(
+            "preview_recommendations",
+            {
+                "pc_id": pc_id,
+                "data": data.model_dump(exclude_unset=True),
+                "configuration_schema": configuration_schema,
+            },
         )
+        return tower_tools.preview(identity, selection)
 
     @server.tool(structured_output=True)
     @safe_tool
     def get_plan(plan_id: UUID) -> dict[str, Any]:
         """Obtener un plan propio; no crea, edita ni comparte."""
-        return (
-            PlanService(PlanRepository(engine), catalog)
-            .get(owner(), plan_id)
-            .model_dump(mode="json")
-        )
+        return read_owned_plan(engine, catalog, owner(), plan_id)
 
     @server.tool(structured_output=True)
     @safe_tool

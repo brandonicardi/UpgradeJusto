@@ -10,6 +10,7 @@ from upgradejusto.auth.provider_budget import ProviderBudget
 
 from .tables import conversations as c
 from .tables import messages as m
+from .tower_context import TurnHistory, load_context
 
 
 def now():
@@ -94,6 +95,12 @@ class Repository:
                 raise HTTPException(
                     409, {"code": "duplicate_request", "message_id": str(previous)}
                 )
+            context_request = getattr(data, "context", None)
+            context_snapshot = (
+                load_context(self.engine, owner, context_request)
+                if context_request is not None
+                else None
+            )
             self.idle(conn, identity)
             sequence = conn.scalar(
                 sa.select(sa.func.coalesce(sa.func.max(m.c.sequence), 0)).where(
@@ -124,6 +131,8 @@ class Repository:
             history = (
                 self.history_in_transaction(conn, identity) if include_history else None
             )
+            if include_history and context_snapshot is not None:
+                history = TurnHistory(history, context_snapshot)
         return (assistant_id, history) if include_history else assistant_id
 
     def release_provider(self, owner, message_id):
