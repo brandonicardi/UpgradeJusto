@@ -1,2 +1,2 @@
 "use client";
-export default function ErrorPage({ reset }: { reset: () => void }) { return <section role="alert"><h1 className="text-2xl font-bold">No se pudo mostrar esta página</h1><p className="my-4">Ocurrió un error. No se modificó ningún dato.</p><button onClick={reset}>Reintentar</button></section>; }
+export default function ErrorPage({ reset }: { reset: () => void }) { return <section role="alert" className="surface empty-state"><span className="badge badge-warning">! Algo no salió como esperábamos</span><h1>No se pudo mostrar esta página</h1><p className="muted">Podés volver a cargarla. Si estabas guardando un cambio, consultá su estado antes de reenviarlo.</p><button onClick={reset}>Reintentar</button></section>; }

@@ -1,2 +1,2 @@
 import Link from "next/link";
-export default function NotFound() { return <section><h1 className="text-3xl font-bold">Componente no encontrado</h1><p className="my-4">No existe un componente con ese identificador.</p><Link href="/catalog">Volver al catálogo</Link></section>; }
+export default function NotFound() { return <section className="surface empty-state"><span className="badge">404 · No disponible</span><h1>Componente no encontrado</h1><p className="muted">Esta pieza o página no está disponible. Buscá una referencia en el catálogo o retomá tu configuración.</p><Link href="/catalog">Volver al catálogo →</Link><Link href="/pcs">Ir a mi próxima mejora</Link></section>; }

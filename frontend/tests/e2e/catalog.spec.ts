@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 import type { CatalogPage } from "../../lib/catalog";
+import { productName } from "../../lib/presentation";
 
 const api = "http://127.0.0.1:8000/api/catalog/components";
+test.use({ trace: "off", screenshot: "off", video: "off" });
 
 test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ page, request }) => {
   const response = await request.get(`${api}?page_size=50`);
@@ -11,6 +13,8 @@ test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ pa
   await page.goto("/");
   await expect(page).toHaveURL(/\/catalog$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Catálogo de componentes");
+  await expect(page.getByRole("status")).toContainText("Datos curados del catálogo");
+  await expect(page.getByRole("status")).not.toContainText(data.dataset_version);
   await page.getByLabel("Por página").selectOption("6");
   await page.getByRole("button", { name: "Aplicar filtros" }).click();
   await expect(page.locator("article")).toHaveCount(6);
@@ -28,8 +32,12 @@ test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ pa
   await expect(page.locator("article")).toHaveCount(expected.items.length);
   await expect(page).not.toHaveURL(/page=2/);
   await page.getByRole("link", { name: piece.name, exact: true }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(piece.name);
-  await expect(page.getByText("Imagen no disponible", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: piece.name })).toHaveText(productName(piece.name).title);
+  await page.getByText("Identificación y versión del catálogo", { exact: true }).click();
+  await expect(page.getByText(`Versión técnica del dataset: ${data.dataset_version}`, { exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: /^Ilustración de categoría:/ })).toBeVisible();
+  await page.getByText("Precios históricos y procedencia", { exact: true }).click();
+  await page.getByText("Fuentes, licencias y revisiones", { exact: true }).click();
   for (const price of piece.prices) {
     await expect(page.getByText(`${price.amount} ${price.currency}`, { exact: true })).toBeVisible();
     await expect(page.locator(`time[datetime="${price.date}"]`).first()).toBeVisible();
@@ -40,11 +48,12 @@ test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ pa
   const unknown = data.items.find(item => Object.values(item.attributes).includes(null));
   expect(unknown, "Dataset debe exponer desconocidos documentados").toBeTruthy();
   await page.goto(`/catalog/${unknown!.id}`);
+  await page.getByText("Atributos documentados completos", { exact: true }).click();
   await expect(page.getByText("Desconocido (sin evidencia documentada)", { exact: true }).first()).toBeVisible();
   const unpriced = data.items.find(item => !item.prices.length);
   expect(unpriced).toBeTruthy();
   await page.goto(`/catalog/${unpriced!.id}`);
-  await expect(page.getByText("Precio desconocido: sin precio documentado.")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Resumen del componente", exact: true }).getByText("Precio desconocido: sin precio documentado.", { exact: true })).toBeVisible();
 });
 
 test("vacío, página fuera de rango y errores accesibles sin mocks", async ({ page }) => {
