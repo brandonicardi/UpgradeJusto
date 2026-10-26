@@ -1,0 +1,16 @@
+{
+  "version": "sprint32-public-v1",
+  "documents": [
+    {
+      "id": "kingston-kvr32n22s8-8",
+      "url": "https://www.kingston.com/datasheets/KVR32N22S8_8.pdf",
+      "title": "Kingston ValueRAM KVR32N22S8/8 datasheet",
+      "scope": "Exact catalogue RAM model, DDR4 module specifications; not a compatibility verdict",
+      "consulted_date": "2026-10-24",
+      "sha256": "b2a2357e5f8d805aa5a2113fbdf9f0d28b97e6a23238b05b57990a988b8345b1",
+      "format": "pdf",
+      "locator": "page",
+      "rights": "Manufacturer copyright; public technical datasheet, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    }
+  ]
+}

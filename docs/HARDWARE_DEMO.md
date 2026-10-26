@@ -1,5 +1,30 @@
 # Hardware real de referencia — etapa 25
 
+## Estado vigente: demo básica stock25/10
+
+CU05/CU06 cerrados localmente respecto de `cu05-basic-stock-1`, no del alcance
+exhaustivo histórico de este documento. A=P01/P03/2×P04/P06/P07/P09 y
+B=P02/P03/2×P05/P06/P08/P10, BIOS P2.30: compatibles básicos en PostgreSQL/web,
+siete checks completos y advertencias adicionales visibles. No son PCs físicas.
+P11–P14 documentan contexto histórico: el DTO de seis categorías no afirma su
+instalación ni certifica cooler/almacenamiento/frontales/cableado físico.
+
+PSU: máximo de recomendación ASUS exacta y NVIDIA aplicable, con conectores stock
+documentados, sin sumar TDP ni inventar coeficientes. RTX4060 requiere550W bajo
+esta política; PRIME5070 requiere750W. TDP105/170W de CPUs referencia AMD son
+clases, no mediciones de consumo máximo. Contradicción12V RM750e conservada como
+advertencia; rating total750W coincidente. 5700X no incluye cooler; no se certifica
+un Noctua instalado. No se solicitan medidas de hardware ficticio.
+
+BuildCores y docyx aportaron16 registros estructurados a11 piezas existentes,
+con revisión/licencia/procedencia por campo y publicación local inmutable/idempotente.
+Variantes P08 regional y P15/P16 sin identidad dataset exacta no se aliasaron.
+Precios ARS históricos preservados; no se usó USD docyx2025 como precio actual.
+RAM2×P05 cuesta766417.98 ARS; GPU P15+PSU P08 cuesta1882130 ARS, con beneficio
+documentado de capacidad, no FPS. [Resultados y capturas](ai-log/2026-10-25-alcance-basico-datasets.md).
+
+### Registro de referencia anterior (conservado, no redefine el alcance vigente)
+
 Fecha: 2026-10-20. Revisión documental propuesta: `hardware-demo-25.1`.
 
 Selección para revisión, no compra recomendada, equipo físico medido ni catálogo implementado. Se conservan los diez CU y seis módulos de [AGENTS.md](../AGENTS.md). Contrato y escenarios: [CU05](specs/CU05-compatibilidad.md). Investigación y límites: [registro](ai-log/2026-10-20-etapa25-curacion-hardware.md).
@@ -224,3 +249,58 @@ No se descargaron/copiarán imágenes en esta etapa. Cada fila separa procedenci
 Fundamentados: negativo de cableado, negativo dimensional, soporte mínimo de BIOS, mapa lógico de conectores corregido, aritmética/ofertas. Resueltos parcialmente: recuento nominal de slots, longitudes principales, altura cooler, EPS opcional P18, dos headers USB y recursos de placa.
 
 Abiertos para positivos globales: R05 demanda/reserva fundamentada, R04 envolventes/recorridos efectivos, R08 interferencias/capacidad donde no se observó soporte, R10 encaje P14 y conservación funcional del gabinete candidato; revisar negociación PCIe con evidencia aplicable a Vermeer/P15. No hay seis sustituciones compatibles cerradas ni plan completo validado todavía. La tabla normativa de resultados y bloqueos por escenario está en CU05. No usar nombres de bases como lista blanca ni un flag de “resto comprobado”.
+
+## 9. Investigación pública del candidato F26 — 2026-10-24
+
+Build consultó la [página oficial Define 7 Compact Black Solid](https://www.fractal-design.com/products/cases/define-series/define-7-compact/define-7-compact-black-solid/), que identifica SKU `FD-C-DEF7C-01`, y descargó sus dos PDF enlazados mediante HTTPX con TLS validado. **Candidato investigado, no sustitución aceptada de P10 ni pieza añadida al catálogo.** No se investigó precio ARS.
+
+| Fuente pública | Localizador y evidencia observada |
+|---|---|
+| [Manual oficial](https://assets.fractal-design.com/files/uxzbxy2o/production/8fa5c4a895a4a65a8fbdc43f1ee97fbde4853b35.pdf) | PDF42 páginas, SHA256 `ff9e07d8a6605b5d39cf1aa3c55b3c6bf6d81b3c2bb8663e2c2aa9f61d17e6f0`. Página PDF4/impresa3: ATX/mATX/ITX, GPU341mm con ventilador frontal/360mm sin él, cooler169mm, PSU165mm recomendados con jaula/200mm sin jaula. PDF18/impresa17: HD Audio, Reset, Power SW/LED, USB3.1Gen2, USB3.0 y USB2.0. |
+| [Ficha oficial](https://assets.fractal-design.com/files/uxzbxy2o/production/9469a1a218e61563c36ec487d1401fc21f583103.pdf) | PDF7 páginas, SHA256 `ceb724d33cdb2484734298ffd3343ecf575bdbab9747a47d8e5dca896623221a`. PDF4: USB-C hasta10Gbps. PDF5: GPU341/360mm, cooler169mm y PSU200mm **con** jaula/ventilador frontal. |
+| Página oficial actual | Especificaciones: 2 USB2.0-A, 2 USB-A5Gbps, USB-C20Gbps, audio y mic separados, encendido y reset. Nota PSU:200mm total/165mm con jaula y ventilador frontal. |
+
+La evidencia nominal favorece conservar las funciones frontales exigidas, pero **no demuestra su conexión efectiva** a la placa de la base. Además hay discrepancias oficiales: USB-C10 frente20Gbps y condición PSU200/165mm. No se elige el número favorable ni se convierte un límite exterior en espacio de cables/conectores. Quedan mapa de headers/USB-C y adaptación, disponibilidad exacta de revisión, geometría GPU-panel/conectores, cooler/VRM/RAM y contexto de montaje. Extracción de texto no inspecciona todos los dibujos; pypdf advirtió fuentes CFF sin parser opcional, no se instaló por rutina ni se afirma lectura geométrica completa. R05 y los demás faltantes previos siguen abiertos; ningún positivo global nuevo.
+
+PDF y extracción completa solo locales; aquí se conservan referencias, hashes y resumen técnico, no material privado ni imágenes copiadas.
+## Checkpoint CU02/CU10 —25/10
+
+Extracción `/pcs/import` y administración `/admin`: **bloque funcional local aprobado**
+por revisión independiente. Gate web Groq+PG aprobado; cancelación posterior a
+propuesta probada aparte con respuesta controlada, sin acreditar otra llamada LLM.
+No amplía evidencia de hardware ni compatibilidad global. Estado y tabla corta
+CU05/06 en [SPRINT33](SPRINT33.md). Este cierre no amplía evidencia de hardware.
+
+## 10. Reconsulta acotada posterior al cierre33 —25/10
+
+El usuario confirmó que A/B son **escenarios de demo**, no equipos físicos
+disponibles. No se registran medidas de montaje ni ensayos eléctricos. La nueva
+autorización permite avanzar CU05/06 sin corte por cuota; no modifica los criterios
+de compatibilidad ni acepta automáticamente F26 o la política eléctrica propuesta.
+
+| Fuente ya identificada | Resultado de reconsulta25/10 | Consecuencia |
+|---|---|---|
+| F10 «RM750e Specifications» / F11 «RM750e POWER TABLE» | Manual RPS0215 conserva62,5A/750W; ficha CP-9020295-NA mismo modelo conserva54,2A/750W | Conflicto vigente; no elegir cifra favorable ni fabricar corrección |
+| F23 «Technical: Power Draw & Temperature»; F24 límite de potencia | CPU package y pared no son máximos DC EPS/ATX; límite GPU250W ajustable175–300W no es cota transitoria | R05 permanece abierto; no usar sumas retiradas de §5 |
+| F03/F05 manual placa/fichas RAM | Límites de headers y tensiones RAM no aportan demanda DC máxima simultánea del conjunto | No inferir consumos de placa/RAM ni distribución por salida |
+| F13 FAQ GPU/radiador |315mm con ventiladores frontales; radiador resta su espesor | Solo límite longitudinal nominal, no envolvente GPU/cable/panel |
+| F14/F16 matrices Noctua CPU/placas |429 en accesos consultados | Sin nueva fila positiva verificada; no demuestra incompatibilidad |
+| F03 conectores; F26 página actual | Dos headers19pinGen1 y dosUSB2 en placa; gabinete anuncia USB-C hasta20Gb/s | Mapa lógico con CP14-E posible; no prueba encaje ni convierte Gen1 en10/20Gb/s |
+
+### Nuevas observaciones de precio, separadas de las históricas
+
+Las páginas O04/RMS y O02/Exxit de §6 mostraron el25/10 los mismos importes:
+P05 **ARS383.208,99/unidad**, dos disponibles; P08 **ARS175.898**, transferencia,
+IVA incluido, stock alto. Dos P05: **ARS766.417,98**; con P08: **ARS942.315,98**.
+Son observaciones fechadas de páginas, no promesa de disponibilidad posterior,
+precio final de financiación ni envío incluido. No se sobrescriben snapshots previos.
+Las fichas Kingston sustentan16→32GB al reemplazar2×8 por2×16; no FPS ni aceleración.
+
+### Bloqueo residual y alternativa mínima
+
+Conservar piezas; F26 no elimina CP14-E ni acredita despejes. Sin hardware físico,
+los espacios GPU-panel/conector, grosor/obstrucciones, cooler-RAM/VRM, fuente-jaula
+con cables y adaptador-header siguen desconocidos. R05 requiere evidencia técnica
+del fabricante o caracterización cualificada de DC EPS/ATX/GPU, máximos simultáneos,
+salidas y transitorios; no una lectura aislada de consumo en pared. **No pedir abrir
+una PSU ni realizar mediciones de red.** No se logra positivo global con estas fuentes.

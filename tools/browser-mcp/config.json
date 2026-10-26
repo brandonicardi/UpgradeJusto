@@ -1,0 +1,13 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "isolated": true,
+    "launchOptions": { "headless": true },
+    "contextOptions": { "serviceWorkers": "block" }
+  },
+  "network": { "allowedOrigins": ["http://127.0.0.1:3000"] },
+  "console": { "level": "error" },
+  "saveSession": false,
+  "imageResponses": "omit",
+  "codegen": "none"
+}

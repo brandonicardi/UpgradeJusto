@@ -1,0 +1,9 @@
+{
+  "name": "upgradejusto-local-browser-mcp",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Optional isolated local-app verification, separate from Playwright CLI tests",
+  "dependencies": {
+    "@playwright/mcp": "0.0.83"
+  }
+}

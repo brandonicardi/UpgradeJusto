@@ -1,5 +1,234 @@
 # CU05 — contrato documental mínimo de compatibilidad
 
+## Estado vigente25/10 — CIERRE LOCAL básico stock aprobado
+
+Decisión más reciente: completar CU05/CU06 bajo alcance **básico stock**, no certificar
+físicamente una PC. Sustituye los requisitos exhaustivos de cierre inferiores, no
+sus resultados históricos. CU05 cerrado LOCALMENTE en alcance actual: scope
+`cu05-basic-stock-1`, política `basic-stock-policy-1`, inventario
+`basic-stock-inventory-1`, motor `cu05-basic-stock-engine-1`. Siete B01–B07 fijos
+servidor por revisión explícita de alcance; B08/B09 y geometría/certificación avanzada
+adicionales visibles, no n/a ficticios. Dos demos compatibles básicas, negativo P16 y
+BIOS unknown; fail domina conservando faltantes. Revisión independiente final aprobada
+tras corregir conflicto/socket B01;9 focales/PG2,12s exit0 informados por Build.
+Diez CU funcionales locales respecto del alcance actual, no certificación exhaustiva.
+Publicación autenticada CU10 DEV/TEST e importación idempotente verificadas; revisiones
+legacy preservadas. Detalles/checks/capturas en [CONTINUAR](../CONTINUAR.md) y
+[bitácora Build](../ai-log/2026-10-25-alcance-basico-datasets.md).
+Cooler5700X no registrado/conflicto RM750e12V54,2/62,5 A visibles; sin certificación
+física ni permiso comercial/deploy. Las menciones «previo», «pendiente» o «parcial»
+de checkpoints inferiores son historia del proceso, no el estado de cierre actual.
+
+### Contrato corto E/F para backend y frontend
+
+- Scope servidor `cu05-basic-stock-1`; política `basic-stock-policy-1`. Inventario
+  nuevo versionado y separado del inventario legacy de12 checks. El cliente NO
+  selecciona checks, no aporta resultados ni puede desactivar controles.
+- Se conservan rutas/cuerpos/autorización/errores D (§9). Para evaluaciones NUEVAS el
+  servicio usa el motor básico; agrega `scope`, `additional_checks`, `warnings` a la
+  respuesta actual. `scope` = `{id, policy_version, inventory_version, label,
+  operating_regime}`; `id` anterior, label «Compatibilidad básica stock; no
+  certificación física», régimen `stock_no_oc`. `rules_version` identifica motor
+  nuevo y `data_revision` publicación/evidencia efectivamente usada. No reusar versión
+  legacy para semántica nueva. Inventario `basic-stock-inventory-1`: B01–B07 fijos;
+  backend entrega DTO al
+  frontend antes de que este consuma el delta.
+- `coverage` y `rule_results` enumeran TODAS las comprobaciones necesarias del
+  inventario básico. `additional_checks` enumera controles fuera de alcance con
+  `{id,status,reason,evidence_refs}`: status `outside_scope`, `unknown`, `pass` o
+  `fail`; ausencia de evidencia jamás se convierte en `not_applicable`. `warnings`
+  contiene advertencias visibles, no un sustituto de faltantes dentro del alcance.
+- `compatible` significa exclusivamente **compatible en alcance básico stock**:
+  todas las comprobaciones básicas aplicables resueltas/aprobadas. Sin fallos y con
+  unknown necesario dentro del alcance → `requiere_verificacion`; fallo conocido
+  aplicable → `incompatible`, conservando faltantes. Un fallo documentado detectado
+  en controles adicionales también bloquea; excluir certificación no oculta hechos.
+
+| Inventario básico obligatorio (servidor, no reducible) | Evidencia/política |
+|---|---|
+| B01 CPU/placa/BIOS | Socket, CPU exacta y soporte BIOS de variante/revisión aplicable; conservar relación documental de versiones, no inferir por familia |
+| B02 RAM documentada | DDR/tipo/formato, ranuras/cantidades, capacidad por módulo/total y restricciones documentadas CPU/placa. Sustituir conjunto completo. MHz nominales solos no rechazan ni prueban compatibilidad |
+| B03 GPU/interfaz | Slot/interfaz utilizable con la plataforma documentada |
+| B04 GPU/largo nominal | Largo de GPU frente al límite nominal aplicable del gabinete; excederlo es fail dentro del alcance, no advertencia de geometría avanzada |
+| B05 PSU/política stock | Recomendación fabricante aplicable y política explícita sustentada, rating/requisitos y condiciones/conflictos relevantes visibles |
+| B06 Conectores/cables stock | ATX/EPS/GPU y ramales exigidos documentados, sin duplicar recursos; no certificación milimétrica del recorrido |
+| B07 Formatos/límites nominales | Formatos placa/gabinete/PSU y largo nominal PSU frente al límite aplicable |
+
+Revisión explícita del inventario propuesto B01–B09: **B08 almacenamiento** y **B09
+frontales/funciones** pasan a `additional_checks`, fuera de coverage básica obligatoria.
+Motivo: alcance autorizado centrado en CPU/placa/RAM/GPU/PSU y montaje nominal; DTO PC
+actual de seis categorías no representa mapa instalado de discos/puertos/frontales.
+Su falta no acredita ausencia, puertos libres, conservación funcional ni aprobación
+implícita. Mostrar B08/B09 aun sin mapa, con `outside_scope` y motivo explícito y/o
+`unknown` según evidencia; no `not_applicable` ficticio. No se eliminan hechos ni
+resultados legacy. Conflicto conocido (por ejemplo pérdida de un frontal al cambiar
+gabinete) conserva fail adicional y advertencia severa: no aprobación global total y
+se aplica la dominancia de fallos documentados indicada arriba. Si conservar una
+función concreta es requisito solicitado, requiere política/alcance versionados que
+lo incluyan; no un flag cliente para apagar/encender checks.
+
+`coverage` básica tiene exactamente siete IDs necesarios B01–B07, sin contar B08/B09
+ni advertencias como aprobados. Unknown necesario de cualquiera de los siete bloquea;
+evidencia/cuerpo técnico ausente sigue unknown, nunca un supuesto favorable de demo.
+
+RAM: régimen servidor explícito `native_jedec_no_oc`; no se interpreta una nota libre
+como configuración probada ni se inventa velocidad cero. Un módulo de nominal mayor
+no falla por ese dato solo. La evidencia debe sustentar un modo nativo soportado y
+las restricciones relevantes de CPU/placa/módulos; dato necesario no sustentado queda
+unknown. Población documentada posible que satisface cantidades/restricciones basta
+en este alcance; no exigir declaración física A2/B2 instalada si no es necesaria para
+el predicado documentado. No exigir QVL universal ni afirmar estabilidad ensayada.
+
+PSU: puede utilizarse recomendación ASUS del modelo GPU exacto como umbral de selección
+stock SOLO con registro de fuente, sistema/régimen de referencia, clase CPU y criterio
+explícito de aplicabilidad a la configuración evaluada. Clase TDP65/70 W no es demanda
+DC máxima. OC/PBO, plataforma mayor o piezas no cubiertas → unknown salvo otra
+evidencia/política justificada. Alternativa: estimación con valores fuente, régimen y
+margen motivados; prohibidos sumandos arbitrarios placa50 W/RAM10 W. No se requiere
+universalmente medición DC por salida ni transitorios para este alcance. Rating
+conflictivo relevante no se resuelve eligiendo cifra favorable. No whitelist por ID:
+los predicados operan sobre atributos/evidencias y condiciones de aplicabilidad.
+
+Fuera del alcance básico: geometría avanzada/interferencias, curvas de cables y
+certificación térmica/eléctrica exhaustiva. Emitir advertencias adicionales visibles;
+mantener límites nominales y fallos conocidos, no convertirlos en n/a ficticios ni
+pedir mediciones físicas inexistentes de escenarios demo.
+
+Refrigeración: notas adicionales pueden citar soporte documentado stock/boxed o
+NH-U12S redux exacto cuando corresponda; no declarar un cooler seleccionado/instalado
+que no ingresó al sistema ni prometer validación física/térmica universal. Periféricos,
+storage y frontales no cubiertos deben quedar explícitos, no verdes implícitos.
+
+### Versionado, fuentes y aceptación del bloque
+
+Evaluaciones/snapshots previos, planes, shares y chat conservan sus versiones y
+semántica. No recalcular ni migrar resultados guardados silenciosamente. Conservar
+evaluador legacy para reproducción de revisión anterior; nuevos resultados usan
+scope nuevo. Proyecciones/consumidores deben conservar scope y advertencias; si un
+snapshot legacy no tiene scope se identifica como legacy, nunca se etiqueta básico.
+
+Ingesta estructurada: BuildCores OpenDB base, revisión
+`2403cab88630625912cdd2f152f1bb1e27f8ff4d`, captura24/10/2026, CC BY-NC-SA4.0;
+docyx pc-part-dataset complemento, revisión
+`c52a04ca9465c83997ed335f7767b09a2005dd26`, fecha23/07/2025, MIT. Preservar licencia,
+revisión/fecha/procedencia por registro y atribución; verificar aplicabilidad/licencia
+de las muestras antes de publicar. BuildCores no aporta precios ni garantiza CPU/BIOS;
+precios USD docyx antiguos NO son ARS vigentes. Importador repetible/idempotente hacia
+draft/publicación local inmutable existentes, sin ejecutar scripts de esos repos.
+
+Aceptación pendiente: dos demos y candidatos con positivo básico, negativo sustentado,
+unknown y fail+missing; RAM general/beneficio de capacidad, ARS completos/dependencias
+y presupuesto insuficiente. Se admite alternativa común DEMO documentada si hay
+conflicto irresoluble; nunca cambiar PCs del usuario. Capturas reales actuales antes
+de código (frontend asignado), después finales; sin regenerar referencias para tapar
+fallos. Checks focales y revisión independiente antes del recorrido final real de
+diez CU incluido asistente. No aprobar por pantalla/endpoints ni R01 aislada.
+
+Checkpoint documental: solo esta spec, CU06, CONTINUAR y SPRINT33; contrato definido,
+sin comandos/códigos de salida ni ejecución propia. Siguiente: implementación backend
+con evidencia ya identificada y handoff DTO; frontend espera contrato, no capturas.
+
+## Historia25/10 — recursos ejecutados, CU05 parcial
+
+Motor `cu05-25-resources.1`; sufijo data_revision
+`|platform-evidence-25.1|resource-evidence-25.1`.12 checks,9 con predicados: R01 y
+subreglas previas más R02 RAM/R07 montaje/R03 PCIe/R06.otros/R09 storage/R10 frontales.
+Nominal público curado exacto, SOURCES/fingerprints e invalidación; no población desde
+notas ni «resto comprobado». Contrato HTTP D intacto, sin entrada nueva de medidas.
+Familias actuales siguen partial/unknown; R04 resto/R05/R08 NOT_IMPLEMENTED. Cierre
+compatible global web **BLOQUEADO POR IMPLEMENTACIÓN + EVIDENCIA**, no solo datos.
+
+Delta recursos aprobado incrementalmente por mismo revisor tras dos hallazgos medios
+(SATA power duplicado/cross-inventory contradictorio) corregidos. Recursos86 unit0.26s
+exit0,40 PG/API/MCP16.96s exit0 y corrección66 focales0.21s exit0; no sumar primeros
+78 unit/3 PG previos como disjuntos. Normal9 E2E19.6s exit0/PGpost0, build0 por wrapper;
+wrapper ignoró intención de7 filtros, se reportan9 sin repetir. Web base unknown y
+RAM5>4 slots incompatible conservando missing, sin acreditar compatible global.
+Snapshots históricos/hashes intactos; catálogo14 activo Published/precios/fuentes como
+seed restaurados mediante nueva revisión. Resultados atribuidos a Build/especialistas;
+comandos/hashes en bitácora de Build, no checks propios de este escritor.
+
+Ocho CU funcionales recorridos y05/06 parciales. Helper del asistente con LIVE PASS
+y aprobación incremental independiente. Build final: Ruff recursos42 archivos0,
+helper4 archivos0, tipos/lint frontend0; privacidad252 candidatos sin credenciales
+literales, índice vacío/HEADc1ced9e/cinco commits intactos. No declarar diez completos.
+Aprobados32/33 preservados; sin corte cuota/50% ni estimar consumo.
+
+Próximo gate global: implementar R04 restante/R05/R08 con contrato/tests focales y
+evidencia fabricante DC total/por salida/EPS/ATX/GPU/simultaneidad/transitorios,
+resolver Corsair y confirmar cooler/interferencias/envolventes/cables/CP14-E mediante
+datos aplicables o integración calificada de demo; luego revisión y positivo web.
+Usuario: «Son escenarios de demo», no pedir mediciones inexistentes. Investigación
+oficial acotada cerrada; no reabrir indefinidamente, aceptar F26 ni cambiar política
+para conseguir pass. Detalle y límites en POSTCIERRE de SPRINT33 y
+[bitácora a cargo de Build](../ai-log/2026-10-25-cu05-cu06-evidencia.md).
+
+## Historia25/10 — preparación previa al delta recursos
+
+Autorizado completar CU05/CU06 y revisión/recorrido final de diez CU incluido
+asistente. Las restricciones anteriores «no ampliar ahora» son históricas; no hay
+corte automático por cuota/50%. CU05 sigue **parcial**: E en curso, delta backend
+autorizado; cierre global bloqueado por evidencia. Aprobados32/33 preservados.
+
+Contrato básico conservado: API D (§9), identidad/propiedad servidor, revisión,
+evaluación/simulación sobre copia sin persistir, inventario completo R01–R10 y
+veredictos/cobertura explícitos. Fail domina y conserva faltantes. Ningún endpoint,
+pantalla, R01pass ni flag «resto comprobado» cierra CU05. Ampliación de contexto/DTO
+requiere contrato corto previo al frontend; este checkpoint no la define ni implementa.
+
+**Evidencia eléctrica25/10 informada por Build/coordinación**, no reconsulta propia:
+F10 manual RPS0215 declara62,5 A/750 W; F11 ficha del mismo modelo54,2 A/750 W.
+URLs/localizadores conservados en HARDWARE_DEMO §2/§5 y §10 de este contrato.
+Conflicto persistente, sin adoptar número favorable ni aceptar power-policy draft.
+R05 necesita cotas de entrada DC de placa/RAM/EPS y GPU exacta, distribución por
+salidas, máximo simultáneo y transitorios bajo régimen/temperatura aplicables.
+TDP, paquete CPU76 W, vatios de pared y rating750 W no prueban esas demandas.
+No ampliar/reducir silenciosamente los criterios de R05 para obtener un positivo.
+
+**Actualización usuario25/10:** «Son escenarios de demo», no A/B físicos. Investigación
+oficial acotada terminada según coordinación; no pedir mediciones inexistentes ni
+continuar investigación indefinida. Sin cotas R05 no hay positivos globales posibles
+ahora con estas bases y criterios vigentes. Cambiar solo fuente no demuestra demanda;
+KitGuru/TDP/consumo de pared no sustituyen DC total/por salida/EPS/ATX/GPU,
+simultaneidad/transitorios. Tampoco resolver conflicto Corsair con aritmética favorable.
+
+Consultas25/10 informadas por coordinación, URLs/localizadores en HARDWARE_DEMO:
+F16 matrices CPU5600/5700X y placas Pro4/Steel Legend devuelven429, sin confirmación
+NH-U12S redux; no asumir soporte. F13 FAQ315 mm acredita L con fans delanteros,
+no H/panel. Envolventes GPU/PSU/cables y encaje CP14-E siguen unknown. F26 no elimina
+adaptador ni envolvente GPU y conserva conflictos USB10/20 y PSU165/200. Ningún
+componente nuevo aceptado; power-policy sigue draft. No consultas propias nuevas aquí.
+
+### Delta autorizado y aceptación previa al handoff frontend
+
+Backend único: R02 RAM, R03 PCIe, R07 formatos, R09 storage y R10 headers donde la
+evidencia alcance; posible R06 general sujeto a handoff exacto sustentado. No extender
+predicados por esta lista: ocupación, geometría y power sin evidencia siguen unknown.
+Conservar HTTP D/F, sin nueva entrada de medidas, parseo de notas ni flags de aprobación.
+Frontend espera alcance/API exactos del backend antes de trabajo; no hay implementación
+ni pruebas nuevas acreditadas en este checkpoint.
+
+Aceptación focal del delta R02/RAM y versionado:
+- RAM: generación/formato/capacidad/cantidades con evidencia exacta CPU/placa/módulos;
+  sustitución retira conjunto anterior completo, sin sumar módulos retirados.
+  Evidencia ausente/conflictiva → unknown; no inferir QVL/estabilidad/ocupación real.
+- Tests positivos de predicados sustentados (NO compatibles globales), negativos
+  documentados/sintéticos identificados, desconocidos y fail+missing; no mutación y
+  regresión R01/R04/R06/inventario necesario completo.
+- Cambio de reglas/datos identifica nueva revisión efectivamente usada; preservar
+  snapshots y evaluaciones previas, sin reescribirlos ni publicar datos por inferencia.
+  Tests focales de versiones, determinismo y preservación de snapshots/revisión PC;
+  resultados y comandos/códigos a checkpoint por quien los ejecute.
+- Revisión independiente del delta útil; gates positivos globales05/06 bloqueados
+  POR EVIDENCIA, aunque aprueben estos tests. No nuevos scopes por esta aceptación.
+
+Aceptación sin rebaja: dos bases/seis sustituciones positivas con cobertura global,
+web compatible/incompatible/requiere_verificacion, fail+missing y PC intacta; checks
+focales del delta, revisión independiente y recorrido real, no mocks como entrega.
+Próximo checkpoint tras delta backend: archivos, contrato, comandos/códigos
+efectivos, resultado, límites y siguiente paso. Resto del documento conserva historia
+y propuestas; la autorización vigente no convierte propuestas en decisiones aceptadas.
+
 Base documental de 2026-10-20: propuesta `cu05-doc-25.1`, datos `hardware-demo-25.1`, política `power-policy-25.1-draft`, conservada para los pendientes. **Etapa 28: dominio parcial ejecutable `cu05-28.1`, dos subreglas y agregación conservadora con pruebas; sin API CU05 ni motor completo.** El inventario ejecutable reemplaza el nombre de reglas borrador solo para este incremento interno; no implementa ni acepta la política de potencia. Fuentes F01–F25, piezas P01–P18 y ofertas O01–O05: [HARDWARE_DEMO.md](../HARDWARE_DEMO.md). No se reduce V1 ni se acepta stack adicional. Alcance ejecutado en sección 8.
 
 ## 1. Decisiones y alcance
@@ -211,3 +440,171 @@ inventarios vacíos/incompletos, determinismo y no mutación. Proceso rojo/verde
 resultados en [bitácora28](../ai-log/2026-10-20-etapa28-dominio-compatibilidad.md).
 Positivos globales de las seis categorías siguen abiertos. No se implementó R10
 ni la política de potencia; la demo final/CU05 completo no están terminados.
+
+## 9. Sprint32 D — contrato R01/web previo a código24/10
+
+Estado24/10: D VERIFICADO con alcance parcial, NO CU05 completo. PG234/cero skips,
+Ruff0, frontend tipos/lint/build0/Vitest40, browser6 y PGposterior0, revisión Astra
+sin bloqueantes. Ejecuciones atribuidas a especialistas, no revisor/coordinador.
+El DTO aditivo conserva pc_revision como string del dominio28 (revisión fuente
+serializada); expected_pc_revision en petición sigue entero estricto positivo.
+E requiere evidencia/decisión propia antes de ampliar reglas, no aprobación global.
+
+C aceptado tras proofPC/revisión y postgres verify postE2E exit0 por Build. D
+autoriza SOLO R01 y API/web/sustitución sobre copia; E global no se implementa.
+Conservar R04.largo y R06.ramales_adaptador, inventario completo no reducible y
+agregación del dominio28. No aceptar power-policy-25.1-draft ni declarar CU05 completo.
+
+### Evidencia y dominio
+
+R01 exige socket documentado coincidente, soporte CPU EXACTA/placa/variante y
+revisión aplicable, más BIOS declarada satisfaciendo relación documentada.
+Soporte D curado: P01/P02 en P03 original (no Pro SE), F01/F02/F03/F04, mínimoP2.30;
+revisión no diferenciada por fabricante no se inventa. Identidad de variante no
+resuelta/conflictiva o revisión relevante ausente exige faltante. Otras parejas
+sin tabla curada aplicable no se presumen compatibles por socket o familia.
+P2.30 exacta satisface requisito; P1.20 documentada anterior falla requisito de
+soporte SIN afirmar POST físicamente imposible. BIOS null, P2.31 o cualquier
+versión sin relación documental explícita:unknown, nunca comparación decimal,
+lexicográfica ni supuesto de futuras versiones. Relación adicional requiere evidencia.
+Evaluar todos los requisitos R01: fallo conocido domina sin perder faltantes.
+Fuentes históricas de HARDWARE_DEMO, no reconsulta ni medición realizada en D.
+
+R04/R06 reciben solo datos/contexto realmente resueltos. No trasplantar condiciones
+de instalación del ejemplo documental a una PC arbitraria ni inferir cableado,
+ramales libres o montaje de un nombre. Falta contexto del esquema C debe quedar
+unknown, no desactivar reglas ni inventar ausencia. Motor independiente de HTTP,
+BD/LLM; servidor resuelve catálogo, piezas, evidencias y versiones, no cliente.
+
+### API fija para frontend D
+
+POST `/api/pcs/{pc_id}/compatibility/evaluate`:
+JSON `{expected_pc_revision}` entero estricto positivo; evalúa snapshot guardado.
+POST `/api/pcs/{pc_id}/compatibility/simulate`:
+JSON `{expected_pc_revision,category,candidates,candidate_context?}`.
+category CPU/motherboard/RAM/GPU/PSU/case según enums CU03 en minúsculas;
+candidates lista no vacía de `{component_id,quantity}`. IDs únicos/resueltos por
+catálogo y categoría coincidente. NoRAM exactamente1 candidato quantity1; RAM
+conjunto COMPLETO de1..8 referencias distintas, cantidades enteras estrictas1..8,
+total máximo8 módulos. Retirar TODO grupo previo de categoría, RAM completa incluida,
+sin sumar capacidad anterior; no agregar otras dependencias implícitas.
+candidate_context solo para motherboard, objeto exactamente `{bios_version}` string
+strip1..100 sinNUL o null; ausente implica BIOS desconocida de NUEVAplaca. No hereda
+BIOS de placa retirada, aun si referencia coincidente; explícito permite declarar
+BIOS para candidata. Para otra categoría contexto extra422, BIOS actual se conserva.
+No notas,owner_id,user_id,results,coverage ni flags de aprobación en entradas;
+propiedades extras rechazadas en todos niveles. No persistir simulación/evaluación
+ni mutar componentes/contexto/revisión; GETPC posterior idéntico, incluso tras error.
+
+Ambos responden200 evaluación `{verdict,rule_results,missing_fields,rules_version,
+data_revision,pc_revision,coverage,evaluated_configuration}`. Primeros siete campos
+conservan semántica/modelos28; nueva versión reglas `cu05-32d.1` distingue R01.
+data_revision identifica snapshot curado/dataset efectivamente usado, no etiqueta
+inventada sin referencia. pc_revision es revisión fuente comprobada. Campo
+evaluated_configuration contiene `{components,context}` con grupos CU03, salvo RAM
+simulada puede incluir referencias distintas, y contexto BIOS resultante explícito.
+rule_results incluye hechos/evidencia/fuentes/condiciones y faltantes concretos
+según contrato interno28; coverage necesaria/evaluada/pendiente no se reduce.
+Sin fallo y con pendientes:requiere_verificacion. Con fallo:incompatible conservando
+unknowns/pendientes. D nunca produce compatible global por R01pass.
+
+Autenticación/propiedad sesión servidor:401 no autenticado; IDajeno/inexistente404
+`{detail:"PC not found"}`.409 `{detail:"PC revision conflict"}` tras resolver dueño;
+422 datos operativos inválidos/candidato inexistente/categoría/UUID, no veredictos
+técnicos.503 genérico sin SQL/secretos, sin fallback. Origin3000/CSRF obligatorio
+POST y no-store privados. Gateway actual HMAC socketIP extiende allowlist SOLO a
+estas dos rutas UUID/accionesPOST, sin query; sin XFF ni autorización cliente.
+Cliente directo legítimo sin headers gateway conserva controles sesión/CSRF/Origin.
+
+### UI y pruebas de aceptación D
+
+Desde PC propia, evaluar revisión visible y simular sustitución categoría/candidatos
+con cantidades RAM explícitas y BIOS nueva placa declarada/desconocida. Mostrar
+«alcance parcial R01 + subreglas previas, CU05 no completo», reglas/fuentes/hechos,
+faltantes/cobertura/versión y configuración simulada sin botón guardar automático.
+No badges compatible por cobertura parcial; controles accesibles/carga/errores409.
+
+Tests: determinismo/no mutación/retiro conjuntoRAM/BIOSmotherboard no heredada;
+R01 P2.30pass/P1.20fail/nullunknown/incomparableunknown, CPUexacta/variante/socket,
+fallo domina y mantiene faltantes, regresión subreglas28/inventario no reducible.
+PG/API real A/B propietario404, revisión409, validación422/auth/CSRF/Origin/HMAC,
+catálogo servidor no inputs preaprobados, GETPC revisión/contexto/componentes antes/
+después idénticos. Browser real eval/simulación con faltantes y persistencia intacta.
+Backend PGsuite primero, luego browser, jamás concurrentes. Mismo Astra revisión
+deltaD/riesgos con código+checks; Build raíz/deps, ninguna dependencia nueva prevista.
+D verificado no cierra CU05: E requiere evidencia/decisión propia R02–R10, R05,
+geometría/cooler y candidato gabinete conservando R10, no inventar aprobación.
+
+## 10. E — evidencia previa a código24/10 (incremento documental)
+
+CU05 global BLOQUEADO; E no implementado. No se rebaja cierre dos bases/seis
+positivos. API D/inventario12/fail+missing conservados. Frontend quieto; mismo
+backend Sol medium inspeccionó dominio/dataset sin editar/ejecutar tests. Contrato
+de implementación E todavía pendiente, no aceptar powerdraft ni unknown como cierre.
+
+### Consultas públicas efectivas (HTML, no PDFs ni mediciones físicas)
+
+- F10 https://www.corsair.com/us/en/explorer/diy-builder/power-supply-units/corsair-rme-series-2025/
+  HTTP20024/10, RM750e Specifications/Max Load: RPS0215, CP-9020295/CP-9020292,
+  +12V62.5A/750W, +3.3/+5V combinados110W. Rating fuente, no demanda del sistema.
+- F11 https://www.corsair.com/us/en/p/psu/cp-9020295-na/rme-series-rm750e-fully-modular-low-noise-atx-power-supply-cp-9020295-na
+  HTTP20024/10, POWER TABLE: RPS0215, CP-9020295-NA, +12V54.2A/750W. Conflicto
+  F10/F11 persiste en ambas páginas actuales; no resolución editorial aceptada.
+- F05 https://www.kingston.com/en/memory/client/ddr4-3200mts-non_ecc-unbuffered-dimm
+  HTTP20024/10, tabla Part Number: KVR32N22S8/8=8GB/x8/1R y KVR32N22D8/16=16GB/x8/2R;
+  tabla Non-ECC Unbuffered DIMM3200MT/s. PDFs enlazados no leídos. No prueba
+  población/régimen CPU-placa, estabilidad ni ausencia de interferencias.
+- Candidato F26 https://www.fractal-design.com/products/cases/define-series/define-7-compact/define-7-compact-black-solid/
+  HTTP20024/10, Specifications/Front interface/Compatibility/Other: Define7Compact
+  BlackSolid SKU FD-C-DEF7C-01; 2USB-A5Gbps,2USB-A2.0,USB-C anunciado20Gbps,
+  audio/mic separados,power/reset; ATX/mATX/ITX,GPU341mm,PSU200mm,cooler169mm
+  nominales. No velocidad host P03/encaje/cable certificado. Manual/product sheet
+  enlazados pero NO leídos. Candidato propuesto, no Pxx/catálogo/precio aceptado.
+- F16 https://www.noctua.at/en/compatibility/by-components/motherboards/asrock-b550m-pro4
+  HTTP42924/10 Vercel Security Checkpoint, sin datos útiles. NO implica ausencia
+  del producto/incompatibilidad; no eludir bloqueo mediante cuentas/proveedores.
+- Búsqueda directa DefineC BlackSolid redirigió al listado general de gabinetes
+  HTTP200, no ficha verificable. No se presenta segunda alternativa validada.
+  Segunda lectura F26 completó SKU/enlaces omitidos en primera extracción, no
+  reconsulta rutinaria. No fuentes secundarias ni precios nuevos este incremento.
+
+### Campos y predicados viables (propuesta, NO código autorizado todavía)
+
+| Regla | Viable con evidencia nominal | Qué falta para cierre |
+|---|---|---|
+| R02 | DDR4/UDIMM/capacidad y cantidades | Régimen CPU-placa, población/slots reales y propiedades aplicables; no QVL como veto |
+| R03 | Interfaces/recursos documentados | Negociación CPU-placa y ocupación; generación PCIe distinta no es fallo |
+| R04 | Largo28 y exclusiones nominales condicionadas | Montaje/H-T/enchufe-curvatura-panel/slots e interferencias |
+| R05 | Comparador solo con cotas DC justificadas | Demanda por salida/total/pérdidas/temperatura/reserva-transitorios, conflicto PSU |
+| R06 | Tipos/asignación única/ramales/corriente | Inventario instalado completo, ocupación, alcance/encaje |
+| R07 | Formatos y exclusiones nominales | Separadores/jaulas/envolventePSU-cables; dimensiones externas no bastan |
+| R08 | Anclaje/altura/corriente documentados | Cooler-fans instalados, CPU/régimen térmico e interferencias placa/RAM |
+| R09 | Protocolo/tamaño/compartición | Discos/ranuras/puertos ocupados/refrigeración; ausente del esquema no es libre |
+| R10 | Comparación funciones requeridas | Requisito/headers/asignaciones/encaje; P10→P09 pierdeUSB-A/reset, P14 no restaura |
+
+PC actual: seis categorías/cantidades/BIOS-notas, no cooler/SSD/fans/adaptadores
+ni contexto instalado tipado. Requiere contrato separado de contexto/procedencia;
+no instalar piezas de las bases documentales en PC arbitraria. Propuesta mínima
+siguiente: R02/R07 nominales con faltantes exactos; no familias completas ni CU05.
+
+### Bloqueos y decisiones mínimas para elevar por Build
+
+Ambas bases y CPU/RAM/placa/fuente/GPU positivas siguen abiertas por R05,
+envolventes/cooler. Gabinete positivo además falla conservaciónR10. No314/474W,
+TDP×margen ni rating/recomendación como cotaDC. NSPR/alturaCPUcooler no certifican
+capacidad ni encaje de cableGPU.
+1. ¿Evaluar F26 para sustituir gabinete desde B, sin cambiar bases/catálogo todavía?
+   Conserva nominalmente USB-A/audio/reset, pero USB-C/USB2 adicionales requieren
+   mapa/dependencias/velocidad efectiva y geometría; P14 no se da por instalado.
+   Sin precio investigado, compras ni sustitución aceptada.
+2. ¿Obtener cotas públicas/mediciones aplicables y definir política reproducible
+   por salida/reserva, o mantener cierre global bloqueado? Elegir F10 NO completa
+   demanda. No solicitar aceptación de un porcentaje arbitrario.
+3. Obtener compatibilidad/dibujo exactos o medición declarada con unidades/ejes/
+   montaje/procedencia para geometría/cooler; sin evidencia conservar bloqueo.
+
+Separar implementación conservadora futura de cierre global bloqueado. F/G/H
+pueden continuar solo con alcance explícito independiente consumiendo fail/unknown
+sin llamarlos planes compatibles; no se autorizan por este documento. No esperar
+Groq para ese análisis; Ireal continúa bloqueado por clave pospuesta. Checks de
+este incremento: consultas HTTP/lecturas/registro, sin suites ni código.
