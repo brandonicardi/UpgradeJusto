@@ -136,3 +136,16 @@ upstream, preservada para no alterar texto legal; resto de checks de diff0. No f
 funcional ocultado. Datos/licencias revisados y scanner de índice de lotes3–7 sin
 secreto real; fixtures de test explican coincidencias. Operación/docs y manifiesto
 final todavía en registro. No push, no reescritura de cinco originales.
+
+Lote8 real:22d31d9 operación/docs. Reescaneo post-lotes:394 archivos candidatos,
+13 commits,445 blobs únicos, cero tokens proveedor/GitHub/claves privadas y cero
+session IDs internos detectados. Hits repetidos worktree/historia ya clasificados.
+Árbol limpio tras ocho commits; `merge-base --is-ancestor c1ced9e HEAD`0, originales
+conservados. Manifiesto ampliado con hashes completos y listas exactas de348 archivos;
+script de contraste contra `diff-tree` de ocho commits0. Primer contraste de lista8
+falló por comparación del literal acentuado del parser PowerShell, no por nombres:
+corregido parser ASCII, missing/extra vacíos, contraste completo0. No producto alterado.
+Ruff lint del nuevo scanner0. Actualización administrativa posterior selecciona solo
+manifiesto, continuidad y esta bitácora.37 local aceptado y commits preparados;
+siguiente acción inmediata: leer38. Publicación sigue pendiente de revisión humana,
+no bloquea38 ni autoriza push. No se declara producto integral terminado.

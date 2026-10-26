@@ -16,8 +16,9 @@ previa a publicación en `REVISION_PUBLICACION.md`.
 37: correcciones aceptadas LOCALMENTE por revisora independiente, incluido borde
 deadline ASGI. Build verificó15 body/7 PG/67 regresiones y127+3 frontend focales,
 tipos/lint/Ruff0 (solapamientos indicados en bitácora). Sin pentest ni aceptación de38.
-Lotes locales acumulados registrándose con fechas reales; cinco originales intactos.
-Continuación inmediata38 tras cerrar manifiesto/lotes; no esperar publicación ni
+Ocho lotes locales acumulados registrados con fechas reales; cinco originales intactos.
+Manifiesto con hashes y348 archivos contrastados por lote en REVISION_PUBLICACION.
+Continuación inmediata38 tras este registro; no esperar publicación ni
 confundir este checkpoint con entrega integral terminada. Sin push.
 
 ## Cierre26/10 — entrega visual local aprobada independientemente
