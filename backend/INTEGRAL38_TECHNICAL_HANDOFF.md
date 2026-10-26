@@ -72,6 +72,67 @@ dropping resources. No routine rerun of previously accepted tower gates implied.
 Next: Build focal checks, one diagnosed correction if needed, independent delta
 review; only then B3 resolver integration and separately supplied actual source facts.
 
+## Runtime resolver — new authorized increment after043eb78
+
+Previous publication block accepted locally by security:34 pure/9 real TEST PG,
+lint/format eight files0, per Build communication. This appendix supersedes the
+earlier "no runtime resolver modified" statement ONLY for the following new delta:
+
+- compatibility/tower_technical_resolver.py (new)
+- compatibility/tower_evidence.py (only existing code edited)
+- tests/test_tower38_technical_resolver.py (new)
+
+`resolve_published_technical(component, catalog, basic: BasicSpecs)
+-> ResolvedTechnicalSpecs(specs: BasicSpecs, revision_token: str|None)`.
+Consumes the SAME full pinned ResolvedCatalog/source_rows as basic resolution.
+Reuses validate_technical_binding before any merge; SourceRef becomes frozen domain
+EvidenceRef. Publication resource/limit models convert through strict JSON validation
+to domain NominalResource/SharedLimit (arrays -> required tuples, exact tokens).
+No namespace/category/source inference, fetch, PG writes or rules imported/changed.
+
+Known technical values with valid provenance add fields. Existing basic conflicts
+cannot be cleared. Differing independently known values conflict rather than win
+by order. Explicit validated conflicts remove that fact, retain combined references,
+and mark BasicSpecs.conflicts, including overlapping basic facts. Other basic facts
+and failures remain untouched. False and zero stay explicit observed values, not
+missing. No electrical budgets, stock assumptions, splitters, hubs or thermal
+defaults are manufactured.
+
+No envelope => identical BasicSpecs object and no revision token; legacy revision
+string/adapter version remain exactly unchanged. Valid envelopes contribute sorted
+resolver-version/status/SHA256 tokens to tower data_revision, alongside publication
+ID and original basic digests. Hash includes component ID, complete valid envelope
+(thus technical digest/field/reference content), and raw length. Invalid envelopes
+contribute bounded invalid tokens only, no raw source URLs/errors or field values.
+Oversized invalid strings fingerprint a bounded prefix+length, not an unbounded
+diagnostic; they never grant facts. Invalid/rejected evidence leaves basic untouched;
+it cannot erase an independent known failure. Technical-only facts stay absent and
+produce ordinary engine missing fields where required, not a global disable flag.
+
+Tests use accepted synthetic motor fixture for complete-positive adapter proof,
+explicitly NOT real hardware or manufacturer evidence. A synthetic basic resolver
+seam supplies its pre-existing basic observations; all technical observations still
+pass real parser/binding/domain adaptation. Additional tests: invalid sources/date/
+locator/identity/category and malformed JSON; fail dominance plus missing; distinct
+source conflict clearing only affected field; exact legacy no-envelope revision/
+verdict; fractional basic dimensions preserved; thermal False/CPU inclusion guard;
+digest changes with field/provenance/publication; full snapshot selected ID beyond50;
+typed shared limits and old conflicts not cleared. No PG mock as integration proof.
+
+Build-only, separate commands from backend (no own executions/results for this delta):
+
+1. `.venv/Scripts/ruff.exe check upgradejusto/compatibility/tower_evidence.py upgradejusto/compatibility/tower_technical_resolver.py tests/test_tower38_technical_resolver.py`
+2. `.venv/Scripts/ruff.exe format --check upgradejusto/compatibility/tower_evidence.py upgradejusto/compatibility/tower_technical_resolver.py tests/test_tower38_technical_resolver.py`
+3. `.venv/Scripts/python.exe -m pytest -q tests/test_tower38_technical_resolver.py`
+
+If needed, Build selects affected TEST PG integration separately, not routine suites.
+No engine, HTTP, quotas, recommendation consumer, extraction, persistence, scopes or
+policies edited. No actual manufacturer facts published. B3 must review integration
+before any real-hardware positive claim. Global fan-budget necessity, expanded PSU
+loads, physical measurements and evidence acquisition remain unresolved by this
+representation/resolver block. Used/new thermal-package distinction stays with the
+existing CU06 consumer; forwarding a bool does not authorize unlimited reused paste.
+
 ## Resultado posterior — atribución Build/revisión
 
 Build:34 puros PASS0;9 PG TEST PASS0; Ruff check8 archivos0. Tras ajuste de estilo
@@ -79,3 +140,14 @@ del autor y wrapping residual mecánico Build, format8 archivos0. Ningún runner
 autor ni hechos de fabricante publicados. Revisora independiente aceptó LOCALMENTE
 representación/publicación, sin hallazgo bloqueante comprobado. Metadatos de fuente
 no certifican verdad técnica; resolver y política aplicable requieren gates propios.
+
+## Resultado posterior del resolver — Build y revisiones independientes
+
+17 pruebas puras PASS0; lint/formato3 archivos0 tras wrapping mecánico Build.
+Con composición READY, prueba nueva de recomendaciones sobre main y2 nodos PG del
+delta extracción pasaron juntos3 PASS0. No atribuir ese gate a hechos de fabricante.
+Revisiones funcional y seguridad aceptaron LOCALMENTE el resolver; no hallazgos
+bloqueantes comprobados. El binding runtime es identidad ID/categoría/nombre y fuentes;
+no repetir como propio el control MPN retail realizado durante publicación.
+Faltan hechos reales publicados y decisión explícita sobre globalfanbudget **T10**;
+T12 no es el guard universal de ese campo. No cambió política por esta integración.

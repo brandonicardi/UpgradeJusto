@@ -3,6 +3,7 @@
 from .basic_manufacturer import MANUFACTURER_VERSION, resolve_stock_specs
 from .models import CpuSupportInput
 from .tower_contract import TowerComponentEvidence, TowerTechnicalEvidenceDTO
+from .tower_technical_resolver import resolve_published_technical
 
 ADAPTER_VERSION = "tower-publication-adapter-1"
 
@@ -10,20 +11,29 @@ ADAPTER_VERSION = "tower-publication-adapter-1"
 def resolve_tower_evidence(tower, catalog, dataset_version):
     resolved = {}
     selected = {}
+    technical_revisions = set()
     for line in tower.lines:
         component = catalog.get(line.component_id) if line.component_id else None
         if component is None or component.category != line.category:
             continue
         selected.setdefault(line.category.value, []).append((line, component))
-        resolved[component.id] = (
-            component,
-            resolve_stock_specs(component, catalog),
+        technical = resolve_published_technical(
+            component, catalog, resolve_stock_specs(component, catalog)
         )
+        resolved[component.id] = (component, technical.specs)
+        if technical.revision_token is not None:
+            technical_revisions.add(technical.revision_token)
     digests = sorted(
         {spec.import_digest for _, spec in resolved.values() if spec.import_digest}
     )
     revision = "|".join(
-        (dataset_version, MANUFACTURER_VERSION, ADAPTER_VERSION, *digests)
+        (
+            dataset_version,
+            MANUFACTURER_VERSION,
+            ADAPTER_VERSION,
+            *digests,
+            *sorted(technical_revisions),
+        )
     )
     support = None
     cpu = selected.get("cpu", ())
