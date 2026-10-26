@@ -1,5 +1,6 @@
 """Inventario fijo del evaluador. El consumidor solo entrega datos resueltos."""
 
+from .cpu_rule import cpu_support
 from .models import (
     Coverage,
     EvaluationResult,
@@ -8,6 +9,8 @@ from .models import (
     RuleSpec,
     unique,
 )
+from .platform_rules import mounting, ram_platform
+from .resource_rules import front_functions, pcie, power_connectors, storage
 from .rules import adapter_branches, gpu_length
 
 RULES_VERSION = "cu05-28.1"
@@ -40,6 +43,7 @@ def _aggregate(
     config: ResolvedConfiguration,
     required: tuple[RuleSpec, ...],
     results: tuple[RuleResult, ...],
+    rules_version: str = RULES_VERSION,
 ) -> EvaluationResult:
     """Auxiliar interno; los tests usan inventario sintético, nunca evaluate()."""
     unique(tuple(s.rule_id for s in required), "required")
@@ -78,7 +82,7 @@ def _aggregate(
         verdict=verdict,
         rule_results=ordered,
         missing_fields=missing,
-        rules_version=RULES_VERSION,
+        rules_version=rules_version,
         data_revision=config.data_revision,
         pc_revision=config.pc_revision,
         coverage=Coverage(
@@ -104,3 +108,20 @@ def evaluate(config: ResolvedConfiguration) -> EvaluationResult:
         by_id[s.rule_id] if s.rule_id in by_id else _pending(s) for s in _REQUIRED
     )
     return _aggregate(config, _REQUIRED, results)
+
+
+def evaluate_d(config: ResolvedConfiguration) -> EvaluationResult:
+    """Inventario D fijo; nunca recibe resultados preaprobados ni reglas elegibles."""
+    config = ResolvedConfiguration.model_validate(config)
+    results = (
+        cpu_support(config),
+        ram_platform(config),
+        pcie(config),
+        gpu_length(config),
+        adapter_branches(config),
+        power_connectors(config),
+        mounting(config),
+        storage(config),
+        front_functions(config),
+    )
+    return _aggregate(config, _REQUIRED, results, rules_version="cu05-25-resources.1")

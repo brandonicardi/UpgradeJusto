@@ -4,6 +4,15 @@ from upgradejusto.catalog.models import Category, Component, ComponentPage
 from upgradejusto.catalog.repository import CuratedCatalogRepository
 
 
+class ResolvedCatalog(dict):
+    """Pinned data plus already-supported parameters; no domain/DB coupling."""
+
+    def __init__(self, parts, support_rows, source_rows=None):
+        super().__init__((part.id, part) for part in parts)
+        self.support_rows = support_rows
+        self.source_rows = source_rows
+
+
 class CatalogService:
     def __init__(self, repository: CuratedCatalogRepository) -> None:
         self.repository = repository
@@ -32,3 +41,14 @@ class CatalogService:
 
     def get_component(self, component_id: str) -> Component | None:
         return self.repository.get(component_id)
+
+    def snapshot(self) -> tuple[Component, ...]:
+        """Snapshot versionado para resolución servidor, sin editar catálogo."""
+        return self.repository.all()
+
+    def resolution_snapshot(self):
+        return ResolvedCatalog(
+            self.snapshot(),
+            getattr(self.repository, "support_rows", None),
+            getattr(self.repository, "source_rows", None),
+        )

@@ -13,7 +13,7 @@ IDS = [f"P{i:02}" for i in (*range(1, 11), *range(15, 19))]
 
 
 @pytest.fixture
-def client():
+def client(pg_engine):
     with TestClient(app) as client:
         yield client
 

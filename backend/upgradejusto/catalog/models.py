@@ -26,7 +26,7 @@ class Source(ReadModel):
 
 
 class Price(ReadModel):
-    amount: str = Field(pattern=r"^(?:[1-9][0-9]*(?:\.[0-9]+)?|0\.[0-9]*[1-9][0-9]*)$")
+    amount: str = Field(pattern=r"^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$")
     currency: Literal["ARS"]
     date: date
     source: str

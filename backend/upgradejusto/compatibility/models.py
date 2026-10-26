@@ -1,60 +1,45 @@
 """Contrato interno estricto para datos ya resueltos; no resuelve identidad."""
 
-from datetime import date
 from typing import Annotated, Literal, Self
-from urllib.parse import urlsplit
 
 from pydantic import (
-    BaseModel,
-    ConfigDict,
     Field,
-    StringConstraints,
     field_validator,
+    model_serializer,
     model_validator,
 )
 
-Text = Annotated[str, StringConstraints(min_length=1, pattern=r"\S")]
-Family = Literal["R01", "R02", "R03", "R04", "R05", "R06", "R07", "R08", "R09", "R10"]
+from .basic_contract import AdditionalCheck, BasicScope
+from .observations import DomainModel, EvidenceRef, EvidenceStatus, Text
+from .resource_models import ResourceInputs
+
+Family = Literal[
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+]
 State = Literal["pass", "fail", "unknown", "not_applicable", "not_implemented"]
-EvidenceStatus = Literal["documented", "unknown", "conflict"]
 
 
 def unique(values: tuple[str, ...], label: str) -> None:
     if len(values) != len(set(values)):
         raise ValueError(f"{label}: IDs duplicados")
-
-
-class DomainModel(BaseModel):
-    model_config = ConfigDict(
-        strict=True,
-        frozen=True,
-        extra="forbid",
-        allow_inf_nan=False,
-        revalidate_instances="always",
-    )
-
-
-class EvidenceRef(DomainModel):
-    source_id: Text
-    url: Text
-    locator: Text
-    consulted_on: Text
-
-    @field_validator("url")
-    @classmethod
-    def public_url(cls, value: str) -> str:
-        parsed = urlsplit(value)
-        if parsed.scheme not in ("http", "https") or not parsed.netloc:
-            raise ValueError("Se requiere URL de procedencia HTTP(S)")
-        if parsed.username or parsed.password:
-            raise ValueError("La referencia no admite credenciales")
-        return value
-
-    @field_validator("consulted_on")
-    @classmethod
-    def valid_date(cls, value: str) -> str:
-        date.fromisoformat(value)
-        return value
 
 
 class Measurement(DomainModel):
@@ -80,7 +65,7 @@ class EffectiveLimit(Measurement):
 class PartInstance(DomainModel):
     instance_id: Text
     part_id: Text
-    category: Literal["gpu", "case", "psu", "other"]
+    category: Literal["cpu", "motherboard", "ram", "gpu", "case", "psu", "other"]
     model: Text | None = None
     quantity: Annotated[int, Field(gt=0)] = 1
 
@@ -174,6 +159,87 @@ class AdapterRoute(DomainModel):
         return self
 
 
+class TextObservation(DomainModel):
+    value: Text | None = None
+    status: EvidenceStatus = "documented"
+    evidence: tuple[EvidenceRef, ...] = ()
+
+
+class CpuSupportRow(DomainModel):
+    cpu_model: Text
+    motherboard_model: Text
+    applicable_revision: Text
+    minimum_bios: Text
+    # Relación explícita anterior→mínimo, jamás orden genérico de versiones.
+    earlier_bios: tuple[Text, ...] = ()
+    evidence: tuple[EvidenceRef, ...] = ()
+
+
+class CpuSupportInput(DomainModel):
+    cpu_instance_id: Text
+    motherboard_instance_id: Text
+    cpu_socket: TextObservation | None = None
+    motherboard_socket: TextObservation | None = None
+    applicable_revision: TextObservation | None = None
+    support_rows: tuple[CpuSupportRow, ...] = ()
+    installed_bios: Text | None = None
+
+
+class RamSpec(DomainModel):
+    """Curated specifications, not an installed population or an approval."""
+
+    instance_id: Text
+    generation: Literal["DDR4", "DDR5"] | None = None
+    module_type: Literal["UDIMM", "SODIMM"] | None = None
+    ecc: bool | None = None
+    buffered: bool | None = None
+    capacity_gb: Annotated[int, Field(gt=0)] | None = None
+    slots: Annotated[int, Field(gt=0)] | None = None
+    max_total_gb: Annotated[int, Field(gt=0)] | None = None
+    max_module_gb: Annotated[int, Field(gt=0)] | None = None
+    jedec_mts: Annotated[int, Field(gt=0)] | None = None
+    voltage_mv: Annotated[int, Field(gt=0)] | None = None
+    rank: Literal["1Rx8", "2Rx8"] | None = None
+    supported_ranks: tuple[Literal["1Rx8", "2Rx8"], ...] | None = None
+    status: EvidenceStatus = "documented"
+    evidence: tuple[EvidenceRef, ...] = ()
+
+
+class RamInput(DomainModel):
+    cpu: RamSpec | None = None
+    motherboard: RamSpec | None = None
+    modules: tuple[RamSpec, ...] = ()
+    # Installed slots/rate are never inferred from module specifications or notes.
+    installed_slots: tuple[Text, ...] | None = None
+    supported_populations: tuple[tuple[Text, ...], ...] | None = None
+    operating_mts: Annotated[int, Field(gt=0)] | None = None
+    operating_voltage_mv: Annotated[int, Field(gt=0)] | None = None
+    regime_evidence: tuple[EvidenceRef, ...] = ()
+
+
+class MountingSpec(DomainModel):
+    instance_id: Text
+    form_factor: Literal["ATX", "mATX", "ITX", "SFX"] | None = None
+    board_formats: tuple[Literal["ATX", "mATX", "ITX"], ...] | None = None
+    psu_formats: tuple[Literal["ATX", "SFX"], ...] | None = None
+    length_mm: Annotated[int, Field(gt=0)] | None = None
+    nominal_psu_limit_mm: Annotated[int, Field(gt=0)] | None = None
+    status: EvidenceStatus = "documented"
+    evidence: tuple[EvidenceRef, ...] = ()
+
+
+class MountingInput(DomainModel):
+    motherboard: MountingSpec | None = None
+    psu: MountingSpec | None = None
+    case: MountingSpec | None = None
+    # Effective space includes plugs/cables/cages, not the external case length.
+    effective_psu_limit: EffectiveLimit | None = None
+    mounting_id: Text | None = None
+    required_standoffs: tuple[Text, ...] | None = None
+    installed_standoffs: tuple[Text, ...] | None = None
+    mounting_evidence: tuple[EvidenceRef, ...] = ()
+
+
 class ResolvedConfiguration(DomainModel):
     pc_revision: Text
     data_revision: Text
@@ -181,12 +247,39 @@ class ResolvedConfiguration(DomainModel):
     conditions: tuple[Text, ...] = ()
     gpu_length: GpuLengthInput | None = None
     adapter_route: AdapterRoute | None = None
+    cpu_support: CpuSupportInput | None = None
+    ram: RamInput | None = None
+    mounting: MountingInput | None = None
+    resources: ResourceInputs | None = None
 
     @model_validator(mode="after")
     def valid_instances(self) -> Self:
         unique(tuple(p.instance_id for p in self.parts), "parts.instance_id")
         instances = {p.instance_id: p for p in self.parts}
         references = []
+        if self.resources is not None:
+            references.extend(self.resources.part_references())
+        if self.ram is not None:
+            for spec, category in (
+                (self.ram.cpu, "cpu"),
+                (self.ram.motherboard, "motherboard"),
+                *((module, "ram") for module in self.ram.modules),
+            ):
+                if spec is not None:
+                    references.append((spec.instance_id, category))
+            unique(tuple(m.instance_id for m in self.ram.modules), "ram.modules")
+        if self.mounting is not None:
+            for category in ("motherboard", "psu", "case"):
+                spec = getattr(self.mounting, category)
+                if spec is not None:
+                    references.append((spec.instance_id, category))
+        if self.cpu_support is not None:
+            references.extend(
+                (
+                    (self.cpu_support.cpu_instance_id, "cpu"),
+                    (self.cpu_support.motherboard_instance_id, "motherboard"),
+                )
+            )
         if self.gpu_length is not None:
             references.extend(
                 (
@@ -201,6 +294,91 @@ class ResolvedConfiguration(DomainModel):
                     (self.adapter_route.psu_instance_id, "psu"),
                 )
             )
+            if self.resources is not None and self.resources.power is not None:
+                used = {a.source_id for a in self.resources.power.assignments or ()}
+                adapter_used = {
+                    a.connector_id for a in self.adapter_route.assignments or ()
+                }
+                if used & adapter_used:
+                    raise ValueError(
+                        "Conector reutilizado por rutas eléctricas distintas"
+                    )
+                loads = (
+                    *self.resources.power.required_loads,
+                    *(self.resources.power.additional_loads or ()),
+                )
+                if {load.resource_id for load in loads} & {
+                    assignment.input_id
+                    for assignment in self.adapter_route.assignments or ()
+                }:
+                    raise ValueError(
+                        "Entrada reutilizada por rutas eléctricas distintas"
+                    )
+            if self.resources is not None and self.adapter_route.inventory is not None:
+                inventory = self.adapter_route.inventory
+                observations = self.resources.inventory_observations()
+                sources = (
+                    {s.resource_id: s for s in self.resources.power.sources}
+                    if self.resources.power is not None
+                    else {}
+                )
+                non_connectors = set()
+                if self.resources.pcie is not None:
+                    non_connectors.update(
+                        s.resource_id for s in self.resources.pcie.slots
+                    )
+                if self.resources.storage is not None:
+                    non_connectors.update(
+                        p.resource_id for p in self.resources.storage.ports
+                    )
+                if self.resources.front is not None:
+                    front = self.resources.front
+                    non_connectors.update(
+                        p.resource_id
+                        for p in (
+                            *front.headers,
+                            *front.cables,
+                            *(front.adapters or ()),
+                        )
+                    )
+                if self.resources.power is not None:
+                    power = self.resources.power
+                    non_connectors.update(
+                        p.resource_id
+                        for p in (
+                            *power.required_loads,
+                            *(power.additional_loads or ()),
+                            *(power.rails or ()),
+                        )
+                    )
+                for connector in inventory.connectors or ():
+                    if connector.connector_id in non_connectors:
+                        raise ValueError("Tipo global de conector incoherente")
+                    status = (
+                        "unknown"
+                        if connector.availability == "unknown"
+                        else "documented"
+                    )
+                    signature = (
+                        inventory.status,
+                        bool(inventory.evidence),
+                        status,
+                        bool(inventory.evidence),
+                        connector.occupied_by,
+                    )
+                    if connector.connector_id in observations:
+                        if observations[connector.connector_id] != signature:
+                            raise ValueError(
+                                "Inventario adaptador/recursos contradictorio"
+                            )
+                    source = sources.get(connector.connector_id)
+                    if source is not None and (
+                        connector.kind not in ("pcie8", "pcie6+2")
+                        or source.kind != "PCIe8"
+                        or source.owner_instance_id
+                        != self.adapter_route.psu_instance_id
+                    ):
+                        raise ValueError("Tipo/propietario de conector incoherente")
         for instance_id, category in references:
             if (
                 instance_id not in instances
@@ -209,7 +387,7 @@ class ResolvedConfiguration(DomainModel):
                 raise ValueError(
                     f"Instancia/categoría inválida: {instance_id}/{category}"
                 )
-            if instances[instance_id].quantity != 1:
+            if category != "ram" and instances[instance_id].quantity != 1:
                 raise ValueError(
                     "La ruta evaluada requiere una instancia física por ID"
                 )
@@ -271,3 +449,71 @@ class EvaluationResult(DomainModel):
     data_revision: Text
     pc_revision: Text
     coverage: Coverage
+    scope: BasicScope | None = None
+    additional_checks: tuple[AdditionalCheck, ...] = ()
+    warnings: tuple[Text, ...] = ()
+
+    @model_validator(mode="after")
+    def consistent_scope_inventory(self):
+        basic = tuple(f"B{i:02}" for i in range(1, 8))
+        identities = tuple(result.rule_id for result in self.rule_results)
+        if self.scope is not None:
+            if (
+                self.rules_version != "cu05-basic-stock-engine-1"
+                or identities != basic
+                or self.coverage.required != basic
+                or any(result.family != result.rule_id for result in self.rule_results)
+            ):
+                raise ValueError(
+                    "Basic scope requires its own complete versioned inventory"
+                )
+
+            def ids(state):
+                return tuple(
+                    result.rule_id
+                    for result in self.rule_results
+                    if result.state == state
+                )
+
+            expected_missing = tuple(
+                dict.fromkeys(
+                    path
+                    for result in self.rule_results
+                    for path in result.missing_fields
+                )
+            )
+            complete = not expected_missing and all(
+                result.state in ("pass", "fail") for result in self.rule_results
+            )
+            verdict = (
+                "incompatible"
+                if ids("fail")
+                or any(check.status == "fail" for check in self.additional_checks)
+                else "compatible"
+                if complete
+                else "requiere_verificacion"
+            )
+            if (
+                self.missing_fields != expected_missing
+                or self.coverage.complete != complete
+                or self.verdict != verdict
+                or self.coverage.passed != ids("pass")
+                or self.coverage.failed != ids("fail")
+                or self.coverage.unknown != ids("unknown")
+                or self.coverage.not_applicable
+                or self.coverage.not_implemented
+                or self.coverage.evaluated != basic
+                or self.coverage.implemented != basic
+            ):
+                raise ValueError("Inconsistent basic verdict or coverage")
+        elif any(identity.startswith("B") for identity in identities):
+            raise ValueError("Basic inventory cannot be labeled legacy")
+        return self
+
+    @model_serializer(mode="wrap")
+    def preserve_legacy_serialization(self, handler):
+        data = handler(self)
+        if self.scope is None:
+            for key in ("scope", "additional_checks", "warnings"):
+                data.pop(key, None)
+        return data

@@ -1,0 +1,597 @@
+[
+  {
+    "source": "buildcores",
+    "path": "open-db/CPU/04984638-674b-4384-8866-a7b20d55f8b4.json",
+    "index": null,
+    "targets": [
+      "P01"
+    ],
+    "name": "AMD Ryzen 5 5600",
+    "part_numbers": [
+      "100-100000927BOX",
+      "AMD Ryzen 5 5600",
+      "100100000927BOX"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/CPU/e88d12fe-6384-4d97-befc-3a0ec16a9e5b.json",
+    "index": null,
+    "targets": [
+      "P02"
+    ],
+    "name": "AMD Ryzen 7 5700X",
+    "part_numbers": [
+      "100-100000926WOF",
+      "AMD Ryzen 7 5700X"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/537ab009-fdcd-47ae-80db-8f73173e6e0d.json",
+    "index": null,
+    "targets": [
+      "P06"
+    ],
+    "name": "ASUS Dual GeForce RTX 4060 EVO OC Edition 8GB GDDR6",
+    "part_numbers": [
+      "DUAL-RTX4060-O8G-EVO",
+      "90YV0JC7-M0NA00",
+      "90YV0JC7-MVAA00"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/6ca0553a-4245-43fd-9490-6b3b251bcfbb.json",
+    "index": null,
+    "targets": [
+      "P06"
+    ],
+    "name": "Asus DUAL EVO GeForce RTX 4060 8GB GDDR6 Black",
+    "part_numbers": [
+      "DUAL-RTX4060-8G-EVO",
+      "90YV0JC6-M0NA00"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/70ebf8d6-0ce0-4b5c-97b6-ec21bd6b43aa.json",
+    "index": null,
+    "targets": [
+      "P16"
+    ],
+    "name": "ASUS TUF Gaming GeForce RTX 5070 12GB GDDR7 OC Edition",
+    "part_numbers": []
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/71ae8e1a-ee37-42fe-a40e-663ca7c461cf.json",
+    "index": null,
+    "targets": [
+      "P06"
+    ],
+    "name": "Asus DUAL EVO GeForce RTX 4060 Ti 16GB GDDR6 Black",
+    "part_numbers": [
+      "DUAL-RTX4060TI-16G-EVO"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/71f5e6de-05c0-4673-a76a-e56a92f28d65.json",
+    "index": null,
+    "targets": [
+      "P15"
+    ],
+    "name": "ASUS PRIME GeForce RTX 5070 Ti 16GB GDDR7 OC Edition",
+    "part_numbers": [
+      "prime-rtx5070ti-o16g",
+      "90YV0MF0-M0NA00",
+      "PRIME-RTX5070TI-O16G"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/7b58912b-1e83-42ae-ab08-3706c051740a.json",
+    "index": null,
+    "targets": [
+      "P06"
+    ],
+    "name": "ASUS Dual GeForce RTX 4060 Ti EVO OC Edition 8GB GDDR6",
+    "part_numbers": [
+      "DUAL-RTX4060TI-O8G-EVO",
+      "90YV0J49-M0NA00",
+      "90YV0J49-MVAA00"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/b140a95f-9de2-4263-8c08-27e8fa2bbde8.json",
+    "index": null,
+    "targets": [
+      "P06"
+    ],
+    "name": "Asus GeForce RTX 4060 Ti DUAL EVO 8GB GDDR6 Black",
+    "part_numbers": [
+      "DUAL-RTX4060TI-8G-EVO",
+      "90YV0J48-M0NA00"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/c6d81f5d-c318-437c-a8cb-e9b37b2ae716.json",
+    "index": null,
+    "targets": [
+      "P06"
+    ],
+    "name": "Asus DUAL EVO OC GeForce RTX 4060 Ti 16GB GDDR6 Black",
+    "part_numbers": [
+      "DUAL-RTX4060TI-O16G-EVO",
+      "90YV0JH8-M0NA00",
+      "90YV0JH8-M0AA00"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/cc67f09b-8902-4d85-a4a9-6a7fd4f9ec9b.json",
+    "index": null,
+    "targets": [
+      "P15"
+    ],
+    "name": "ASUS PRIME GeForce RTX 5070 White OC Edition 12GB GDDR7",
+    "part_numbers": [
+      "PRIME-RTX5070-O12G-WHITE"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/e2aff110-9bd6-4079-9adc-c7ccc03a3722.json",
+    "index": null,
+    "targets": [
+      "P16"
+    ],
+    "name": "ASUS TUF Gaming GeForce RTX™ 5070 Ti 16GB GDDR7 BTF White OC Edition",
+    "part_numbers": []
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/GPU/f6d9cb54-111a-4768-8e90-47a3ed03f7c1.json",
+    "index": null,
+    "targets": [
+      "P15"
+    ],
+    "name": "ASUS PRIME GeForce RTX 5070 12GB GDDR7 OC Edition",
+    "part_numbers": []
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/Motherboard/61bd00b2-7efb-4bc4-b588-08f9458c0eb1.json",
+    "index": null,
+    "targets": [
+      "P17"
+    ],
+    "name": "ASRock B550 PRO4 Supports 3rd Gen AMD AM4 Ryzen™ / Future AMD Ryzen™ Processors Motherboard",
+    "part_numbers": [
+      "B550 PRO4",
+      "ROG STRIX B550-F GAMING (WI-FI)"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/Motherboard/c1b4e544-5c6b-4c66-a859-5a0cb733f07a.json",
+    "index": null,
+    "targets": [
+      "P18"
+    ],
+    "name": "ASRock B550M Steel Legend DDR4 Micro ATX",
+    "part_numbers": [
+      "B550M Steel Legend",
+      "90-MXBCU0-A0UAYZ",
+      "B550M STEEL LEGEND"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/Motherboard/eb69638a-40e5-4e10-b550-e6780e11ec32.json",
+    "index": null,
+    "targets": [
+      "P03"
+    ],
+    "name": "ASRock B550M Pro4 AM4 DDR4 Micro ATX",
+    "part_numbers": [
+      "B550M Pro4",
+      "90-MXBDK0-A0UAYZ",
+      "B550M PRO4"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/Motherboard/f1bf7fa2-ef00-4d6b-a693-3bbbb1dec726.json",
+    "index": null,
+    "targets": [
+      "P17"
+    ],
+    "name": "ASRock B550 Pro4 ATX AM4",
+    "part_numbers": [
+      "B550 Pro4",
+      "90-MXBCZ0-A0UAYZ"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/0000caee-142c-48f6-99be-9c6f4dd18845.json",
+    "index": null,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C ATX Mid Tower Black",
+    "part_numbers": [
+      "FD-CA-MESH-C-BKO"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/2ca8aecb-0f6e-4941-87f2-2f584a5a046a.json",
+    "index": null,
+    "targets": [
+      "P09"
+    ],
+    "name": "Fractal Design Pop 2 Air White Tempered Glass RGB - ATX Mid Tower",
+    "part_numbers": [
+      "FD-C-POA2A-04"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/31338af0-9ef9-4086-803e-073b994154f7.json",
+    "index": null,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C Mini Micro ATX Mini Tower Black with Tinted Tempered Glass Side Panel and USB 3.2 Gen 1 Type-A",
+    "part_numbers": [
+      "FD-CA-MESH-C-MINI-BKO-TGD",
+      "FD-CA-MESH-C-MINI-TGD",
+      "CA-MESH-C-MINI-BKO"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/487a3caa-cc6e-4747-aaa6-85fd6ae633ce.json",
+    "index": null,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C ATX Mid Tower Black Tempered Glass Side Panel",
+    "part_numbers": [
+      "FD-CA-MESH-C-BKO-TGL"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/928046a4-02df-4779-a80d-4d5b24b1e77f.json",
+    "index": null,
+    "targets": [
+      "P09"
+    ],
+    "name": "Fractal Design Pop 2 Air Black Tempered Glass - ATX Mid Tower",
+    "part_numbers": [
+      "FD-C-POA2A-02"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/92cf5de8-ac3a-44c5-9619-c29153dcca40.json",
+    "index": null,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C ATX Mid Tower Black Tinted Tempered Glass",
+    "part_numbers": [
+      "FD-CA-MESH-C-BKO-TG"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/bd591f2c-5798-48f1-a823-2ce56ab00a8a.json",
+    "index": null,
+    "targets": [
+      "P09"
+    ],
+    "name": "Fractal Design Pop 2 Air Black Tempered Glass RGB - ATX Mid Tower",
+    "part_numbers": [
+      "FD-C-POA2A-03"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/e55298cd-3c6f-4334-a1e2-1986729bcae9.json",
+    "index": null,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C ATX Mid Tower White / Black Tempered Glass Side Panel",
+    "part_numbers": [
+      "FD-CA-MESH-C-WT-TGC"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PCCase/fd263975-75c0-473d-964c-71b1df4ad722.json",
+    "index": null,
+    "targets": [
+      "P09"
+    ],
+    "name": "Fractal Design Pop 2 Air Black Solid - ATX Mid Tower",
+    "part_numbers": [
+      "FD-C-POA2A-01"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PSU/0ecaed55-dba6-49ce-91ea-4ab0115dab9e.json",
+    "index": null,
+    "targets": [
+      "P08"
+    ],
+    "name": "Corsair RM750e (2025) White 750W Fully Modular",
+    "part_numbers": [
+      "CP-9020292-NA",
+      "CP-9020292-UK",
+      "CP-9020292-EU",
+      "CP-9020292-AU"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PSU/48e491cd-f984-46f9-a1e2-9fe05245cdd2.json",
+    "index": null,
+    "targets": [
+      "P08"
+    ],
+    "name": "Corsair RM750e (2025) Black 750W Fully Modular",
+    "part_numbers": [
+      "CP-9020295-NA",
+      "CP-9020295-EU",
+      "CP-9020295-UK",
+      "CP-9020295-AU"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PSU/5cfcb42d-a9a2-4a5b-9553-54692b67952c.json",
+    "index": null,
+    "targets": [
+      "P08"
+    ],
+    "name": "Corsair RM750e (2022) 750W 80+ Gold Certified Fully Modular ATX",
+    "part_numbers": [
+      "CP-9020248-NA",
+      "CP-9020248-AU",
+      "CP-9020248-EU",
+      "CP-9020248-UK"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PSU/982a442a-8e0a-490f-ad13-ddce35b752a4.json",
+    "index": null,
+    "targets": [
+      "P08"
+    ],
+    "name": "Corsair RM750e (2023) 750W 80+ Gold Fully Modular",
+    "part_numbers": [
+      "CP-9020262-NA",
+      "CP-9020262-UK",
+      "CP-9020262-EU",
+      "CP-9020262-AU"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PSU/bbd07a27-4be9-45c3-a074-96f7125d5fdb.json",
+    "index": null,
+    "targets": [
+      "P07"
+    ],
+    "name": "Corsair CX (2023) Black 550W Non-Modular 80+ Bronze Certified",
+    "part_numbers": [
+      "CP-9020277-NA",
+      "CP-9020277-WW",
+      "CP-9020277-EU",
+      "CP-9020277-AU",
+      "CP-9020277-UK"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/PSU/fed29ff1-a26d-4172-869c-5e73eb6f39ad.json",
+    "index": null,
+    "targets": [
+      "P07"
+    ],
+    "name": "Corsair CX550 (2017) ATX 550W Non-Modular 80+ Bronze Certified",
+    "part_numbers": [
+      "CP-9020121-NA",
+      "CP-9020121-AU",
+      "CP-9020121-UK"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/RAM/59508d5f-fe56-4b78-9387-3b9e0e18297e.json",
+    "index": null,
+    "targets": [
+      "P05"
+    ],
+    "name": "Kingston ValueRAM DDR4-3200 CL22 16GB (1x16GB)",
+    "part_numbers": [
+      "KVR32N22D8",
+      "16",
+      "KVR32N22D8/16"
+    ]
+  },
+  {
+    "source": "buildcores",
+    "path": "open-db/RAM/ae4d587f-532f-486e-8faa-5e76a6ace1f1.json",
+    "index": null,
+    "targets": [
+      "P04"
+    ],
+    "name": "Kingston ValueRAM DDR4-3200 CL22 8GB (1x8GB)",
+    "part_numbers": [
+      "KVR32N22S8",
+      "8",
+      "KVR32N22S8/8"
+    ]
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/cpu.json",
+    "index": 9,
+    "targets": [
+      "P01"
+    ],
+    "name": "AMD Ryzen 5 5600",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/cpu.json",
+    "index": 16,
+    "targets": [
+      "P02"
+    ],
+    "name": "AMD Ryzen 7 5700X",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/motherboard.json",
+    "index": 55,
+    "targets": [
+      "P03"
+    ],
+    "name": "ASRock B550M Pro4",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/motherboard.json",
+    "index": 394,
+    "targets": [
+      "P18"
+    ],
+    "name": "ASRock B550M Steel Legend",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/motherboard.json",
+    "index": 491,
+    "targets": [
+      "P17"
+    ],
+    "name": "ASRock B550 Pro4",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/power-supply.json",
+    "index": 4,
+    "targets": [
+      "P08"
+    ],
+    "name": "Corsair RM750e (2025)",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/power-supply.json",
+    "index": 32,
+    "targets": [
+      "P08"
+    ],
+    "name": "Corsair RM750e (2023)",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/power-supply.json",
+    "index": 37,
+    "targets": [
+      "P08"
+    ],
+    "name": "Corsair RM750e (2025)",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/power-supply.json",
+    "index": 205,
+    "targets": [
+      "P07"
+    ],
+    "name": "Corsair CX550 (2017)",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/power-supply.json",
+    "index": 221,
+    "targets": [
+      "P08"
+    ],
+    "name": "Corsair RM750e (2022)",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/case.json",
+    "index": 35,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/case.json",
+    "index": 396,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/case.json",
+    "index": 549,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/case.json",
+    "index": 663,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C",
+    "part_numbers": null
+  },
+  {
+    "source": "docyx",
+    "path": "data/json/case.json",
+    "index": 763,
+    "targets": [
+      "P10"
+    ],
+    "name": "Fractal Design Meshify C Mini",
+    "part_numbers": null
+  }
+]
