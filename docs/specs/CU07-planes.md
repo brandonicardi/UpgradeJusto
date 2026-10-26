@@ -10,6 +10,26 @@ Aceptación: varios discos/fans, dependencia/coste incremental y acumulado, revi
 propiedad A/B, fallo en etapa posterior y sin modificación implícita de PC.
 Esta definición no acredita implementación38; cierre histórico inferior conservado.
 
+### Contrato privado torre aceptado antes de código
+
+[Plan38 v1](../../backend/INTEGRAL38_PLAN_CONTRACT.md) define `/api/tower-plans`,
+`kind:tower_plan/schema_version:2`, dos tablas aditivas separadas e historial congelado;
+no introducir torres en lectores/planes/shares de seis categorías. Crear/recalcular
+revalida selecciones en servidor contra PC/revisión y una publicación fijada; GET
+devuelve cotización histórica, no la rejuvenece. Guardar nunca aplica acciones a PC.
+Límites aceptados:12 etapas,36 acciones/etapa y96 totales, snapshot1MiB, body37 sin
+ampliar. Tiempo de cálculo propuesto5s requiere gate real antes de activar rutas;
+no se declara una interrupción física que el motor síncrono no garantiza.
+Stock y gasto por pieza se acumulan por prefijo; no reutilizar stock/materiales
+documentados como infinitos. Etapa de preparación no necesita beneficio propio,
+pero tampoco oculta unknown/fallo. Ready exige todos los prefijos compatibles,
+costes/presupuestos completos y beneficio final respaldado. Borrador/bloqueado se
+guardan con etiqueta que prohíbe presentarlos como recomendación o permiso de compra.
+Propiedad antes de CAS/conflictos, idempotencia por clave/cuerpo, baja lógica e
+historial sin alteraciones; downgrade no borra planes para aparentar reversibilidad.
+Migración futura38_d_001/parent38_c_001 verificado antes de crear, solo TEST en gates.
+Contrato aceptado para implementación, no prueba de endpoint/persistencia/latencia.
+
 ## Estado vigente24/10 — FUNCIONAL LOCAL VERIFICADO
 
 Planes PG/etapas acumuladas/API/web probados: proofHTTPS/reinicioREAL0 y cierre

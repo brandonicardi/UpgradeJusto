@@ -9,6 +9,17 @@ históricos legibles sin reescribirlos. Contrato
 declaraciones filtrada, sin datos privados, revocación A/B, costes/fuentes con fecha
 y respuesta legacy preservada. Autorización no equivale a prueba ejecutada38.
 
+### Separación del incremento privado torre38
+
+[Plan38 v1](../../backend/INTEGRAL38_PLAN_CONTRACT.md) mantiene CU09 como incremento
+posterior a planes privados: no activar stubs ni copiar el snapshot privado entero.
+Proyección pública allowlist de revisión fija, título público explícito, sin notas,
+emails, IDs privados de PC/líneas/conversaciones ni prompt original. Tokens nuevos
+hasheados y revocables; GET sin recotizar ni modificar bytes históricos. La migración
+de planes privados38_d_001 no incluye shares nuevos. Contrato específico de CU09,
+migración/proyección/privacidad y recorridos se aceptarán y probarán aparte antes
+de activarlos; los enlaces legacy permanecen intactos.
+
 ## Estado vigente24/10 — FUNCIONAL LOCAL VERIFICADO
 
 Snapshot público/revocación PG/API/web probados: proofHTTPS/reinicioREAL0,

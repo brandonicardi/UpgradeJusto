@@ -19,7 +19,40 @@ GATEWAY_HEADERS = {
 }
 
 
+def permitted_tower_plan_request(request: Request) -> bool:
+    """Closed CU07 route/method policy, identical for direct/signed ingress."""
+    root = rb"/api/tower-plans"
+    uid = rb"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    path = request.scope["raw_path"]
+    if request.method == "GET":
+        pattern = root + rb"(?:/" + uid + rb"(?:/revisions/[1-9][0-9]{0,9})?)?"
+    elif request.method == "POST":
+        pattern = root + rb"(?:/" + uid + rb"/recalculate)?"
+    elif request.method == "DELETE":
+        pattern = root + rb"/" + uid
+    else:
+        return False
+    if not re.fullmatch(pattern, path):
+        return False
+    query = request.scope.get("query_string", b"")
+    if not query:
+        return True
+    if request.method != "GET" or path != b"/api/tower-plans" or len(query) > 23:
+        return False
+    pair = rb"(?:page=[1-9][0-9]{0,4}|page_size=[1-9][0-9]?)"
+    if not re.fullmatch(pair + rb"(?:&" + pair + rb")*", query):
+        return False
+    pairs = [value.split(b"=", 1) for value in query.split(b"&")]
+    return len({key for key, _ in pairs}) == len(pairs) and all(
+        int(value) <= (10000 if key == b"page" else 50) for key, value in pairs
+    )
+
+
 def permitted_query(request: Request) -> bool:
+    if request.url.path == "/api/tower-plans" or request.url.path.startswith(
+        "/api/tower-plans/"
+    ):
+        return permitted_tower_plan_request(request)
     if not request.scope.get("query_string"):
         return True
     path = request.scope["raw_path"]
@@ -79,6 +112,7 @@ def client_ip(request: Request) -> str:
         if request.url.path in (
             "/api/pcs",
             "/api/towers",
+            "/api/tower-plans",
             "/api/plans",
             "/api/conversations",
             "/api/admin",
@@ -86,6 +120,7 @@ def client_ip(request: Request) -> str:
             (
                 "/api/pcs/",
                 "/api/towers/",
+                "/api/tower-plans/",
                 "/api/plans/",
                 "/api/shared-plans/",
                 "/api/conversations/",

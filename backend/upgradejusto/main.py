@@ -23,6 +23,7 @@ from upgradejusto.api.recommendations import router as recommendations_router
 from upgradejusto.api.shares import router as shares_router
 from upgradejusto.api.tower_compatibility import router as tower_compatibility_router
 from upgradejusto.api.tower_extraction import router as tower_extraction_router
+from upgradejusto.api.tower_plans import router as tower_plans_router
 from upgradejusto.api.tower_recommendations import (
     router as tower_recommendations_router,
 )
@@ -58,6 +59,7 @@ app.include_router(tower_compatibility_router)
 app.include_router(tower_recommendations_router)
 app.include_router(recommendations_router)
 app.include_router(plans_router)
+app.include_router(tower_plans_router)
 app.include_router(shares_router)
 app.include_router(assistant_router)
 app.include_router(administration_router)
@@ -74,6 +76,7 @@ async def no_auth_cache(request: Request, call_next):
             "/api/admin/",
             "/api/pcs/",
             "/api/towers/",
+            "/api/tower-plans/",
             "/api/plans/",
             "/api/shared-plans/",
             "/api/conversations/",
@@ -81,6 +84,7 @@ async def no_auth_cache(request: Request, call_next):
     ) or request.url.path in (
         "/api/pcs",
         "/api/towers",
+        "/api/tower-plans",
         "/api/plans",
         "/api/conversations",
     ):
