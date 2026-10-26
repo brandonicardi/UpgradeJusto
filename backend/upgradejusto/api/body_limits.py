@@ -47,6 +47,8 @@ class BodyLimits:
             return 32768
         if path == "/api/pcs/extract":
             return 65536
+        if path == "/api/towers/extract":
+            return 65536
         return 262144
 
     async def __call__(self, scope, receive, send):

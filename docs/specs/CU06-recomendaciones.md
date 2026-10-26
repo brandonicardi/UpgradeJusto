@@ -14,6 +14,15 @@ exige compatibilidad/cobertura, beneficio, coste y presupuesto; insuficiente rej
 Aceptar positivos respaldados, negativo, unknown e insuficiente, no whitelist IDs.
 Alcance autorizado, aún no probado; básico histórico inferior sigue versionado.
 
+Precisiones de coste38 tras revisión: pasta incluida en paquete nuevo no acredita
+existencias para remontar el cooler ya instalado. Si el remonte requiere material
+según evidencia, sin disponibilidad explícita confirmada o cotización aplicable
+el coste permanece incompleto. No introducir necesidad universal por omisión.
+Cantidad de stock conocida inferior a demanda impide cobertura completa de esa
+oferta; sumar demanda del mismo componente repartida entre líneas. Puede elegirse
+otra oferta suficiente. Stock desconocido no equivale a cero; `in_stock` declarado
+no es reserva ni garantía futura. Conservar fuentes, condición y fecha por oferta.
+
 ## Estado vigente25/10 — CIERRE LOCAL recomendaciones básicas aprobado
 
 Contrato E/F de [CU05](CU05-compatibilidad.md), scope `cu05-basic-stock-1`, política
