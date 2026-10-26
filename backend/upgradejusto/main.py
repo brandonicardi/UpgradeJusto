@@ -21,6 +21,7 @@ from upgradejusto.api.pcs import router as pcs_router
 from upgradejusto.api.plans import router as plans_router
 from upgradejusto.api.recommendations import router as recommendations_router
 from upgradejusto.api.shares import router as shares_router
+from upgradejusto.api.tower_compatibility import router as tower_compatibility_router
 from upgradejusto.api.towers import router as towers_router
 from upgradejusto.assistant.repository import Repository as ConversationRepository
 from upgradejusto.auth.security import HashBusy
@@ -49,6 +50,7 @@ app.include_router(google_auth_router)
 app.include_router(extraction_router)
 app.include_router(pcs_router)
 app.include_router(compatibility_router)
+app.include_router(tower_compatibility_router)
 app.include_router(recommendations_router)
 app.include_router(plans_router)
 app.include_router(shares_router)

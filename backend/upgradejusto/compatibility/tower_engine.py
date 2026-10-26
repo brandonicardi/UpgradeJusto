@@ -1,5 +1,7 @@
 """Pure schema2 evaluator. No HTTP, DB, LLM, catalog lookup or mutation."""
 
+import math
+
 from .basic_contract import AdditionalCheck
 from .basic_evaluation import evaluate_basic
 from .basic_specs import BasicSpecs
@@ -26,6 +28,7 @@ def _validated_specs(spec):
     }
     integer_lists = {"jedec_mts", "fan_supported_sizes_mm"}
     booleans = {"ecc", "buffered", "pcie_backward_compatible", "stock_cooler_included"}
+    dimensions = {"length_mm", "gpu_limit_mm", "psu_limit_mm"}
     numbers = {
         "slots",
         "max_total_gb",
@@ -96,6 +99,8 @@ def _validated_specs(spec):
             )
         elif key in booleans:
             valid = type(value) is bool
+        elif key in dimensions:
+            valid = type(value) in (int, float) and math.isfinite(value) and value > 0
         elif key in numbers:
             valid = type(value) is int and value >= 0
         elif key in texts:
