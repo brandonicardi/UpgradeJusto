@@ -30,45 +30,46 @@ class AuthRepository:
                 .first()
             )
 
-    def create_session(self, raw, csrf, ip):
-        retry = 0
+    @staticmethod
+    def consume_emission_in(conn, ip, now):
+        """Shared37 budget for NEW anonymous sessions and GIS nonce attempts."""
         limit = setting("UJ_CSRF_ISSUES_PER_15M", 30, 1, 300)
+        key = digest("csrf-issue:" + ip)
+        expired = attempts.c.started_at <= now - timedelta(minutes=15)
+        statement = insert(attempts).values(key=key, started_at=now, count=1)
+        row = (
+            conn.execute(
+                statement.on_conflict_do_update(
+                    index_elements=[attempts.c.key],
+                    set_={
+                        "started_at": sa.case(
+                            (expired, now), else_=attempts.c.started_at
+                        ),
+                        "count": sa.case(
+                            (expired, 1),
+                            else_=sa.func.least(attempts.c.count + 1, limit + 1),
+                        ),
+                    },
+                ).returning(attempts.c.started_at, attempts.c.count)
+            )
+            .mappings()
+            .one()
+        )
+        if row["count"] > limit:
+            return max(
+                1,
+                int((row["started_at"] + timedelta(minutes=15) - now).total_seconds())
+                + 1,
+            )
+        return 0
+
+    def create_session(self, raw, csrf, ip):
         with self.engine.begin() as conn:
             conn.exec_driver_sql("SET LOCAL statement_timeout = '3000ms'")
             conn.exec_driver_sql("SET LOCAL lock_timeout = '2000ms'")
             now = conn.scalar(sa.select(sa.func.clock_timestamp()))
-            key = digest("csrf-issue:" + ip)
-            expired = attempts.c.started_at <= now - timedelta(minutes=15)
-            statement = insert(attempts).values(key=key, started_at=now, count=1)
-            row = (
-                conn.execute(
-                    statement.on_conflict_do_update(
-                        index_elements=[attempts.c.key],
-                        set_={
-                            "started_at": sa.case(
-                                (expired, now), else_=attempts.c.started_at
-                            ),
-                            "count": sa.case(
-                                (expired, 1),
-                                else_=sa.func.least(attempts.c.count + 1, limit + 1),
-                            ),
-                        },
-                    ).returning(attempts.c.started_at, attempts.c.count)
-                )
-                .mappings()
-                .one()
-            )
-            if row["count"] > limit:
-                retry = max(
-                    1,
-                    int(
-                        (
-                            row["started_at"] + timedelta(minutes=15) - now
-                        ).total_seconds()
-                    )
-                    + 1,
-                )
-            else:
+            retry = self.consume_emission_in(conn, ip, now)
+            if not retry:
                 conn.execute(
                     sessions.insert().values(
                         digest=digest(raw),

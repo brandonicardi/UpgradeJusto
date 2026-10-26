@@ -18,7 +18,14 @@ class AuthError(Exception):
 
 
 def public_user(row):
-    return {"id": str(row["id"]), "email": row["email"]}
+    if row["email"] is not None:
+        return {"id": str(row["id"]), "email": row["email"]}
+    return {
+        "id": str(row["id"]),
+        "email": row["profile_email"],
+        "auth_provider": "google",
+        "display_name": row["display_name"],
+    }
 
 
 class AuthService:
@@ -67,9 +74,11 @@ class AuthService:
                     raise AuthError(409, "Email already registered")
                 return {"id": str(identity), "email": data.email}, None
             user = self.repository.user_by_email(data.email)
-            encoded = user["password_hash"] if user else DUMMY_HASH
+            encoded = (
+                user["password_hash"] if user and user["password_hash"] else DUMMY_HASH
+            )
             valid = verify_password(encoded, password)
-            if not valid or not user:
+            if not valid or not user or not user["password_hash"]:
                 raise AuthError(401, "Invalid credentials")
             replacement = (
                 HASHER.hash(password) if HASHER.check_needs_rehash(encoded) else None

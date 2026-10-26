@@ -15,6 +15,7 @@ from upgradejusto.api.body_limits import BodyLimits
 from upgradejusto.api.catalog import router as catalog_router
 from upgradejusto.api.compatibility import router as compatibility_router
 from upgradejusto.api.extraction import router as extraction_router
+from upgradejusto.api.google_auth import router as google_auth_router
 from upgradejusto.api.health import router as health_router
 from upgradejusto.api.pcs import router as pcs_router
 from upgradejusto.api.plans import router as plans_router
@@ -44,6 +45,7 @@ app = FastAPI(title="UpgradeJusto", lifespan=lifespan)
 app.include_router(health_router)
 app.include_router(catalog_router)
 app.include_router(auth_router)
+app.include_router(google_auth_router)
 app.include_router(extraction_router)
 app.include_router(pcs_router)
 app.include_router(compatibility_router)

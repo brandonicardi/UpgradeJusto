@@ -11,6 +11,7 @@ from datetime import timedelta
 
 import sqlalchemy as sa
 
+from upgradejusto.auth.google_tables import attempts as google_attempts
 from upgradejusto.auth.provider_budget import ProviderBudget, leases
 from upgradejusto.persistence.runtime import runtime_engine
 from upgradejusto.persistence.schema import attempts, sessions
@@ -28,6 +29,20 @@ class AuthMaintenance:
             now = conn.scalar(sa.select(sa.func.clock_timestamp()))
             cutoff = now - timedelta(hours=age_hours)
             targets = (
+                (
+                    google_attempts,
+                    sa.or_(
+                        google_attempts.c.expires_at <= cutoff,
+                        google_attempts.c.session_digest.in_(
+                            sa.select(sessions.c.digest).where(
+                                sa.or_(
+                                    sessions.c.expires_at <= cutoff,
+                                    sessions.c.revoked_at <= cutoff,
+                                )
+                            )
+                        ),
+                    ),
+                ),
                 (
                     sessions,
                     sa.or_(

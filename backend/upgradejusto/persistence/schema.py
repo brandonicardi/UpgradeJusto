@@ -53,8 +53,15 @@ users = sa.Table(
     "auth_users",
     metadata,
     sa.Column("id", sa.Uuid, primary_key=True),
-    sa.Column("email", sa.String(254), nullable=False, unique=True),
-    sa.Column("password_hash", sa.Text, nullable=False),
+    sa.Column("email", sa.String(254), nullable=True, unique=True),
+    sa.Column("password_hash", sa.Text, nullable=True),
+    sa.Column("profile_email", sa.String(254), nullable=True),
+    sa.Column("display_name", sa.String(200), nullable=True),
+    sa.CheckConstraint(
+        "(email IS NULL AND password_hash IS NULL) OR "
+        "(email IS NOT NULL AND password_hash IS NOT NULL)",
+        name="ck_auth_local_credentials_pair",
+    ),
 )
 
 sessions = sa.Table(
