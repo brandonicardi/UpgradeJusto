@@ -148,3 +148,11 @@ def test_legacy_component_dump_has_no_resource_columns():
     )
     assert "offers" not in part.model_dump(mode="json")
     assert "image_evidence" not in part.model_dump(mode="json")
+
+
+def test_vendor_name_canonicalizes_only_boundary_whitespace():
+    data = synthetic_batch(1)
+    name = "SYNTHETIC  Exact CaSe Model"
+    data["records"][0]["name"] = "  " + name + "  "
+    record = VendorBatch.model_validate(data).records[0]
+    assert record.name == name

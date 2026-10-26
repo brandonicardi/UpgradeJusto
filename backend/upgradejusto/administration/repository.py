@@ -177,8 +177,12 @@ class AdministrationRepository:
                 and all(
                     old_parts[item["component_id"]][key]
                     == new_parts[item["component_id"]][key]
-                    for key in ("category", "name", "sources")
+                    for key in ("category", "sources")
                 )
+                # Legacy retail names may contain boundary whitespace that CU10
+                # canonicalizes. No case folding or model/variant fuzzy matching.
+                and old_parts[item["component_id"]]["name"].strip()
+                == new_parts[item["component_id"]]["name"].strip()
             ]
             if copied:
                 conn.execute(resources.insert(), copied)

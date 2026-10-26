@@ -84,6 +84,12 @@ tienen atributos técnicos; no conciliación automática ni compatibilidad de691
 672 URL de foto asociadas y626 ofertas fresh/in_stock; URLs no equivalen a bytes
 verificados ni el stock a garantía. No prueba DEV ni cierre integral38.
 
+Normalización posterior: CU10 recortaba nombres y descartaba recursos de registros
+pre-fix con espacios extremos. Canonicalización exclusivamente strip, categoría y
+fuentes exactas; rename real/case change sigue retirando evidencia. Revisión de
+seguridad cerró P2. Build4 PG PASS0 después de reconstruir legado en draft antes de
+congelarlo; nunca UPDATE de publicado ni desactivar trigger. Lint/formato0 finales.
+
 ## Corrección P2 — refresh comercial y curación CU10
 
 Delta: retail/repository.py crea componente/entradas/fuente vacíos solamente para
@@ -96,3 +102,23 @@ oferta; compara atributos, fuentes, entradas completas e históricos inmutables.
 No ejecutada por este hijo. Build: format/check de los dos Python del delta por
 separado; después pytest focal PG cuando B1 esté estable; revisión solo del delta.
 No publicar lotes reales antes de aprobar este gate.
+
+## Delta integración — canonicalización de nombre, sin matching aproximado
+
+Causa diagnosticada por Build: filas retail antiguas conservaban espacios finales;
+CU10 aplica strip al materializar y la comparación exacta descartaba recursos.
+VendorRecord.name ahora aplica solo strip tras validar texto. CU10 hereda recursos
+si categoría/fuentes coinciden EXACTAMENTE y nombres coinciden tras strip solamente.
+No casefold, normalización interna, cambio de variante ni escrituras históricas.
+Refresh comercial mantiene la protección P2 de curación/entradas existentes.
+
+Nuevas pruebas propias: test_vendor_name_canonicalizes_only_boundary_whitespace;
+test_cu10_legacy_name_trim_preserves_resources_but_real_rename_drops (dos variantes,
+incluye cambio de mayúsculas). La prueba PG reconstruye exclusivamente filas y
+entradas sintéticas pre-fix dentro de transacción exterior con rollback; compara
+recursos completos/ofertas/fuentes/atributos e históricos antes/después de CU10.
+Un rename real sigue retirando fotos/ofertas. Sin cambios de fixture torre.
+
+Build: format/lint separados para retail/models.py, administration/repository.py y
+tests/test_retail38_{models,postgres}.py; después pruebas retail y cinco tower API
+en TEST exclusivo. Sin runners ni nuevos resultados comprobados por este hijo.

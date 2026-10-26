@@ -140,6 +140,13 @@ class VendorRecord(Closed):
     image: ImageEvidence | None = None
     offers: tuple[OfferInput, ...] = Field(max_length=2)
 
+    @field_validator("name")
+    @classmethod
+    def canonical_name(cls, value):
+        if not value.strip() or any(ord(c) < 32 for c in value):
+            raise ValueError("Invalid product name")
+        return value.strip()
+
     @model_validator(mode="after")
     def unique_conditions(self):
         if len({o.condition for o in self.offers}) != len(self.offers):
