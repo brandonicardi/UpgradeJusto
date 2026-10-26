@@ -10,6 +10,7 @@ from pydantic import (
     Field,
     StrictStr,
     StringConstraints,
+    TypeAdapter,
     field_validator,
     model_validator,
 )
@@ -18,6 +19,7 @@ from upgradejusto.catalog.models import Category, Source
 from upgradejusto.compatibility.basic_specs import validate_envelope
 from upgradejusto.compatibility.models import CpuSupportRow, TextObservation
 from upgradejusto.pcs.models import InputModel
+from upgradejusto.retail.technical_parser import load_technical_envelope
 
 Text = Annotated[
     StrictStr, StringConstraints(min_length=1, max_length=2000, pattern=r"\S")
@@ -113,7 +115,7 @@ def public_url(value):
 class ComponentData(InputModel):
     category: Category
     name: Annotated[StrictStr, Field(min_length=1, max_length=200)]
-    attributes: dict[StrictStr, Text | None]
+    attributes: dict[StrictStr, StrictStr | None]
     sources: Annotated[list[Source], Field(min_length=1, max_length=30)]
 
     @field_validator("name")
@@ -125,8 +127,19 @@ class ComponentData(InputModel):
 
     @model_validator(mode="after")
     def supported(self):
-        if set(self.attributes) - (ATTRIBUTES[self.category] | {"basic_stock_v1"}):
+        if set(self.attributes) - (
+            ATTRIBUTES[self.category] | {"basic_stock_v1", "tower_stock_v1"}
+        ):
             raise ValueError("Unsupported attribute")
+        for key, value in self.attributes.items():
+            if value is None:
+                continue
+            if key == "tower_stock_v1":
+                envelope = load_technical_envelope(value)
+                if envelope.identity.category != self.category:
+                    raise ValueError("Technical category mismatch")
+            else:
+                TypeAdapter(Text).validate_python(value)
         if self.attributes.get("basic_stock_v1") is not None:
             validate_envelope(self.attributes["basic_stock_v1"])
         if self.attributes.get("installed_bios") is not None:

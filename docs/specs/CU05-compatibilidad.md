@@ -1,5 +1,26 @@
 # CU05 — contrato documental mínimo de compatibilidad
 
+## Evidencia técnica38 — representación aceptada antes de implementación
+
+`attributes.tower_stock_v1` aloja JSON cerrado version1, separado de `basic_stock_v1`;
+contrato exacto en [Technical38](../../backend/INTEGRAL38_TECHNICAL_CONTRACT.md).
+Binding ID/categoría/nombre exactos, observaciones nominales tipadas y procedencia por
+campo; referencias ID/URL/fecha/locator registradas en la misma revisión. Omitido o
+conflictivo permanece desconocido, no cero/lista vacía ni sobrescritura silenciosa
+del básico. Cap24000 bytes/envelope y500 referencias, controles37 sin ampliación.
+No cambia política de compatibilidad ni prueba contenido del manual por validarlo.
+Integración al motor se verifica por separado; no derivar presupuesto global fans
+sumando headers ni publicar dimensiones fraccionarias redondeadas para hacerlas caber.
+Esto autoriza representación/publicación, no un positivo real ni cierre de CU05.
+
+Observaciones térmicas nominales38: `thermal_compound_required_on_remount` y
+`thermal_compound_included` son booleanos estrictos con procedencia por campo para
+cooler o cooler incluido de CPU exacto. Omitido sigue desconocido. Inclusión describe
+un paquete nuevo, no pasta restante disponible al reutilizar un cooler instalado.
+No impone universalmente material faltante a todo cambio CPU/placa ni certifica
+temperaturas. El consumidor debe distinguir compra nueva de remonte y confirmación
+explícita de disponibilidad; nunca reutilizar la inclusión como suministro ilimitado.
+
 ## Delta autorizado38 — antes de implementar
 
 Torre añade almacenamiento/cooler/fans con interfaces/ranuras/puertos/montaje y

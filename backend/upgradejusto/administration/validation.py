@@ -5,6 +5,7 @@ import json
 from upgradejusto.administration.models import SupportData, validate_data
 from upgradejusto.catalog.models import Component
 from upgradejusto.compatibility.basic_specs import validate_envelope
+from upgradejusto.retail.technical_validation import validate_technical_binding
 
 
 def materialize(entries):
@@ -23,7 +24,7 @@ def materialize(entries):
     components = groups["components"]
     if not components:
         raise ValueError("Empty catalog")
-    for component in components.values():
+    for component_id, component in components.items():
         if any((s["id"], s["url"]) not in sources for s in component["sources"]):
             raise ValueError("Missing component source")
         raw_basic = component["attributes"].get("basic_stock_v1")
@@ -36,6 +37,11 @@ def materialize(entries):
                 for identity in identities
             ):
                 raise ValueError("Missing basic stock field evidence source")
+        raw_tower = component["attributes"].get("tower_stock_v1")
+        if raw_tower is not None:
+            validate_technical_binding(
+                raw_tower, component_id, component, list(groups["sources"].values())
+            )
     prices = {identity: [] for identity in components}
     for price in groups["prices"].values():
         if price["component_id"] not in components:

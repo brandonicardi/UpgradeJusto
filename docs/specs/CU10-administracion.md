@@ -1,5 +1,20 @@
 # CU10 — contrato Sprint33 (autorizado24/10)
 
+## Publicación técnica38 — contrato aceptado antes de código
+
+CU10 existente permite `tower_stock_v1` cerrado con tipos, identidad exacta y fuentes
+registradas conforme [Technical38](../../backend/INTEGRAL38_TECHNICAL_CONTRACT.md).
+Legacy2000 caracteres permanece salvo esa clave acotada24000 bytes; body37 según
+ruta sin aumentar. Referencia ausente/ambigua/conflictiva/extra es422 y rollback;
+rol fresco, revisión esperada y snapshots inmutables se conservan. Ningún downloader,
+SQL/código/reglas ejecutables ni resultados preaprobados en el envelope.
+Para misma identidad/nombre tras strip/categoría, agregar solo fuentes técnicas
+preservando todas las parejas anteriores y origen vendor mantiene recursos retail
+sin refrescar fecha. Quitar/cambiar fuentes o renombrar pieza conserva el guard
+conservador; no reconciliar MPN por parecido/GTIN ni reasignar recursos. Pruebas deben
+contrastar superset legítimo y rechazo/retirada ante cambio real, no desactivar
+inmutabilidad ni modificar publicaciones viejas. Es contrato previo, no gate aprobado.
+
 ## Delta autorizado38 — antes de implementar
 
 Administración versiona importaciones amplias, ofertas/media/métricas con rol fresco

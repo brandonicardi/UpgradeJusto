@@ -11,6 +11,7 @@ from upgradejusto.administration.validation import materialize
 from upgradejusto.pcs.service import PCError
 from upgradejusto.persistence.schema import components, datasets
 from upgradejusto.retail.tables import resources
+from upgradejusto.retail.technical_validation import preserve_retail_resource
 
 
 class AdministrationRepository:
@@ -170,20 +171,21 @@ class AdministrationRepository:
                 ).mappings()
             }
             new_parts = {item["id"]: item for item in materialized}
-            copied = [
-                dict(item, dataset_version=identity)
-                for item in inherited
-                if item["component_id"] in retained
-                and all(
-                    old_parts[item["component_id"]][key]
-                    == new_parts[item["component_id"]][key]
-                    for key in ("category", "sources")
-                )
-                # Legacy retail names may contain boundary whitespace that CU10
-                # canonicalizes. No case folding or model/variant fuzzy matching.
-                and old_parts[item["component_id"]]["name"].strip()
-                == new_parts[item["component_id"]]["name"].strip()
-            ]
+            try:
+                copied = [
+                    dict(item, dataset_version=identity)
+                    for item in inherited
+                    if item["component_id"] in retained
+                    and preserve_retail_resource(
+                        item,
+                        old_parts[item["component_id"]],
+                        new_parts[item["component_id"]],
+                    )
+                ]
+            except (ValueError, TypeError):
+                raise PCError(
+                    422, "Invalid technical retail identity binding"
+                ) from None
             if copied:
                 conn.execute(resources.insert(), copied)
             conn.execute(
