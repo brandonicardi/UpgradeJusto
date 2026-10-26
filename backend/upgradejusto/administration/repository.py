@@ -10,6 +10,7 @@ from upgradejusto.administration.tables import active, revisions, roles, rows
 from upgradejusto.administration.validation import materialize
 from upgradejusto.pcs.service import PCError
 from upgradejusto.persistence.schema import components, datasets
+from upgradejusto.retail.tables import resources
 
 
 class AdministrationRepository:
@@ -153,6 +154,34 @@ class AdministrationRepository:
                 components.insert(),
                 [{"dataset_version": identity, **item} for item in materialized],
             )
+            # Carry evidence forward without changing immutable historical rows.
+            retained = {item["id"] for item in materialized}
+            inherited = (
+                conn.execute(
+                    sa.select(resources).where(resources.c.dataset_version == current)
+                )
+                .mappings()
+                .all()
+            )
+            old_parts = {
+                item["id"]: item
+                for item in conn.execute(
+                    sa.select(components).where(components.c.dataset_version == current)
+                ).mappings()
+            }
+            new_parts = {item["id"]: item for item in materialized}
+            copied = [
+                dict(item, dataset_version=identity)
+                for item in inherited
+                if item["component_id"] in retained
+                and all(
+                    old_parts[item["component_id"]][key]
+                    == new_parts[item["component_id"]][key]
+                    for key in ("category", "name", "sources")
+                )
+            ]
+            if copied:
+                conn.execute(resources.insert(), copied)
             conn.execute(
                 revisions.update()
                 .where(revisions.c.id == identity)

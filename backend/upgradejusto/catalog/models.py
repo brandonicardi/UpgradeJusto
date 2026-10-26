@@ -6,6 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from upgradejusto.retail.models import ImageEvidence, Offer
+
 
 class Category(StrEnum):
     CPU = "cpu"
@@ -47,7 +49,11 @@ class Component(ReadModel):
     attributes: dict[str, str | None]
     sources: tuple[Source, ...]
     prices: tuple[Price, ...] = ()
-    image: None = None
+    image: str | None = None
+    image_evidence: ImageEvidence | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    offers: tuple[Offer, ...] = Field(default=(), exclude_if=lambda v: not v)
 
 
 class ComponentPage(ReadModel):

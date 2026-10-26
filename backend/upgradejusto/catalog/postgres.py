@@ -11,6 +11,8 @@ from upgradejusto.administration.tables import rows as revision_rows
 from upgradejusto.catalog.models import Component
 from upgradejusto.persistence.runtime import Unavailable, runtime_engine
 from upgradejusto.persistence.schema import components
+from upgradejusto.retail.models import current_offer
+from upgradejusto.retail.reading import aggregate_resources
 
 
 @dataclass(frozen=True)
@@ -42,14 +44,15 @@ def published_catalog_snapshot(conn, version):
             revision_rows.c.collection == "cpu_support",
         )
     ).all()
+    parts = tuple(
+        Component.model_validate(
+            {k: v for k, v in row.items() if k != "dataset_version"}
+        )
+        for row in parts
+    )
     return PublishedCatalogSnapshot(
         dataset_version=version,
-        components=tuple(
-            Component.model_validate(
-                {k: v for k, v in row.items() if k != "dataset_version"}
-            )
-            for row in parts
-        ),
+        components=aggregate_resources(conn, version, parts),
         support_rows=tuple(
             SupportData.model_validate_json(json.dumps(item)) for item in support
         ),
@@ -81,7 +84,13 @@ class PostgresCatalogRepository:
         self._snapshot = snapshot.components
 
     def all(self):
-        return tuple(part.model_copy(deep=True) for part in self._snapshot)
+        return tuple(
+            part.model_copy(
+                deep=True,
+                update={"offers": tuple(current_offer(o) for o in part.offers)},
+            )
+            for part in self._snapshot
+        )
 
     def get(self, component_id):
         return next((item for item in self.all() if item.id == component_id), None)
