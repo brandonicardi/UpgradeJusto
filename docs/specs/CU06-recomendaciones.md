@@ -1,5 +1,19 @@
 # CU06 — recomendaciones, Sprint32 F
 
+## Delta autorizado38 — antes de implementar
+
+`/api/towers/{id}/recommendations/preview`: modo automatic o manual_comparison,
+objetivo general/gaming/productivity, ARS/condición cash/list y materiales explícitos;
+DTO en [contrato38 §5](../../backend/INTEGRAL38_CONTRACT.md). Automático busca catálogo
+completo, beneficio pertinente por índice curado con contexto; no VRAM/núcleos/FPS
+inventados. Productividad Blender exige workload blender-cpu, no generalización.
+Sin respaldo: faltantes y comparación manual identificada. Coste incremental completo
+incluye dependencias materialmente necesarias; included/available_confirmed/priced/
+missing, no pasta desconocida universal CPU/placa ni coste inventado. Recommended
+exige compatibilidad/cobertura, beneficio, coste y presupuesto; insuficiente rejected.
+Aceptar positivos respaldados, negativo, unknown e insuficiente, no whitelist IDs.
+Alcance autorizado, aún no probado; básico histórico inferior sigue versionado.
+
 ## Estado vigente25/10 — CIERRE LOCAL recomendaciones básicas aprobado
 
 Contrato E/F de [CU05](CU05-compatibilidad.md), scope `cu05-basic-stock-1`, política

@@ -69,6 +69,32 @@ ATTRIBUTES = {
         "cooler_height_limit",
         "slots",
     },
+    "storage": {
+        "capacity_gb",
+        "interface",
+        "form_factor",
+        "length",
+        "height",
+        "power_connector",
+        "evidence_note",
+    },
+    "cooler": {
+        "sockets",
+        "height",
+        "radiator_size",
+        "fan_header",
+        "power_connector",
+        "included_thermal_compound",
+        "evidence_note",
+    },
+    "fan": {
+        "size",
+        "thickness",
+        "fan_header",
+        "voltage",
+        "current",
+        "evidence_note",
+    },
 }
 
 

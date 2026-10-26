@@ -13,7 +13,7 @@ from pydantic import (
     model_validator,
 )
 
-from upgradejusto.catalog.models import Category
+from upgradejusto.catalog.models import LEGACY_CATEGORIES, Category
 
 
 class InputModel(BaseModel):
@@ -27,6 +27,8 @@ class ComponentGroup(InputModel):
 
     @model_validator(mode="after")
     def quantity_policy(self):
+        if self.category not in LEGACY_CATEGORIES:
+            raise ValueError("Tower category requires tower API")
         if self.category != "ram" and self.quantity != 1:
             raise ValueError("Non-RAM quantity must be 1")
         return self

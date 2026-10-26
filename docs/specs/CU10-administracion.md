@@ -1,5 +1,17 @@
 # CU10 — contrato Sprint33 (autorizado24/10)
 
+## Delta autorizado38 — antes de implementar
+
+Administración versiona importaciones amplias, ofertas/media/métricas con rol fresco
+servidor, validación, cuarentena de conflicto y publicación atómica; no código/reglas
+ejecutables/SQL arbitrario ni modificar snapshots publicados. Fuente/revisión/hash/
+fecha/licencia por importación, variante exacta antes de unir datos/foto/oferta.
+Actualización explícita/acotada/cache, no descarga masiva por render. Respeta robots
+Venex y no elude bloqueo/CAPTCHA; código kit sin licencia solo referencia no copiada.
+Contrato [§3/7](../../backend/INTEGRAL38_CONTRACT.md). Aceptación: idempotencia/cuarentena/
+atomicidad/rol/precios vencidos/fuentes/licencias y conteos reales por categoría.
+No acredita importación amplia ni permisos probados por esta nota; histórico33 intacto.
+
 ## Autoridad y alcance
 
 Rol `admin` en PostgreSQL resuelto por servidor en cada operación; nunca rol/user_id

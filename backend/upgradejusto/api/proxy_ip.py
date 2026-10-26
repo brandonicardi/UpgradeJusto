@@ -47,7 +47,7 @@ def permitted_query(request: Request) -> bool:
         )
     )
     if request.method != "GET" or not (
-        path in (b"/api/pcs", b"/api/plans") or conversation_list
+        path in (b"/api/pcs", b"/api/towers", b"/api/plans") or conversation_list
     ):
         return False
     try:
@@ -78,12 +78,14 @@ def client_ip(request: Request) -> str:
         # Private route policies apply before returning a direct transport peer.
         if request.url.path in (
             "/api/pcs",
+            "/api/towers",
             "/api/plans",
             "/api/conversations",
             "/api/admin",
         ) or request.url.path.startswith(
             (
                 "/api/pcs/",
+                "/api/towers/",
                 "/api/plans/",
                 "/api/shared-plans/",
                 "/api/conversations/",

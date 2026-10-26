@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 
 from upgradejusto.api.pcs import service
 from upgradejusto.auth.security import digest
+from upgradejusto.catalog.postgres import PostgresCatalogRepository
 from upgradejusto.main import app
 from upgradejusto.pcs.models import PCUpdate
 from upgradejusto.pcs.repository import PCRepository
@@ -236,7 +237,11 @@ def test_revision_concurrency_and_transaction_rollback(actors, pg_engine):
         )
     )
     with pytest.raises(IntegrityError):
-        PCRepository(pg_engine).update(a[2], uuid.UUID(pc["id"]), invalid)
+        # Reach the genuine missing-component FK, not the earlier stale-catalog
+        # guard when TEST already has a newer active imported publication.
+        PCRepository(
+            pg_engine, PostgresCatalogRepository(pg_engine).dataset_version
+        ).update(a[2], uuid.UUID(pc["id"]), invalid)
     assert a[0].get(path).json() == updated
 
 

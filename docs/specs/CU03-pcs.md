@@ -1,5 +1,18 @@
 # CU03 — PCs por propietario, Sprint32 C
 
+## Delta autorizado38 — antes de implementar
+
+Torre schema_version2: nueve categorías, líneas UUID, selección catálogo XOR modelo
+declarado1..200, estados por categoría present/unknown/absent. CPU/placa/GPU/fuente/
+gabinete/cooler únicos; RAM hasta4 grupos/16 módulos, discos16, fans8 grupos/32 unidades,
+máximo36 líneas. Son límites de entrada, no compatibilidad. Varias líneas de discos
+no comparten PK por categoría. `/api/towers` CRUD con ownership/revisión y adaptación
+legacy sin escritura; legacy no puede truncar edición v2. Migración aditiva38_a_001,
+tabla PCs reutilizada, datos anteriores conservados. DTO exacto en
+[contrato38 §1–2](../../backend/INTEGRAL38_CONTRACT.md). Aceptación sobre copia sintética
+anterior y A/B, no usar DEV como prueba. Unknown conserva faltantes/declaraciones.
+Todavía no implementado/verificado por este delta; historia inferior conservada.
+
 Estado24/10: C/CU03 VERIFICADO funcionalmente por coordinación: PG195/cero skips,
 browser5, proof HTTPS/reinicioREAL PC y Astra sin bloqueantes. Migraciones DEV/TEST
 y proof atribuidos a Build. Pendiente operativo: comprobar liveness PG posterior

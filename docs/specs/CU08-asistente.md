@@ -1,5 +1,17 @@
 # CU08 — plan y contrato inicial, Sprint32 I
 
+## Delta autorizado38 — antes de implementar
+
+Conservar siete herramientas MCP y nombres/identidad servidor; resolver DTO torre
+por schema/scope sin truncar ni autorizar con user_id/SQL del modelo. Get PC/evaluate/
+simulate/recommend/plan reutilizan servicios. Contexto PC visible, preguntas útiles,
+Markdown seguro/fuentes/progreso/cancelación/errores recuperables/historial; orientar
+confirmación sin saltarla. RAG pertinente curado, no PDF por cantidad ni precio viejo
+como oferta viva. Contrato [§7](../../backend/INTEGRAL38_CONTRACT.md).
+Aceptación: herramientas con torre/declarados/propiedad y streaming/UUID/cancelación/
+cuotas37, pocas llamadas reales justificadas; no atribuir mocks a Groq real.
+No es cierre38; resultados inferiores conservados para sus incrementos.
+
 ## Estado vigente24/10 — FUNCIONAL LOCAL VERIFICADO
 
 Revisor independiente FINAL: incremental APROBADO sin bloqueantes. CierreBuild

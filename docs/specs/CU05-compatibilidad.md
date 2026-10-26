@@ -1,5 +1,19 @@
 # CU05 — contrato documental mínimo de compatibilidad
 
+## Delta autorizado38 — antes de implementar
+
+Torre añade almacenamiento/cooler/fans con interfaces/ranuras/puertos/montaje y
+alimentación según evidencia. Inventario fijo T01–T12, scope cu05-tower-stock-1,
+policy tower-stock-policy-1 y reglas versionadas, DTO en
+[contrato38 §4](../../backend/INTEGRAL38_CONTRACT.md). Evaluar todas: fallo conocido
+domina conservando faltantes; unknown necesario bloquea verde. Declarado no inventa
+atributos; ausente no elimina requisitos. Simulación efímera con acciones explícitas,
+RAM sustituye conjunto; motherboard no hereda BIOS. Todas las etapas acumulativas.
+Aceptación: positivo documentado dentro de alcance/negativo/unknown y asignación
+compartida de discos/fans; no certificación térmica/eléctrica física exhaustiva.
+No implementación aprobada por esta nota. cu05-basic-stock-1/B01–B07 y versiones
+históricas inferiores intactas, no presentarlas como cobertura de torre completa.
+
 ## Estado vigente25/10 — CIERRE LOCAL básico stock aprobado
 
 Decisión más reciente: completar CU05/CU06 bajo alcance **básico stock**, no certificar

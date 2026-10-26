@@ -1,5 +1,18 @@
 # CU04 — catálogo readonly Sprint31b A
 
+## Delta autorizado38 — antes de implementar
+
+Nueve categorías torre; búsqueda/paginación remota y resolución por ID independientes
+de primeros50 en todos los consumidores. Fotos exactas y ofertas en recursos de
+publicación versionados, sin modificar image:null/snapshots antiguos. HTTPS/hosts
+permitidos, sin URL arbitraria/SVG ni descargador general; origen/fecha/derechos/
+variante/status y fallback honesto. Ofertas ARS contado/lista, stock/consulta/expiración,
+24h retail-offer-freshness-1; stale/fallo no es vigente/cero. DTO exacto
+[contrato38 §3](../../backend/INTEGRAL38_CONTRACT.md). Importación amplia idempotente,
+sin tope60 ni combos/periféricos inflando; cuarentena y publicación atómica CU10.
+Aceptación >50, foto rota/variante/host, fecha/coste/stock/licencias. Es alcance,
+no importación ejecutada ni garantía de stock; históricos31b conservados.
+
 Contrato aceptado para este incremento, antes de implementar frontend. No decide
 compatibilidad ni presupuesto. Dataset `sprint31b-a-v1`, curado exclusivamente desde
 HARDWARE_DEMO líneas 9–31, 52–82 y 178–194; 84–114 solo para atributos pertinentes.

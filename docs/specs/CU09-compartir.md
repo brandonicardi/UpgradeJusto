@@ -1,5 +1,14 @@
 # CU09 — compartir y revocar, Sprint32 H
 
+## Delta autorizado38 — antes de implementar
+
+Compartir torre conserva snapshot versionado de quotes/scope/evidencia/advertencias,
+sin notas privadas ni recálculo GET. Revocación y control de propiedad iguales; enlaces
+históricos legibles sin reescribirlos. Contrato
+[§7](../../backend/INTEGRAL38_CONTRACT.md). Aceptación: proyección pública de líneas/
+declaraciones filtrada, sin datos privados, revocación A/B, costes/fuentes con fecha
+y respuesta legacy preservada. Autorización no equivale a prueba ejecutada38.
+
 ## Estado vigente24/10 — FUNCIONAL LOCAL VERIFICADO
 
 Snapshot público/revocación PG/API/web probados: proofHTTPS/reinicioREAL0,

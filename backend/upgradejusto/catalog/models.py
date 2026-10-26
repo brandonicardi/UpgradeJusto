@@ -14,6 +14,14 @@ class Category(StrEnum):
     GPU = "gpu"
     PSU = "psu"
     CASE = "case"
+    STORAGE = "storage"
+    COOLER = "cooler"
+    FAN = "fan"
+
+
+LEGACY_CATEGORIES = frozenset(
+    Category(value) for value in ("cpu", "motherboard", "ram", "gpu", "psu", "case")
+)
 
 
 class ReadModel(BaseModel):

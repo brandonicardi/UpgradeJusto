@@ -29,7 +29,7 @@ components = sa.Table(
     sa.Column("prices", JSONB, nullable=False),
     sa.Column("image", sa.Text, nullable=True),
     sa.CheckConstraint(
-        "category IN ('cpu', 'motherboard', 'ram', 'gpu', 'psu', 'case')",
+        "category IN ('cpu', 'motherboard', 'ram', 'gpu', 'psu', 'case', 'storage', 'cooler', 'fan')",
         name="ck_catalog_category",
     ),
     sa.CheckConstraint("length(id) > 0", name="ck_catalog_component_id"),

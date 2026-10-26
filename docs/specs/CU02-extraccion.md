@@ -1,5 +1,16 @@
 # CU02 — contrato Sprint33 (autorizado24/10)
 
+## Delta autorizado38 — antes de implementar
+
+Extracción torre con nueve categorías y líneas/declaraciones editables, unknown no
+es absent. Propuesta no persiste; `confirmed:true` explícito antes de PCService y
+propiedad servidor. Rutas `/api/towers/extract` y `/extract/confirm`, DTO y evidencia
+según [contrato38 §1/7](../../backend/INTEGRAL38_CONTRACT.md). Cap65536 y cuota común37.
+Aceptación: varias unidades/discos diferentes, declarado conservado, edición antes
+de guardar, sin escritura por extracción/cancelación y selección posterior al50.
+Solo texto hardware; no detectar/leer archivos del sistema ni pegar reportes privados.
+Es contrato autorizado, **no resultado ejecutado**; cierre histórico33 se conserva.
+
 ## Alcance y decisión
 
 Texto pegado de hasta12000 caracteres, Groq/infraestructura existentes y catálogo

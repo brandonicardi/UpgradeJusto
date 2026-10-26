@@ -1,5 +1,15 @@
 # CU07 — planes acumulados, Sprint32 G
 
+## Delta autorizado38 — antes de implementar
+
+Planes torre acumulan acciones versionadas y validan cada resultado, guardando quotes,
+materiales/scope/evidencia. RAM sustituye conjunto completo; cambio de placa no hereda
+BIOS. Recalcular/cotizar requiere acción explícita, GET no altera snapshot ni PC.
+Contrato [§1/5](../../backend/INTEGRAL38_CONTRACT.md); preservar planes previos y enlaces.
+Aceptación: varios discos/fans, dependencia/coste incremental y acumulado, revisión/
+propiedad A/B, fallo en etapa posterior y sin modificación implícita de PC.
+Esta definición no acredita implementación38; cierre histórico inferior conservado.
+
 ## Estado vigente24/10 — FUNCIONAL LOCAL VERIFICADO
 
 Planes PG/etapas acumuladas/API/web probados: proofHTTPS/reinicioREAL0 y cierre

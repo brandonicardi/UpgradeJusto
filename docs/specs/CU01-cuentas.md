@@ -1,5 +1,18 @@
 # CU01 — contrato Sprint32 B
 
+## Delta autorizado38 — antes de implementar
+
+GIS mantiene login local; identidad externa única issuer/sub, sin unión automática
+por email. Google-only admite email/hash locales null, no contraseña ficticia.
+Intento PG de cinco minutos, nonce de un uso ligado a sesión/Origin, CSRF y cuotas37;
+verificar firma/algoritmo/issuer/audience/iat/exp/semántica IDtoken y nonce; rotar
+sesión atómicamente y no guardar/loggear JWT. Rutas config/attempts/google y errores
+según [contrato38 §6](../../backend/INTEGRAL38_CONTRACT.md). Migración aditiva38_b_001.
+Aceptación: token incorrecto/replay/nonce/Origin/cuenta homónima/rotación y fallo de
+certificados; login real Google requiere usuario, mocks no lo prueban. Localhost
+loopback consistente. Es alcance autorizado, **no implementación ni prueba aprobada**.
+Contratos/resultados históricos inferiores se conservan para sus versiones.
+
 ## Contrato vigente32 (2026-10-21, previo a delegación)
 
 Estado24/10: B/CU01 y CU04 PG verificados por coordinación: PG171/cero skips,

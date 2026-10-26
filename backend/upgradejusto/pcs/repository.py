@@ -8,6 +8,7 @@ from upgradejusto.administration.tables import active
 from upgradejusto.catalog.dataset import DATASET_VERSION
 from upgradejusto.pcs.models import PC, PCPage
 from upgradejusto.pcs.service import PCError
+from upgradejusto.pcs.tower_tables import configurations
 from upgradejusto.persistence.schema import pc_groups, pcs
 
 
@@ -17,6 +18,10 @@ class PCRepository:
         self.dataset_version = dataset_version
 
     def _public(self, connection, row):
+        if connection.scalar(
+            sa.select(configurations.c.pc_id).where(configurations.c.pc_id == row["id"])
+        ):
+            raise PCError(409, "Tower configuration requires tower API")
         groups = (
             connection.execute(
                 sa.select(
@@ -54,17 +59,20 @@ class PCRepository:
         return self._public(conn, row) if row else None
 
     def list(self, owner, page, page_size):
+        legacy_only = ~sa.exists(
+            sa.select(configurations.c.pc_id).where(configurations.c.pc_id == pcs.c.id)
+        )
         with self.engine.connect() as conn:
             total = conn.scalar(
                 sa.select(sa.func.count())
                 .select_from(pcs)
-                .where(pcs.c.owner_id == owner)
+                .where(pcs.c.owner_id == owner, legacy_only)
             )
             # Share-lock headers: grupos/contexto no pueden cambiar durante su lectura.
             rows = (
                 conn.execute(
                     sa.select(pcs)
-                    .where(pcs.c.owner_id == owner)
+                    .where(pcs.c.owner_id == owner, legacy_only)
                     .order_by(pcs.c.id)
                     .offset((page - 1) * page_size)
                     .limit(page_size)
@@ -152,12 +160,31 @@ class PCRepository:
                     )
                 )
                 return None, bool(exists)
+            if conn.scalar(
+                sa.select(configurations.c.pc_id).where(
+                    configurations.c.pc_id == identity
+                )
+            ):
+                raise PCError(409, "Tower configuration requires tower API")
             conn.execute(pc_groups.delete().where(pc_groups.c.pc_id == row["id"]))
             self._groups(conn, row["id"], data.components)
             return self._public(conn, row), True
 
     def delete(self, owner, identity):
         with self.engine.begin() as conn:
+            own = conn.scalar(
+                sa.select(pcs.c.id)
+                .where(pcs.c.id == identity, pcs.c.owner_id == owner)
+                .with_for_update()
+            )
+            if own is None:
+                return False
+            if conn.scalar(
+                sa.select(configurations.c.pc_id).where(
+                    configurations.c.pc_id == identity
+                )
+            ):
+                raise PCError(409, "Tower configuration requires tower API")
             return (
                 conn.scalar(
                     pcs.delete()

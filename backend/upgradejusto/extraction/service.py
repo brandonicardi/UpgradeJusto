@@ -3,7 +3,7 @@
 import re
 from contextlib import asynccontextmanager
 
-from upgradejusto.catalog.models import Category
+from upgradejusto.catalog.models import LEGACY_CATEGORIES, Category
 from upgradejusto.extraction.models import ExtractResponse
 from upgradejusto.pcs.service import PCError
 
@@ -23,12 +23,16 @@ class ExtractionService:
                 yield
 
     async def preview(self, data, owner=None):
-        parts = self.pcs.catalog.snapshot()
+        parts = tuple(
+            part
+            for part in self.pcs.catalog.snapshot()
+            if part.category in LEGACY_CATEGORIES
+        )
         async with self.execution(owner):
             result = await self.provider.extract(data.text, parts)
         indexed = {part.id: part for part in parts}
         evidence = {entry.field: entry for entry in result.evidence}
-        if set(evidence) != set(Category):
+        if set(evidence) != LEGACY_CATEGORIES:
             raise PCError(502, "Invalid extraction evidence")
         for entry in result.evidence:
             if len(set(entry.candidate_ids)) != len(entry.candidate_ids):
@@ -76,6 +80,8 @@ class ExtractionService:
             "Propuesta no guardada. Revisar componentes, cantidades y BIOS instalada antes de confirmar."
         ]
         for category in Category:
+            if category not in LEGACY_CATEGORIES:
+                continue
             if not any(group.category == category for group in proposal.components):
                 warnings.append(
                     f"{category.value}: sin selección confirmada ({evidence[category].origin})."

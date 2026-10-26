@@ -20,6 +20,7 @@ from upgradejusto.api.pcs import router as pcs_router
 from upgradejusto.api.plans import router as plans_router
 from upgradejusto.api.recommendations import router as recommendations_router
 from upgradejusto.api.shares import router as shares_router
+from upgradejusto.api.towers import router as towers_router
 from upgradejusto.assistant.repository import Repository as ConversationRepository
 from upgradejusto.auth.security import HashBusy
 from upgradejusto.auth.service import AuthError
@@ -51,6 +52,7 @@ app.include_router(plans_router)
 app.include_router(shares_router)
 app.include_router(assistant_router)
 app.include_router(administration_router)
+app.include_router(towers_router)
 
 
 @app.middleware("http")
@@ -61,11 +63,17 @@ async def no_auth_cache(request: Request, call_next):
             "/api/auth/",
             "/api/admin/",
             "/api/pcs/",
+            "/api/towers/",
             "/api/plans/",
             "/api/shared-plans/",
             "/api/conversations/",
         )
-    ) or request.url.path in ("/api/pcs", "/api/plans", "/api/conversations"):
+    ) or request.url.path in (
+        "/api/pcs",
+        "/api/towers",
+        "/api/plans",
+        "/api/conversations",
+    ):
         response.headers["Cache-Control"] = "no-store"
     if request.url.path.startswith("/api/shared-plans/"):
         response.headers["Referrer-Policy"] = "no-referrer"

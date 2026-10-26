@@ -11,7 +11,7 @@ from pydantic import (
     model_validator,
 )
 
-from upgradejusto.catalog.models import Category
+from upgradejusto.catalog.models import LEGACY_CATEGORIES, Category
 from upgradejusto.pcs.models import ComponentGroup, InputModel, PCContext
 
 from .models import EvaluationResult
@@ -56,6 +56,8 @@ class Replacement(InputModel):
 
     @model_validator(mode="after")
     def selection(self):
+        if self.category not in LEGACY_CATEGORIES:
+            raise ValueError("Tower category requires tower API")
         if len({c.component_id for c in self.candidates}) != len(self.candidates):
             raise ValueError("Duplicate candidate")
         if self.category == "ram":

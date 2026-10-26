@@ -1,11 +1,18 @@
-"""HTTP sobre el dataset real curado, sin mocks ni BD simulada."""
+"""HTTP on an explicit immutable PG snapshot, without changing active imports."""
 
 from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
 
+from upgradejusto.api.catalog import service as catalog_dependency
+from upgradejusto.catalog.dataset import DATASET_VERSION
+from upgradejusto.catalog.postgres import (
+    PostgresCatalogRepository,
+    published_catalog_snapshot,
+)
 from upgradejusto.catalog.repository import CuratedCatalogRepository
+from upgradejusto.catalog.service import CatalogService
 from upgradejusto.main import app
 
 BASE = "/api/catalog/components"
@@ -14,8 +21,32 @@ IDS = [f"P{i:02}" for i in (*range(1, 11), *range(15, 19))]
 
 @pytest.fixture
 def client(pg_engine):
-    with TestClient(app) as client:
-        yield client
+    active_before = PostgresCatalogRepository(pg_engine).dataset_version
+    with pg_engine.connect() as conn:
+        snapshot = published_catalog_snapshot(conn, DATASET_VERSION)
+
+    class ExplicitPublishedSnapshot:
+        dataset_version = snapshot.dataset_version
+
+        def all(self):
+            return tuple(part.model_copy(deep=True) for part in snapshot.components)
+
+        def get(self, identity):
+            return next((part for part in self.all() if part.id == identity), None)
+
+    previous = app.dependency_overrides.get(catalog_dependency)
+    app.dependency_overrides[catalog_dependency] = lambda: CatalogService(
+        ExplicitPublishedSnapshot()
+    )
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        if previous is None:
+            app.dependency_overrides.pop(catalog_dependency, None)
+        else:
+            app.dependency_overrides[catalog_dependency] = previous
+        assert PostgresCatalogRepository(pg_engine).dataset_version == active_before
 
 
 def test_defaults_and_contract(client):
@@ -24,7 +55,8 @@ def test_defaults_and_contract(client):
     assert response.headers["content-type"] == "application/json"
     body = response.json()
     assert set(body) == {"dataset_version", "items", "total", "page", "page_size"}
-    assert body["dataset_version"] == "sprint31b-a-v1"
+    # Fixture explicitly pins historical publication without resetting active PG.
+    assert body["dataset_version"] == DATASET_VERSION
     assert (body["total"], body["page"], body["page_size"]) == (14, 1, 12)
     assert [item["id"] for item in body["items"]] == IDS[:12]
     for item in body["items"]:
@@ -117,7 +149,7 @@ def test_empty_results_and_page_bounds(client):
 @pytest.mark.parametrize(
     ("parameter", "value"),
     [
-        ("category", "cooler"),
+        ("category", "monitor"),
         ("category", "GPU"),
         ("category", ""),
         ("page", "0"),
@@ -159,7 +191,13 @@ def test_unknowns_not_inferred(client):
 
 def test_historical_prices(client):
     items = client.get(BASE, params={"page_size": 50}).json()["items"]
-    prices = {item["id"]: item["prices"] for item in items if item["prices"]}
+    # Publication row ordering is not a price-condition contract. Preserve exact
+    # amounts/counts/conditions while comparing by an explicit numeric order.
+    prices = {
+        item["id"]: sorted(item["prices"], key=lambda price: Decimal(price["amount"]))
+        for item in items
+        if item["prices"]
+    }
     assert {id: [p["amount"] for p in values] for id, values in prices.items()} == {
         "P02": ["446120", "484913"],
         "P05": ["383208.99"],

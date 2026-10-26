@@ -30,7 +30,16 @@ def proposal():
                 "excerpt": None,
                 "candidate_ids": [],
             }
-            for c in Category
+            # This fixture exercises the SIX-category legacy proposal contract.
+            # Tower extraction has a separate schema; do not widen this fixture.
+            for c in (
+                Category.CPU,
+                Category.MOTHERBOARD,
+                Category.RAM,
+                Category.GPU,
+                Category.PSU,
+                Category.CASE,
+            )
         ],
     }
 

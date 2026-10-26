@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, StrictBool, StrictStr, field_validator
 
-from upgradejusto.catalog.models import Category
+from upgradejusto.catalog.models import LEGACY_CATEGORIES, Category
 from upgradejusto.pcs.models import InputModel, PCCreate
 
 
@@ -24,6 +24,13 @@ class Evidence(InputModel):
     origin: Literal["catalog", "text", "unknown", "ambiguous"]
     excerpt: Annotated[StrictStr, Field(min_length=1, max_length=400)] | None
     candidate_ids: Annotated[list[StrictStr], Field(max_length=30)]
+
+    @field_validator("field")
+    @classmethod
+    def legacy_category(cls, value):
+        if value not in LEGACY_CATEGORIES:
+            raise ValueError("Tower category requires tower extraction API")
+        return value
 
 
 class ProviderProposal(InputModel):
