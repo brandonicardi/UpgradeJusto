@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
 
-const config: NextConfig = { poweredByHeader: false };
+// Capability URLs must not enter Next's default development request logs.
+const config: NextConfig = { poweredByHeader: false, logging: false };
 export default config;

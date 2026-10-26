@@ -4,13 +4,15 @@
   "private": true,
   "engines": { "node": ">=24.14.0 <25", "npm": ">=11.19.1 <12" },
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1 --port 3000",
+    "dev": "node server.mjs --dev",
     "build": "next build",
-    "start": "next start --hostname 127.0.0.1 --port 3000",
+    "start": "node server.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run tests/unit",
-    "test:e2e": "playwright test"
+    "test:curation": "vitest run tests/unit/curation.test.ts tests/unit/safe-exception.test.ts",
+    "test:e2e:curation": "playwright test --config=playwright.curation.config.ts",
+    "test:e2e": "powershell -NoProfile -File ../scripts/test-browser.ps1"
   },
   "dependencies": { "next": "16.4.2", "react": "19.3.1", "react-dom": "19.3.1" },
   "devDependencies": {

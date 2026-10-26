@@ -61,6 +61,19 @@ export function safeSource(url: string): string | null {
   } catch { return null; }
 }
 
+export function datasetSource(url: string): { label: string; license: string; revision: string | null } | null {
+  try {
+    const parsed = new URL(url);
+    if (!["raw.githubusercontent.com", "github.com"].includes(parsed.hostname) || parsed.protocol !== "https:") return null;
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    const repository = `${parts[0]}/${parts[1]}`.toLowerCase();
+    const revision = parts.find(part => /^[a-f0-9]{40}$/i.test(part))?.slice(0, 8) ?? null;
+    if (repository === "buildcores/opendb") return { label: "BuildCores OpenDB", license: "CC BY-NC-SA 4.0", revision };
+    if (repository === "docyx/pc-part-dataset") return { label: "docyx pc-part-dataset", license: "MIT", revision };
+  } catch { /* Unknown provenance stays unknown. */ }
+  return null;
+}
+
 export class CatalogError extends Error {
   constructor(public status: number) { super("No se pudo consultar el catálogo."); }
 }
