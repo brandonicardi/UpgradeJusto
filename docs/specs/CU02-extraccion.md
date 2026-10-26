@@ -11,6 +11,22 @@ de guardar, sin escritura por extracción/cancelación y selección posterior al
 Solo texto hardware; no detectar/leer archivos del sistema ni pegar reportes privados.
 Es contrato autorizado, **no resultado ejecutado**; cierre histórico33 se conserva.
 
+### Contexto torre v2 — ajuste previo a código por rechazo real413
+
+El servidor sigue resolviendo contra TODO el snapshot. Para el contexto del LLM
+recorre todas las piezas y envía solo ID/categoría/nombre con identificación literal
+y frase completa demostradas en la entrada; nunca primeras50 ni aliases de variante.
+Catálogo pertinente vacío válido: hardware no identificado permanece declarado o en
+revisión. Selección posterior vuelve a contrastarse contra el catálogo completo.
+Cap24000 bytes UTF8 para SYSTEM más JSON human exactos, incluido schema y texto
+íntegro; exceder produce422 antes de admisión/SDK, sin recortar texto ni desechar
+piezas identificadas silenciosamente. No asegura que todo límite externo coincida.
+Un413 externo conserva error502 sanitizado indicando tamaño rechazado por proveedor,
+no cuota PG agotada; sin retries automáticos ni cambio de modelo/cuenta/proveedor.
+Metadata contextual es interna, sin logs de IDs seleccionados/prompt/texto de usuario
+por defecto. Confirmación, evidencias mínimas y consumo de admisión37 admisible siguen
+intactos. Contrato aceptado para corregir integración; no nuevo gate Groq aprobado.
+
 ## Alcance y decisión
 
 Texto pegado de hasta12000 caracteres, Groq/infraestructura existentes y catálogo

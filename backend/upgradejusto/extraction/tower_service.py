@@ -5,6 +5,12 @@ import re
 from pydantic import ValidationError
 
 from upgradejusto.catalog.models import Category
+from upgradejusto.extraction.tower_context import (
+    INSTRUCTIONS,
+    NEGATIVE_NAMES,
+    prepare_context,
+)
+from upgradejusto.extraction.tower_context import whole_label as _whole_label
 from upgradejusto.extraction.tower_models import (
     TowerCategoryEvidence,
     TowerExtractResponse,
@@ -13,23 +19,6 @@ from upgradejusto.extraction.tower_models import (
 )
 from upgradejusto.pcs.service import PCError
 from upgradejusto.pcs.tower_models import SINGLE_CATEGORIES, TowerCreate, TowerLine
-
-NEGATIVE_NAMES = {
-    "cpu": ("cpu", "procesador"),
-    "motherboard": ("motherboard", "placa madre"),
-    "ram": ("ram", "memoria ram"),
-    "gpu": ("gpu", "tarjeta gráfica"),
-    "psu": ("psu", "fuente"),
-    "case": ("case", "gabinete"),
-    "storage": ("storage", "almacenamiento", "discos"),
-    "cooler": ("cooler", "disipador"),
-    "fan": ("fan", "fans", "ventiladores"),
-}
-INSTRUCTIONS = re.compile(
-    r"https?://|\b(?:ignore|ignora|ejecuta|execute|delete|select|insert|update|"
-    r"system|assistant|password|contraseña|owner_id|user_id)\b|[<>\r\n\x00]",
-    re.IGNORECASE,
-)
 
 
 def invalid():
@@ -53,27 +42,6 @@ def literal_label(label, excerpt, text):
 
 def _windows(quote, text):
     return tuple(match.span() for match in re.finditer(re.escape(quote), text))
-
-
-def _whole_label(text, label_span, proof_start, category):
-    """Only explicit record separators terminate a hardware label, not word edges.
-
-    Unsupported prose/variant affixes are reviewable, never silently trimmed.
-    This grammar recognizes framing, not hardware synonyms or variant suffixes.
-    """
-    start, end = label_span
-    left = max(text.rfind(";", 0, start), text.rfind("\n", 0, start)) + 1
-    ends = (text.find(separator, end) for separator in (";", "\n"))
-    right = min((position for position in ends if position >= 0), default=len(text))
-    names = "|".join(re.escape(name) for name in NEGATIVE_NAMES[category.value])
-    framing = (
-        rf"\s*(?:[-*•]\s*)?(?:(?:tengo|mi pc tiene)\s+)?"
-        rf"(?:(?:{names})\s*:\s*)?"
-    )
-    return bool(
-        re.fullmatch(framing, text[left:proof_start], re.IGNORECASE)
-        and re.fullmatch(r"\s*\.?\s*", text[end:right])
-    )
 
 
 def _review(line):
@@ -343,9 +311,10 @@ class TowerExtractionService:
     async def preview(self, data, owner):
         parts = self.towers.catalog.snapshot()
         revision = self.towers.catalog.repository.dataset_version
+        prepared = prepare_context(data.text, parts, revision)
         # Same PG admission/lease service as assistant and legacy extraction.
         async with self.budget.execution(owner):
-            raw = await self.provider.extract(data.text, parts)
+            raw = await self.provider.extract_prepared(prepared)
         return normalize_proposal(raw, data.text, parts, revision)
 
     def confirm(self, owner, data):

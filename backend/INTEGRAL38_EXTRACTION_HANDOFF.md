@@ -1,9 +1,148 @@
 # CU02 torre38 — contrato previo a implementación
 
+## Contextv2 aceptado — implementación READY, checks nuevos pendientes
+
+Autorización posterior del coordinador: ProposedContextv2 aceptado y CU02 spec
+actualizada por Build ANTES del código. Esta sección añade estado, no reemplaza
+checkpoints históricos inferiores. No comandos propios ni claim de fallo vivo resuelto.
+
+Archivos de este delta:
+- NUEVO upgradejusto/extraction/tower_context.py
+- upgradejusto/extraction/tower_service.py
+- upgradejusto/extraction/tower_provider.py
+- NUEVO tests/test_tower38_extraction_context.py
+- tests/test_tower38_extraction.py
+- tests/test_tower38_extraction_pg.py
+- INTEGRAL38_EXTRACTION_HANDOFF.md
+
+tower_context.whole_label contiene la MISMA gramática antes situada en servicio;
+servicio la reutiliza como _whole_label. Conserva spans originales exclusivos,
+variante exacta, unknown/null, cantidades y validación contra snapshot COMPLETO.
+INSTRUCTIONS/NEGATIVE_NAMES y SYSTEM existentes trasladados sin cambiar su contenido.
+
+relevant_components recorre TODOS los IDs, solo incluye nombres completos con
+ocurrencia literal/frase completa probada en texto original. Prefijo de cantidad
+literal opcional reconoce el framing, sin convertirlo en dato técnico. No fuzzy,
+normalización de nombres Unicode ni primeras50/topN. Orden por ID; duplicados de
+nombre conservan todos sus IDs ambiguos. Unknown/declarados funcionan con contexto
+catalog vacío. Solo id/category/name al proveedor, jamás atributos/ofertas/contexto
+privado de PCs.
+
+prepare_context serializa JSON human ensure_ascii=False, separators=(',',':'),
+sort_keys=True, allow_nan=False. Mide exactamente UTF-8 SYSTEM + human completo
+(schema cerrado y texto íntegro incluidos). Límite inclusivo24000 bytes: exceso
+422 `Extraction context too large; shorten pasted text`, sin truncamiento ni
+descarte de matches para caber. No es estimación de tokens/cuota ni envelope SDK.
+
+TowerExtractionService.preview prepara ANTES ProviderBudget.execution; errores de
+preflight no adquieren lease ni cargan contadores de proveedor. Lectura de catálogo
+y autenticación servidor siguen existentes. Una solicitud válida conserva UNA
+admisión37 y llama extract_prepared con el objeto preparado; normaliza respuesta
+contra el snapshot COMPLETO original, no contra el subconjunto enviado.
+
+PreparedTowerContext frozen/repr=False es interno: revisión, IDs seleccionados,
+conteo, bytes y context_version=tower-extraction-context-2. No se devuelve en DTO,
+persiste ni loguea; repr por defecto no muestra IDs/texto/prompts. Pruebas inspeccionan
+metadata solo en memoria de tests. No nuevos logs ni propagación de metadata al LLM.
+
+TowerGroqExtractor.extract_prepared envía EXACTAMENTE system_message/human_message
+medidos, sin reserialización. extract(text,parts) sigue disponible para pruebas de
+proveedor y usa el mismo prepare_context. SDK413 =>502 sanitizado
+`Extraction provider rejected request size; shorten pasted text`, sin mensaje/rawbody
+upstream, Retry-After ficticio ni error engañoso de cuota PG. Resto502/504/429, límite
+de respuesta30000, JSON cerrado, tracing desactivado, timeout30s y sin retries intactos.
+
+No main/proxy/body_limits/modelos, SDK/dependencias, cuenta/modelo/proveedor ni TLS/env
+modificados. Body cap65536 y text12000 conservados. No se desactivó verificación TLS;
+configuración TEST SYSTEM y diagnóstico anterior son evidencia comunicada por Build,
+no nuevas conexiones propias. Cap24k no garantiza admisión/frescura de cuota upstream:
+el gate Groq vivo sigue pendiente, sin bucle/rotación/reintentos automáticos.
+
+### Checks focales para Build, cada comando/exit separado desde backend
+
+1. `.venv/Scripts/python.exe -m pytest -q tests/test_tower38_extraction.py tests/test_tower38_extraction_context.py`
+2. `.venv/Scripts/ruff.exe check upgradejusto/extraction/tower_context.py upgradejusto/extraction/tower_service.py upgradejusto/extraction/tower_provider.py tests/test_tower38_extraction.py tests/test_tower38_extraction_context.py tests/test_tower38_extraction_pg.py`
+3. `.venv/Scripts/ruff.exe format --check upgradejusto/extraction/tower_context.py upgradejusto/extraction/tower_service.py upgradejusto/extraction/tower_provider.py tests/test_tower38_extraction.py tests/test_tower38_extraction_context.py tests/test_tower38_extraction_pg.py`
+
+Wrapper REAL TEST-PG existente/exclusión proveedor37, sin reset catálogo:
+4. `.venv/Scripts/python.exe -m pytest -q tests/test_tower38_extraction_pg.py::test_context_preflight_422_does_not_charge_pg_and_valid_call_admits_once tests/test_tower38_extraction_pg.py::test_preview_full_catalog_then_explicit_owner_confirmation`
+
+Nuevas pruebas:691 sintéticos unknown =>0 contexto/bytes exactos; IDs60/690 presentes;
+PLUS/puntuación no envía base; ambigüedad conservaIDs y respuesta needs_review;
+declarado literal aun con catalog contexto vacío; límite24000 inclusivo/multibyte;
+muchos matches =>422 sin dropping; preflight no admisión/SDK; SDK envía cadenas exactas;
+stub413 size explícito sin secretos/cuotaPG. TestPG inspecciona contadores reales antes/
+después422 y UNA admisión de solicitud válida, sin lease/PC nuevo ni metadata pública.
+Fakes propios actualizados al protocolo extract_prepared; no se debilitaron gates de
+wholephrase/dedup/cantidades ni extractor legacy.65 regresiones previas no verifican
+este delta. Tras checks+revisión, Build coordina UNA llamada web Groq focal sin retries;
+no cerrar CU02/38 por esta preparación.
+
+## ProposedContextv2 — PROPUESTA, pendiente de aceptación antes de código
+
+Delta focal del contexto proveedor, no de la resolución servidor ni del motor.
+No implementado/activado por esta sección. Conserva íntegros checkpoints inferiores.
+
+1. Servidor conserva snapshot publicado COMPLETO para validación de IDs/categoría,
+   variantes, evidencia, spans exclusivos y confirmación/CAS. Para el contexto LLM
+   recorre TODOS los componentes, sin primeras50, topN ni fuzzy/aliases. Incluye
+   SOLO {id,category,name} cuyo nombre completo literal tiene ocurrencia probada en
+   el texto ORIGINAL con la misma gramática conservadora de frase completa ya
+   aceptada (incluida variante/sufijo y separadores), no el excerpt elegido por LLM.
+   Orden determinista por ID; duplicados de nombres conservan todos sus IDs como
+   ambigüedad, no se elige uno. Ningún atributo/oferta/nota privada va al contexto.
+   Catálogo relevante vacío es válido: etiquetas declaradas/unknown siguen posibles.
+   Quantities/ausencia/evidencia se revalidan contra TODO snapshot, sin relajación.
+
+2. Tope propuesto EXACTO24000 bytes UTF-8 de contenido enviado: bytes del SYSTEM
+   vigente + bytes del JSON human final serializado (catalog relevante, schema
+   cerrado y untrusted_text completo). JSON canónico ensure_ascii=False,
+   separators=(',',':'), sort_keys=True; medir esa MISMA cadena enviada. No es
+   estimación de tokens/cuota ni medida del envelope HTTP/SDK. Sin truncar texto,
+   schema, nombres o matches; si excede,422 detail='Extraction context too large;
+   shorten pasted text'. Preflight ANTES ProviderBudget.execution/admisión/SDK:
+   no cargo ni lease PG/proveedor para una solicitud localmente inadmisible.
+   Una solicitud admitida conserva UNA ejecución compartida PG37, sin retries.
+   Texto entrante sigue máximo12000 caracteres/cap65536, sin ampliar límites.
+
+3. Metadatos públicos de salida NO cambian. ContextSelection interno preparado:
+   {catalog_revision,selected_component_ids,matched_catalog_count,payload_utf8_bytes,
+   context_version:'tower-extraction-context-2'}; no log de texto/rawprompt/quotes.
+   Ni IDs ni metadata son autorización. No se persisten propuestas ni contexto.
+
+4. SDK/upstream413 =>502 detail='Extraction provider rejected request size;
+   shorten pasted text', distinto de429 PG/SDK y sin afirmar cuota PG agotada.
+   Sin Retry-After ficticio, auto-retry, reducción silenciosa, rotación de modelo/
+   cuenta/proveedor ni cambios de límites. Otros502/504/429 existentes conservados.
+   TLS verificado siempre; ninguna desactivación ni modificación env/certificados.
+   No se expone mensaje/cuerpo upstream, prompts, credenciales ni estimaciones.
+
+5. Gates tras aceptación y código: catálogo691 completo con texto unknown => contexto
+   vacío pequeño; ID exacto beyond50 incluido; PLUS/puntuación no selecciona base;
+   múltiples IDs ambiguos conservados; exceso24000 =>422 ANTES admisión/SDK sin
+   truncamiento; texto multibyte contabilizado UTF-8; stub413 sanitizado; regresiones
+   de wholephrase/spans/quantities-null y privacidad. Build ejecuta TEST exclusivamente.
+   Una llamada viva focal posterior solo si gates/revisión y coordinación la autorizan;
+   TLS SYSTEM verificado es configuración del proceso TEST a cargo de Build, no
+   modificación de este escritor. Fallo vivo actual no se declara resuelto aquí.
+
+Estado: CONTEXTCONTRACT READY para coordinador/actualización CU02 y aceptación.
+No código, dependencias, main, proveedor, entorno ni checkpoints ajenos modificados.
+
 Estado inicial: DTO propuesto para coordinación/frontend; código y checks aún no
 verificados. Solo backend asignado, sin wiring main/BFF ni extractor legacy nuevo.
 
 ## API cerrada
+
+### Contexto2 — resultado local posterior
+
+81 pruebas puras PASS0, lint/formato6 archivos0. Dos PG específicos de preflight sin
+cargo/admisión única y preview-confirmación aprobaron dentro de6 PASS combinados con
+planes/migración; no contar esos otros4 como pruebas de extracción. Revisión de
+seguridad aceptó selección/preflight local sin hallazgo bloqueante. Cap24k mide
+SYSTEM+JSON human, no envelope SDK/tokens ni garantiza aceptación externa.
+Nuevo recorrido vivo espera composición backend estable; no se atribuye éxito Groq
+al reducir contexto ni se borra la evidencia anterior de TLS/413.
 
 ### Resultado posterior de Build y revisiones
 

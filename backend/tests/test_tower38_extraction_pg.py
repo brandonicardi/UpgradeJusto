@@ -1,6 +1,7 @@
 """Real TEST-PG auth/admission/CAS; controlled provider is NOT live Groq evidence."""
 
 import asyncio
+import json
 import re
 from uuid import uuid4
 
@@ -15,6 +16,7 @@ from test_tower38_extraction import observed, output, populate
 
 from upgradejusto.api.tower_extraction import service
 from upgradejusto.auth.provider_budget import ProviderBudget, leases
+from upgradejusto.auth.security import digest
 from upgradejusto.catalog.postgres import PostgresCatalogRepository
 from upgradejusto.catalog.service import CatalogService
 from upgradejusto.extraction.tower_models import TowerExtractInput
@@ -23,7 +25,7 @@ from upgradejusto.main import app
 from upgradejusto.pcs.service import PCError
 from upgradejusto.pcs.tower_repository import TowerRepository
 from upgradejusto.pcs.tower_service import TowerService
-from upgradejusto.persistence.schema import pcs
+from upgradejusto.persistence.schema import attempts, pcs
 
 ROOT = "/api/towers/extract"
 
@@ -33,9 +35,11 @@ class Provider:
         self.raw = raw or output()
         self.calls = 0
         self.fail = fail
+        self.received_contexts = []
 
-    async def extract(self, text, parts):
+    async def extract_prepared(self, prepared):
         self.calls += 1
+        self.received_contexts.append(prepared)
         if self.fail:
             raise PCError(502, "Controlled test provider failure")
         return self.raw
@@ -74,6 +78,55 @@ def assert_no_lease(engine, owner):
             )
             == 0
         )
+
+
+def provider_counters(engine, owner):
+    keys = (digest("provider-global"), digest("provider-user:" + str(owner)))
+    with engine.connect() as conn:
+        return tuple(
+            dict(row)
+            for row in conn.execute(
+                sa.select(attempts)
+                .where(attempts.c.key.in_(keys))
+                .order_by(attempts.c.key)
+            ).mappings()
+        )
+
+
+def test_context_preflight_422_does_not_charge_pg_and_valid_call_admits_once(
+    extraction_state, pg_engine
+):
+    a, _, svc, provider, _ = extraction_state
+    assert len(svc.towers.catalog.snapshot()) > 50
+    before_counters = provider_counters(pg_engine, a[2])
+    before_pcs = pc_count(pg_engine, a[2])
+    oversized_context = json.dumps({"text": "界" * 12000}, ensure_ascii=False).encode(
+        "utf-8"
+    )
+    assert len(oversized_context) < 65536
+    response = a[0].post(
+        ROOT,
+        headers={**a[1], "Content-Type": "application/json"},
+        content=oversized_context,
+    )
+    assert response.status_code == 422, response.text
+    assert response.json() == {
+        "detail": "Extraction context too large; shorten pasted text"
+    }
+    assert provider.calls == 0
+    assert provider_counters(pg_engine, a[2]) == before_counters
+    assert_no_lease(pg_engine, a[2])
+    response = a[0].post(ROOT, headers=a[1], json={"text": "Modelo desconocido"})
+    assert response.status_code == 200, response.text
+    assert provider.calls == 1
+    assert provider.received_contexts[0].matched_catalog_count == 0
+    assert provider.received_contexts[0].payload_utf8_bytes <= 24000
+    assert len(provider_counters(pg_engine, a[2])) == 2
+    assert all(row["count"] == 1 for row in provider_counters(pg_engine, a[2]))
+    assert_no_lease(pg_engine, a[2])
+    assert pc_count(pg_engine, a[2]) == before_pcs
+    assert "context_version" not in response.json()
+    assert "selected_component_ids" not in response.json()
 
 
 def test_preview_full_catalog_then_explicit_owner_confirmation(
@@ -285,7 +338,7 @@ def test_provider_failure_and_cancellation_release_real_pg_lease(
         entered = asyncio.Event()
 
         class Blocking:
-            async def extract(self, text, parts):
+            async def extract_prepared(self, prepared):
                 entered.set()
                 await asyncio.Event().wait()
 

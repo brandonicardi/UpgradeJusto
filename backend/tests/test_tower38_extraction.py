@@ -515,7 +515,7 @@ def test_preview_one_admission_per_call_never_writes_and_cancel_releases():
         entered = asyncio.Event()
 
         class Provider:
-            async def extract(self, text, catalog):
+            async def extract_prepared(self, prepared):
                 entered.set()
                 await asyncio.Event().wait()
 
@@ -547,6 +547,7 @@ def test_preview_one_admission_per_call_never_writes_and_cancel_releases():
         ("duplicate", 502),
         ("oversize", 502),
         ("valid", 200),
+        ("request_size", 502),
     ],
 )
 def test_provider_sanitizes_errors_and_uses_existing_client(monkeypatch, kind, status):
@@ -563,12 +564,16 @@ def test_provider_sanitizes_errors_and_uses_existing_client(monkeypatch, kind, s
         async def ainvoke(self, messages, config):
             assert config["callbacks"] == []
             payload = json.loads(messages[1][1])
-            assert len(payload["catalog"]) == 63
+            assert payload["catalog"] == []  # UNTRUSTED identifies no catalog model
             if kind == "timeout":
                 raise TimeoutError("PRIVATE")
             if kind == "quota":
                 error = RuntimeError("PRIVATE")
                 error.status_code = 429
+                raise error
+            if kind == "request_size":
+                error = RuntimeError("PRIVATE request_too_large tokens_per_minute")
+                error.status_code = 413
                 raise error
             content = {
                 "invalid": "PRIVATE",
@@ -588,6 +593,9 @@ def test_provider_sanitizes_errors_and_uses_existing_client(monkeypatch, kind, s
             asyncio.run(TowerGroqExtractor().extract("UNTRUSTED", parts()))
         assert raised.value.status == status
         assert "PRIVATE" not in raised.value.detail
+        if kind == "request_size":
+            assert "rejected request size" in raised.value.detail
+            assert "quota" not in raised.value.detail.lower()
 
 
 def test_cap_is_exact_and_legacy_limits_unchanged():
