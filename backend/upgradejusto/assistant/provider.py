@@ -1,6 +1,7 @@
 """TLS explicit, verified and identical in download/provider clients."""
 
 import os
+import re
 import ssl
 
 import certifi
@@ -30,6 +31,50 @@ def model(client):
         max_retries=0,
         http_async_client=client,
         temperature=0,
+    )
+
+
+def local_model_name():
+    name = os.environ.get("UJ_OLLAMA_MODEL", "qwen3:4b")
+    matched = re.fullmatch(
+        r"(?:[a-z0-9][a-z0-9._-]{0,63}/)?"
+        r"[a-z0-9][a-z0-9._-]{0,63}:[a-z0-9][a-z0-9._-]{0,63}",
+        name,
+        flags=re.ASCII,
+    )
+    if matched is None or name.endswith((":cloud", "-cloud")):
+        raise ValueError("Invalid local chat model")
+    return name
+
+
+def chat_model(client):
+    """CU08 only; extraction keeps model(client), without silent provider fallback."""
+    selected = os.environ.get("UJ_CHAT_PROVIDER", "groq")
+    if selected == "groq":
+        return model(client)
+    if selected != "ollama":
+        raise ValueError("Invalid chat provider")
+    if os.environ.get("UJ_OLLAMA_BASE_URL", "http://127.0.0.1:11434") != (
+        "http://127.0.0.1:11434"
+    ):
+        raise ValueError("Invalid local chat URL")
+    name = local_model_name()
+    from .ollama_schema import LocalChatOllama
+
+    return LocalChatOllama(
+        model=name,
+        base_url="http://127.0.0.1:11434",
+        reasoning=False,
+        num_ctx=16384,
+        num_predict=1024,
+        temperature=0,
+        keep_alive="5m",
+        client_kwargs={"timeout": 30, "follow_redirects": False, "trust_env": False},
+        async_client_kwargs={
+            "timeout": 30,
+            "follow_redirects": False,
+            "trust_env": False,
+        },
     )
 
 

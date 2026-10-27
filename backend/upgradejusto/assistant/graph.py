@@ -10,7 +10,8 @@ from langgraph.graph import END, START, StateGraph
 from mcp import Client, StdioServerParameters
 from pydantic import ValidationError
 
-from .provider import http_client, model
+from .provider import chat_model as model
+from .provider import http_client
 from .tool_inputs import validate_call
 from .tool_projection import ToolFailure, project_tool_result
 
