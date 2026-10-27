@@ -5,7 +5,6 @@ from functools import wraps
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import Field, StringConstraints
 
@@ -22,6 +21,7 @@ from upgradejusto.persistence.runtime import runtime_engine
 from upgradejusto.recommendations.models import PreviewRequest
 from upgradejusto.recommendations.tower_models import TowerPreviewRequest
 
+from .mcp_schema import CorrelatedMCPServer
 from .middleware import validate_raw_tool_call
 from .repository import Repository
 from .tool_inputs import validate_call
@@ -52,7 +52,7 @@ def build_server():
     catalog = CatalogService(PostgresCatalogRepository())
     pcs = PCService(PCRepository(engine), catalog)
     tower_tools = TowerReadTools(engine, catalog, pcs)
-    server = MCPServer(
+    server = CorrelatedMCPServer(
         "UpgradeJusto read-only tools", middleware=[validate_raw_tool_call]
     )
 

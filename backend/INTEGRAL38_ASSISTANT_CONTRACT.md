@@ -186,3 +186,29 @@ Ninguna de estas interfaces autoriza save_plan ni shares. CU09 sigue separado.
 Future ownership tras aceptación: assistant/tower_*.py y cambios necesarios en los
 siete archivos inspeccionados, tests propios y handoff; sin tocar otros servicios,
 provider/auth/main ni implementaciones activas. No código por este contrato.
+
+## 7. Corrección focal de correlación de esquemas — aceptada antes de código
+
+Cuatro pruebas no facturables reprodujeron un defecto: simulate_pc anuncia schema1
+con cuerpo TowerSimulationDTO como combinación válida, pero validate_call selecciona
+legacy y la rechaza. Esto no demuestra causalidad del tool_use_failed LIVE.
+
+Se acepta corregir únicamente metadatos anunciados conservando siete herramientas,
+argumentos planos pc_id/configuration_schema/data y default legacy1 cuando se omite
+el discriminador. Rama1 acepta solo SimulateRequest; rama2 exige schema2 y acepta
+solo TowerSimulationDTO. UUID, restricciones y cierre de objetos se conservan.
+Validador, permisos, dispatcher, servicios, cuotas, proveedor y snapshots sin cambios.
+
+Vía pública contrastada por Build en SDK instalado2.3.0: MCPServer.list_tools devuelve
+modelos Tool y el handler del SDK delega virtualmente en self.list_tools. Se admite
+subclase mínima que usa super().list_tools y copias de input_schema solo de simulate_pc,
+con oneOf correlacionado. No acceder a _tool_manager/_lowlevel_server, mutar registros
+privados ni inventar parámetro input_schema del decorador, que no existe en su firma.
+No cambiar call_tool ni agregar herramientas/adaptadores de ejecución.
+
+Verificar metadata SDK y conversión pura: combinaciones cruzadas rechazadas, controles
+legacy1/legacy omitido/torre2 y evaluación intactos, inventario7 y copias independientes.
+Esto no observa todo el wire ni prueba soporte Groq de oneOf raíz. No nueva llamada
+proveedor por explorar compatibilidad; reparar contrato y revisar antes de decidir
+cualquier gate vivo justificado. Implementación acotada en assistant/mcp_schema.py,
+instanciación en mcp_server.py y tests propios. No otras ampliaciones por esta sección.

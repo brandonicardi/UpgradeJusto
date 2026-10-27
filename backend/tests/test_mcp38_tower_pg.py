@@ -1,16 +1,30 @@
 """Real TEST PG + actual MCP stdio; no provider call or fake authorization."""
 
+import ast
 import asyncio
+import inspect
+from copy import deepcopy
 from uuid import UUID, uuid4
 
+import httpx
 import pytest
 from fastapi import HTTPException
+from langchain_core.utils.function_calling import convert_to_openai_tool
+from langchain_groq import ChatGroq
 from mcp import Client
 from test_assistant_mcp_contract import child_params
 from test_assistant_postgres import assistant_actors as assistant_actors
 from test_pcs_postgres import actors as actors
 from test_pcs_postgres import create as create_legacy
+from test_tower38_mcp_schema_contract import (
+    local_references_only,
+    tower_simulation,
+)
+from test_tower38_mcp_schema_contract import (
+    schema_validator as schema_validator,
+)
 
+from upgradejusto.assistant import graph
 from upgradejusto.assistant.models import MessageCreate
 from upgradejusto.assistant.repository import Repository
 from upgradejusto.assistant.tool_projection import project_tool_result
@@ -61,8 +75,106 @@ def create_tower(actor, component):
     return response.json()
 
 
+async def assert_simulation_wire_and_graph_conversion(listing, validate_schema):
+    """Actual stdio -> graph argument -> converter -> offline real SDK binding.
+
+    There is no load_mcp_tools/BaseTool adapter in graph.run_turn. Extract only
+    its trusted bind_tools argument expression. Bind a real ChatGroq with a literal
+    synthetic key and both HTTP transports forbidden; NEVER invoke or stream.
+    This checks binding metadata, NOT remote provider acceptance or LIVE causality.
+    """
+    from jsonschema.exceptions import ValidationError as SchemaValidationError
+
+    source = ast.parse(inspect.getsource(graph.run_turn))
+    bindings = [
+        node
+        for node in ast.walk(source)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "bind_tools"
+    ]
+    assert len(bindings) == 1
+    binding = bindings[0]
+    assert len(binding.args) == 1 and not binding.keywords
+    expression = binding.args[0]
+    assert isinstance(expression, ast.ListComp)
+    assert len(expression.generators) == 1
+    assert isinstance(expression.generators[0].iter, ast.Name)
+    assert expression.generators[0].iter.id == "tools"
+    wire = next(tool for tool in listing.tools if tool.name == "simulate_pc")
+    snapshot = deepcopy(wire.input_schema)
+    for tool in listing.tools:
+        local_references_only(tool.input_schema)
+    arguments = eval(
+        compile(
+            ast.Expression(body=expression), "<trusted-graph-bind-argument>", "eval"
+        ),
+        {"__builtins__": {}, "tools": listing.tools},
+    )
+    assert {tool["function"]["name"] for tool in arguments} == TOOLS
+    converted = [convert_to_openai_tool(tool) for tool in arguments]
+    simulation = next(
+        tool["function"]["parameters"]
+        for tool in converted
+        if tool["function"]["name"] == "simulate_pc"
+    )
+    attempts = []
+
+    def forbid_http(request):
+        attempts.append(True)
+        raise AssertionError("HTTP forbidden in non-billable binding contract")
+
+    with httpx.Client(transport=httpx.MockTransport(forbid_http)) as sync_http:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(forbid_http)
+        ) as async_http:
+            offline_model = ChatGroq(
+                api_key="synthetic-nonbillable-binding-only",
+                model="openai/gpt-oss-20b",
+                max_retries=0,
+                http_client=sync_http,
+                http_async_client=async_http,
+            )
+            bound = offline_model.bind_tools(arguments)
+            bound_tools = bound.kwargs["tools"]
+            assert bound_tools == converted
+            bound_simulation = deepcopy(
+                next(
+                    tool["function"]["parameters"]
+                    for tool in bound_tools
+                    if tool["function"]["name"] == "simulate_pc"
+                )
+            )
+    assert not attempts
+    assert wire.input_schema == snapshot
+    assert simulation == snapshot
+    assert bound_simulation == snapshot
+    assert len(snapshot["oneOf"]) == 2
+    legacy_branch, tower_branch = snapshot["oneOf"]
+    assert legacy_branch["properties"]["configuration_schema"] == {"const": 1}
+    assert "configuration_schema" not in legacy_branch.get("required", [])
+    assert tower_branch["properties"]["configuration_schema"] == {"const": 2}
+    assert tower_branch["required"] == ["configuration_schema"]
+    legacy = {
+        "pc_id": tower_simulation(2)["pc_id"],
+        "data": {
+            "expected_pc_revision": 1,
+            "category": "cpu",
+            "candidates": [{"component_id": "synthetic-cpu-part", "quantity": 1}],
+        },
+    }
+    for schema in (snapshot, simulation, bound_simulation):
+        validate_schema(schema, legacy)
+        validate_schema(schema, {**legacy, "configuration_schema": 1})
+        validate_schema(schema, tower_simulation(2))
+        with pytest.raises(SchemaValidationError):
+            validate_schema(schema, tower_simulation(1))
+        with pytest.raises(SchemaValidationError):
+            validate_schema(schema, {**legacy, "configuration_schema": 2})
+
+
 def test_actual_seven_mcp_tools_tower_owner_revision_services_and_revocation(
-    assistant_actors, pg_engine
+    assistant_actors, pg_engine, schema_validator
 ):
     a, b = assistant_actors
     catalog = CatalogService(PostgresCatalogRepository(pg_engine))
@@ -98,6 +210,7 @@ def test_actual_seven_mcp_tools_tower_owner_revision_services_and_revocation(
         async with Client(child_params(a, cid)) as client:
             listing = await client.list_tools()
             assert {tool.name for tool in listing.tools} == TOOLS
+            await assert_simulation_wire_and_graph_conversion(listing, schema_validator)
             legacy_read = await client.call_tool("get_pc", {"pc_id": legacy["id"]})
             assert not legacy_read.is_error
             assert "configuration_schema" not in legacy_read.structured_content
