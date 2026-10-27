@@ -4,7 +4,27 @@ Asistente web para mejorar una PC existente según compatibilidad, objetivo y
 presupuesto, sin convertir datos desconocidos en certezas. Compatibilidad decidida
 por dominio determinístico; IA interpreta y explica, no inventa veredictos, FPS o precios.
 
-## Entrega visual local — cerrada y revisada26/10
+## Estado actual27/10 — entrega local parcial
+
+Aplicación normal en TEST: **http://localhost:3000**, verificación27/10 a12:14ART.
+Arranque/parada y manifiesto en [guía local](docs/PROBAR38_LOCAL.md) y
+[CONTINUAR](docs/CONTINUAR.md). No iniciar otro runner sobre estos puertos.
+
+Ambos caminos — mejorar PC y armar desde cero — conservan piezas reales, cantidades,
+confirmaciones y costes desconocidos. Central1440/390, historial y compartidos normales
+pasaron sus gates. Ofertas vencidas no fueron actualizadas artificialmente.
+
+**Chat bloqueado:** Ollama0.40.11/Qwen3:4B instalado, transporte reparado y35 pruebas
+puras aprobadas; el turno real siguió sin ejecutar get_pc/evaluate_pc. No reintentos
+automáticos. [Evidencia](docs/IA_LOCAL38.md). No declarar diez CU cerrados.
+
+Revisión visual independiente cerró los P2 de composición de PC y etapas escritorio
+frente a v0. No es aceptación humana ni paridad global; presentación de etapas móvil
+y compartido visual siguen con reservas. [Matriz](docs/ENTREGA38_VISUAL.md).
+Docker/CI: no se encontraron Dockerfiles ni workflows en este checkout; no se
+ejecutaron ni se presentan como entregados. Sin push/deploy.
+
+## HISTÓRICO — entrega visual26/10, sustituida por el estado anterior
 
 Tema oscuro sobrio y navegación lateral/móvil; «Tu próxima mejora» compone
 PC→objetivo/presupuesto→resultado, capacidad16→32GB, importes ARS y detalle accesible.
@@ -23,7 +43,7 @@ Recursos locales: seis ilustraciones propias de categoría, no fotos de producto
 Extracción RAM usa cantidades numéricas explícitas (`2x`); palabras no garantizadas.
 Sin backend/motor/datasets/proveedor/dependencias modificados, commits/push ni deploy.
 
-## Qué funciona y qué está en desarrollo
+## HISTÓRICO — alcance básico y contratos anteriores a torre38
 
 CU05/CU06 cerrados localmente respecto del alcance revisado `cu05-basic-stock-1`:
 CPU/placa/BIOS, RAM documentada, GPU, selección PSU stock y límites nominales.
@@ -33,8 +53,8 @@ total, geometría avanzada ni comportamiento térmico/eléctrico exhaustivo**.
 Estado de esta continuación: [CONTINUAR](docs/CONTINUAR.md) y sección postcierre de
 [SPRINT33](docs/SPRINT33.md). No rige el corte anterior por cuota/50%.
 
-Estado local: diez CU funcionales respecto de sus contratos actuales; CU05/06
-exclusivamente en el alcance básico revisado, no en el exhaustivo histórico.
+En ese cierre se registraron diez CU respecto de los contratos básicos de entonces;
+no describe el estado torre38 actual. La matriz vigente está en CONTINUAR/ENTREGA38_VISUAL.
 
 | CU | Estado verificable |
 |---|---|
@@ -45,11 +65,11 @@ exclusivamente en el alcance básico revisado, no en el exhaustivo histórico.
 | CU05 compatibilidad | Siete checks básicos obligatorios; dos demos compatibles, incompatible nominal, BIOS/socket unknown, evidencia y advertencias visibles; simulación sin guardar |
 | CU06 recomendaciones | RAM16→32GB y GPU8→12GB con PSU dependiente; beneficio de capacidad, coste ARS completo, presupuesto insuficiente rechazado y compatibilidad básica exigida |
 | CU07 planes | G persistente: etapas acumuladas, borradores explícitos, browser y reinicio real comprobados |
-| CU08 asistente | Funcional local: Groq/LangGraph/MCP/RAG, streaming incremental web, citas, historial, aislamiento, cancelación y reinicio comprobados |
+| CU08 asistente | Evidencia histórica básica; CU08 actual bloqueado, ver IA_LOCAL38 |
 | CU09 compartir | H: snapshot público mínimo, revocación PG, browser/reinicio y caída sin caché comprobados |
 | CU10 administración | Funcional local33: rol PG, bootstrap local explícito, datos versionados y publicación inmutable; gate web real |
 
-Seguimiento vigente: [SPRINT32](docs/SPRINT32.md), [CONTINUAR](docs/CONTINUAR.md).
+Seguimiento vigente: [CONTINUAR](docs/CONTINUAR.md). [SPRINT32](docs/SPRINT32.md) es histórico.
 Historia: [SPRINT33 — CU02/CU10](docs/SPRINT33.md). La autorización posterior revisó
 CU05/06 y sustituyó la detención por cuota. Las verificaciones32 no prueban el33
 ni el nuevo alcance: cada bloque conserva su evidencia y revisión independiente.
