@@ -1,0 +1,46 @@
+{
+  "status": "source_observations_only",
+  "consulted_on": "2026-10-26",
+  "provenance": {
+    "source_url": "https://www.kingston.com/datasheets/SNV3S_us.pdf",
+    "document_revision": "MKD-06162025",
+    "document_sha256": "bb95b3a56ad52ae572c3f56f93433c22439be0ded3218dbcef86e49d6ec01e6b",
+    "document_redistributed": false,
+    "rights_note": "Manufacturer document remains copyrighted; only nominal factual observations are recorded here."
+  },
+  "retail_crosswalk": {
+    "component_id": "cg-20214",
+    "category": "storage",
+    "name": "Disco Sólido SSD M.2 Kingston 500GB NV3 5000MB/s NVMe PCI-E Gen4 x4",
+    "manufacturer_part_number": "SNV3S/500G",
+    "identity_method": "exact published retail MPN equals official Part Numbers / M.2 2280",
+    "gtin_used_as_mpn": false,
+    "retail_identity_url": "https://compragamer.com/producto/Disco_S_lido_SSD_M_2_Kingston_500GB_NV3_5000MB_s_NVMe_PCI_E_Gen4_x4_20214"
+  },
+  "observations": {
+    "storage_interface": {
+      "value": "M2-NVMe",
+      "source_text": "PCIe 4.0 x4 NVMe",
+      "locator": "PDF page 1 / Specifications M.2 2280 / Interface; page 2 / Part Numbers M.2 2280 / SNV3S/500G"
+    },
+    "storage_form": {
+      "value": "2280",
+      "source_text": "M.2 2280",
+      "locator": "PDF page 1 / Specifications M.2 2280 / Form factor; page 2 / Part Numbers M.2 2280 / SNV3S/500G"
+    }
+  },
+  "unasserted": [
+    "sata_power_count",
+    "power_demand",
+    "current_price",
+    "current_stock",
+    "compatibility_verdict",
+    "objective_performance_benefit"
+  ],
+  "limitations": [
+    "This observation file is not a CU10 publication or a tower_stock_v1 envelope.",
+    "Publication must recheck the exact component identity and register source metadata in the same revision.",
+    "No inference from sequential transfer rate to workload performance.",
+    "SNV3SM3/500G is the distinct 2230 part and is not covered by this crosswalk."
+  ]
+}

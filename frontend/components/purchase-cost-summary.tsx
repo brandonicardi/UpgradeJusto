@@ -1,0 +1,17 @@
+import { purchaseBudget, purchaseSubtotal, purchaseUnselected, type PurchaseLine } from "../lib/purchase-draft";
+import { towerCategories } from "../lib/towers";
+import { displayRetailDate, formatRetailARS, offerDisplayStatus, retailSourceURL, stockLabel } from "../lib/retail-presentation";
+
+export function PurchaseLineQuote({ line, condition, now }: { line: PurchaseLine; condition: "cash" | "list"; now?: number }) {
+  const offer = line.offer;
+  if (!offer || offer.component_id !== line.part.id || offer.currency !== "ARS" || offer.condition !== condition) return <p>Cotización pendiente para esta condición.</p>;
+  const source = retailSourceURL(offer.source_url), state = now === undefined ? null : offerDisplayStatus(offer, now);
+  return <div data-purchase-quote><p>{offer.amount === null ? "Importe desconocido" : formatRetailARS(offer.amount)} por unidad · {offer.store === "compragamer" ? "Compra Gamer" : "Venex"} · {offer.condition === "cash" ? "Contado" : "Lista (no cuotas)"}</p><p>{state === null ? "Referencia guardada; vigencia actual sin comprobar" : state === "fresh" ? "Referencia guardada; verificar antes de comprar" : "Referencia histórica/no vigente"}</p><p>Precio guardado el {displayRetailDate(offer.observed_at)} · vence {displayRetailDate(offer.expires_at)}</p><p>Al consultar: {stockLabel(offer)}.</p>{source ? <a href={source} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">Fuente de esta compra (otra pestaña)</a> : <p>Fuente sin enlace seguro disponible.</p>}</div>;
+}
+export default function PurchaseCostSummary({ lines, condition, budget }: { lines: readonly PurchaseLine[]; condition: "cash" | "list"; budget: string }) {
+  const subtotal = purchaseSubtotal(lines, condition), missing = purchaseUnselected(lines), balance = purchaseBudget(subtotal, budget);
+  return <section aria-label="Coste de compras seleccionadas"><h2>Subtotal de compras seleccionadas</h2>{lines.length === 0 ? <><p className="purchase-total">Todavía no hay compras</p><p>Elegí tu primera pieza en la lista.</p></> : <><p>{lines.length} líneas elegidas</p><p className="purchase-total">{subtotal.selected_subtotal_ars === null ? "Subtotal parcial / desconocido" : formatRetailARS(subtotal.selected_subtotal_ars)}</p><p>Subtotal conocido: {formatRetailARS(subtotal.known_subtotal_ars)}</p>{subtotal.missing_lines > 0 && <p>{subtotal.missing_lines} líneas sin cotización en la condición elegida.</p>}</>}<p className="compact-help">No es el total del armado.</p><p>{missing.length} categorías no elegidas; algunas pueden no ser necesarias según el equipo.</p>{missing.length > 0 && <details><summary>Ver categorías no elegidas ({missing.length})</summary><ul>{missing.map(category => <li key={category}>{towerCategories[category]}</li>)}</ul></details>}
+    {balance.budget_ars === null ? <p>Ingresá tu presupuesto en pesos para comparar.</p> : lines.length === 0 ? <p>Presupuesto: {formatRetailARS(balance.budget_ars)}</p> : balance.known_excess_ars !== null ? <p className="danger-text">Excedente conocido sobre presupuesto: {formatRetailARS(balance.known_excess_ars)}</p> : <p>Saldo PROVISIONAL frente al subtotal conocido: {formatRetailARS(balance.provisional_remaining_ars)}</p>}
+    {balance.pending_prices && <p>Saldo definitivo desconocido: hay compras seleccionadas sin precio.</p>}<details><summary>Qué incluye este subtotal</summary><p>La comparación sólo considera compras elegidas e importes guardados; no certifica un armado completo ni presupuesto final.</p></details>
+  </section>;
+}

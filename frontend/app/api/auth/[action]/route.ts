@@ -1,6 +1,7 @@
 import { signedProxyHeaders } from "../../../../lib/gateway";
 import { readRequestBody, RequestBodyError, REQUEST_BODY_LIMITS } from "../../../../lib/request-body";
 import { retryAfterHeaders } from "../../../../lib/retry-after";
+import { publicUser } from "../../../../lib/public-user";
 
 export const runtime = "nodejs";
 const methods: Record<string, string> = { csrf: "GET", session: "GET", register: "POST", login: "POST", logout: "POST" };
@@ -34,7 +35,7 @@ async function proxy(request: Request, context: { params: Promise<{ action: stri
     // Never reflect validation payloads, passwords or internal exceptions.
     if (!upstream.ok) return Response.json({ detail: "Request failed" }, { status: upstream.status, headers: outgoing });
     const data = await upstream.json();
-    const result = action === "csrf" ? { csrf_token: data.csrf_token } : { id: data.id, email: data.email };
+    const result = action === "csrf" ? { csrf_token: data.csrf_token } : publicUser(data);
     return Response.json(result, { status: upstream.status, headers: outgoing });
   } catch (error) {
     return Response.json({ detail: error instanceof RequestBodyError ? "Request failed" : "Service unavailable" }, { status: error instanceof RequestBodyError ? error.status : 503, headers: { "Cache-Control": "no-store" } });

@@ -1,7 +1,7 @@
 # Checkpoint frontend CU02/CU10 — 24/10
 
 Contrato leído antes de implementar: specs CU02/CU10 y
-`backend/CU02_CU10_HANDOFF.md`. Guías locales Next route handlers y formularios
+`docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-cu02-cu10-handoff-md`. Guías locales Next route handlers y formularios
 consultadas. Únicamente archivos frontend; sin shell, instalaciones ni ejecución.
 
 ## Preparado, no verificado

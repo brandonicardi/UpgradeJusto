@@ -1,11 +1,13 @@
 # CU02 — contrato Sprint33 (autorizado24/10)
 
+> Vigencia documental 27/10/2026: esta spec reúne requisitos y contratos por versión. Una frase fechada como «antes de implementar», «pendiente» o un resultado Sprint32/38 describe ese incremento; no acredita ni niega el estado de la entrega actual. Estado y aceptación únicos: [CONTINUAR](../CONTINUAR.md) y [matriz](../ENTREGA38_VISUAL.md). Desarrollo detenido; esta consolidación no autoriza ejecutar órdenes históricas.
+
 ## Delta autorizado38 — antes de implementar
 
 Extracción torre con nueve categorías y líneas/declaraciones editables, unknown no
 es absent. Propuesta no persiste; `confirmed:true` explícito antes de PCService y
 propiedad servidor. Rutas `/api/towers/extract` y `/extract/confirm`, DTO y evidencia
-según [contrato38 §1/7](../../backend/INTEGRAL38_CONTRACT.md). Cap65536 y cuota común37.
+según [contrato38 §1/7](CU03-pcs.md#origen-backend-integral38-contract-md). Cap65536 y cuota común37.
 Aceptación: varias unidades/discos diferentes, declarado conservado, edición antes
 de guardar, sin escritura por extracción/cancelación y selección posterior al50.
 Solo texto hardware; no detectar/leer archivos del sistema ni pegar reportes privados.

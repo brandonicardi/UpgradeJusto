@@ -1,5 +1,5 @@
 import { sessionChangedEvent } from "./session-role";
-export type PublicUser = { id: string; email: string };
+export type { PublicUser } from "./public-user";
 
 export function authError(status: number, retryAfter: string | null = null): string {
   switch (status) {

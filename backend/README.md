@@ -12,8 +12,8 @@ Unknown necesario bloquea; fallo conocido domina conservando faltantes. Los snap
 legacy conservan interpretación y serialización, sin recálculo silencioso.
 
 Pruebas y comandos ejecutados en la [bitácora básica](../docs/ai-log/2026-10-25-alcance-basico-datasets.md).
-Contrato técnico en [BASIC_HANDOFF](BASIC_HANDOFF.md); importador en
-[IMPORT_HANDOFF](IMPORT_HANDOFF.md). La publicación explícita se realiza con
+Contrato técnico en [BASIC_HANDOFF](../docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-basic-handoff-md); importador en
+[IMPORT_HANDOFF](../docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-import-handoff-md). La publicación explícita se realiza con
 `scripts/publish-hardware-sample.py --publish-project-catalog`, helper local existente
 y cuenta de prueba admin autenticada por servidor; nunca imprimir sus credenciales.
 No repetir bootstrap, seed ni restaurar el catálogo anterior sobre el importado.
@@ -265,7 +265,7 @@ Groq/publicación/confirmación por navegador pendientes. Detalle en SPRINT33.
 
 ## Checkpoint Sprint33 CU02/CU10 — preparado, pendiente de Build
 
-Contrato HTTP exacto y DTOs: [CU02_CU10_HANDOFF.md](CU02_CU10_HANDOFF.md).
+Contrato HTTP exacto y DTOs: [CU02_CU10_HANDOFF.md](../docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-cu02-cu10-handoff-md).
 Incluye extracción Groq stateless con confirmación explícita/PCService, administración
 con rol PG, borradores y publicación transaccional, catálogo/parámetros fijados por
 request y migración `33_001` sobre `32_i_001`. Bootstrap exclusivamente local para
@@ -1154,7 +1154,7 @@ local; revisar mantenimiento antes de exposición o despliegue. No usar `0.0.0.0
 # Seguridad37 — gate local pendiente
 
 Contrato, límites HTTP, presupuesto PG compartido, migración aditiva y selección de
-checks: [SECURITY37_HANDOFF.md](SECURITY37_HANDOFF.md). Cuerpos se limitan por bytes
+checks: [SECURITY37_HANDOFF.md](../docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-security37-handoff-md). Cuerpos se limitan por bytes
 reales y deadline de recepción5s; SSE no hereda ese temporizador. Aplicar migración
 `37_001` por Build antes de probar asistente/extracción. Retención nunca arranca
 automáticamente: CLI TEST `python -m upgradejusto.auth.maintenance --dry-run`, sin

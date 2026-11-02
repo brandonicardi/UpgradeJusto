@@ -11,6 +11,10 @@ test("registro no autentica; login persiste en recarga y logout revoca", async (
   const origin = "http://127.0.0.1:3000";
   const email = `ui-${randomUUID()}@example.test`;
   const password = randomUUID();
+  let googlePosts = 0;
+  page.on("request", request => {
+    if (request.method() === "POST" && ["/api/auth/google", "/api/auth/google/attempts"].includes(new URL(request.url()).pathname)) googlePosts++;
+  });
   // Use the browser cookie jar and same-origin proxy, never the backend port for auth.
   const sessionStatus = () => page.evaluate(async () => (await fetch("/api/auth/session", {
     credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(3000),
@@ -43,7 +47,7 @@ test("registro no autentica; login persiste en recarga y logout revoca", async (
   ]);
   expect(registered.status()).toBe(201);
   expect(await registered.request().headerValue("origin")).toBe(origin);
-  await expect(page.getByRole("status")).toContainText("Cuenta creada");
+  await expect(page.getByRole("status", { name: "Estado de cuenta", exact: true })).toContainText("Cuenta creada");
   expect(await sessionStatus()).toBe(401);
   await enterPassword();
   const [loggedIn] = await Promise.all([
@@ -66,8 +70,9 @@ test("registro no autentica; login persiste en recarga y logout revoca", async (
   ]);
   expect(loggedOut.status()).toBe(204);
   expect(await loggedOut.request().headerValue("origin")).toBe(origin);
-  await expect(page.getByRole("status")).toContainText("Sesión cerrada en el servidor");
+  await expect(page.getByRole("status", { name: "Estado de cuenta", exact: true })).toContainText("Sesión cerrada en el servidor");
   expect(await sessionStatus()).toBe(401);
   await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Catálogo", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Catálogo de componentes", exact: true })).toBeVisible();
+  expect(googlePosts, "Local account flow must not issue Google attempts/credentials automatically").toBe(0);
 });

@@ -1,5 +1,7 @@
 # CU01 — contrato Sprint32 B
 
+> Vigencia documental 27/10/2026: esta spec reúne requisitos y contratos por versión. Una frase fechada como «antes de implementar», «pendiente» o un resultado Sprint32/38 describe ese incremento; no acredita ni niega el estado de la entrega actual. Estado y aceptación únicos: [CONTINUAR](../CONTINUAR.md) y [matriz](../ENTREGA38_VISUAL.md). Desarrollo detenido; esta consolidación no autoriza ejecutar órdenes históricas.
+
 ## Delta autorizado38 — antes de implementar
 
 GIS mantiene login local; identidad externa única issuer/sub, sin unión automática
@@ -7,7 +9,7 @@ por email. Google-only admite email/hash locales null, no contraseña ficticia.
 Intento PG de cinco minutos, nonce de un uso ligado a sesión/Origin, CSRF y cuotas37;
 verificar firma/algoritmo/issuer/audience/iat/exp/semántica IDtoken y nonce; rotar
 sesión atómicamente y no guardar/loggear JWT. Rutas config/attempts/google y errores
-según [contrato38 §6](../../backend/INTEGRAL38_CONTRACT.md). Migración aditiva38_b_001.
+según [contrato38 §6](CU03-pcs.md#origen-backend-integral38-contract-md). Migración aditiva38_b_001.
 Aceptación: token incorrecto/replay/nonce/Origin/cuenta homónima/rotación y fallo de
 certificados; login real Google requiere usuario, mocks no lo prueban. Localhost
 loopback consistente. Es alcance autorizado, **no implementación ni prueba aprobada**.

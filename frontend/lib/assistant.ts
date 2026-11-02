@@ -1,4 +1,5 @@
 import { safeSource } from "./catalog";
+import { assistantContext, type AssistantContext } from "./assistant-context";
 
 export type Conversation = { id: string; title: string; created_at: string; updated_at: string };
 export type PageOf<T> = { items: T[]; total: number; page: number; page_size: number };
@@ -85,10 +86,10 @@ export function citationText(value: unknown): Citation | null {
   } catch { return null; }
 }
 
-export function messageInput(content: string, clientRequestId: string) {
+export function messageInput(content: string, clientRequestId: string, context?: AssistantContext) {
   const text = content.trim();
   if (!text || text.length > 8000 || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clientRequestId)) throw new Error("Mensaje de 1 a 8000 caracteres y UUID de solicitud requerido.");
-  return { content: text, client_request_id: clientRequestId };
+  return { content: text, client_request_id: clientRequestId, ...(context === undefined ? {} : { context: assistantContext(context) }) };
 }
 export class AssistantError extends Error {
   constructor(public status: number, retryAfter: string | null = null) {

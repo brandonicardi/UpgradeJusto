@@ -7,7 +7,7 @@ from pydantic import StringConstraints
 
 from upgradejusto.catalog.models import Category, Component, ComponentPage
 from upgradejusto.catalog.postgres import PostgresCatalogRepository
-from upgradejusto.catalog.service import CatalogService
+from upgradejusto.catalog.service import CatalogService, CatalogSort
 
 router = APIRouter(prefix="/api/catalog/components", tags=["catalog"])
 
@@ -24,9 +24,12 @@ def list_components(
     ] = None,
     page: Annotated[int, Query(ge=1, le=10000)] = 1,
     page_size: Annotated[int, Query(ge=1, le=50)] = 12,
+    sort: Annotated[CatalogSort, Query()] = "id",
     svc=Depends(service),
 ) -> ComponentPage:
-    return svc.list_components(category=category, q=q, page=page, page_size=page_size)
+    return svc.list_components(
+        category=category, q=q, page=page, page_size=page_size, sort=sort
+    )
 
 
 @router.get("/{component_id}", response_model=Component)

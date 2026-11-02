@@ -1,0 +1,6 @@
+import { towerCategories, towerKeys, type Tower } from "../lib/towers";
+import { RemoteProductName } from "./remote-product-selector";
+
+export default function TowerInventory({ pc }: { pc: Tower }) {
+  return <div className="central-inventory">{towerKeys.map(category => <section key={category} className="inventory-row"><h3>{towerCategories[category]}</h3><div className="inventory-row-model">{!pc.lines.some(line => line.category === category) && <div className="inventory-product-identity"><span className="unselected-photo" aria-hidden="true">—</span><span className="muted">{pc.category_status[category] === "absent" ? "Sin pieza declarada" : "Pieza por identificar"}</span></div>}<ul>{pc.lines.filter(line => line.category === category).map((line, index) => <li key={line.line_id ?? index}>{line.component_id ? <RemoteProductName id={line.component_id} category={category} compact /> : <p>{line.declared_model} · modelo declarado, atributos sin verificar</p>}<p className="inventory-quantity">Cantidad explícita: {line.quantity} {category === "ram" ? "módulos; capacidad total no calculada" : "unidades"}</p></li>)}</ul></div><p className="central-category-state">{pc.category_status[category] === "unknown" ? "No sé / por confirmar" : pc.category_status[category] === "absent" ? "No tengo (declarado)" : "Presente"}</p></section>)}</div>;
+}

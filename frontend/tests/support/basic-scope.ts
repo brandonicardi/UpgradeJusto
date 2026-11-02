@@ -31,7 +31,7 @@ export function demoInput(which: "A" | "B"): PCInput {
   return { name: `PC demo propia ${which}`, components: (["cpu", "motherboard", "ram", "gpu", "psu", "case"] as const).map((category, i) => ({ category, component_id: ids[i], quantity: category === "ram" ? 2 : 1 })), context: { bios_version: "P2.30", notes: null } };
 }
 export async function openBasic(page: Page, pc: PC) {
-  await page.goto("/pcs");
+  await page.goto("/pcs/legacy");
   await page.getByRole("main").getByRole("button", { name: pc.name, exact: true }).click();
 }
 export async function evaluateBasic(page: Page, pc: PC) {

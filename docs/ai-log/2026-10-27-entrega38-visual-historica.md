@@ -56,7 +56,7 @@ a.local. No es un nuevo baseline que oculte fallos previos.
 | Compartidos CU09 | Gates funcionales/privacidad anteriores conservados; preview usa factoryTEST/errorOFF | Sin inspección visual final; main sin montaje y lifecycleDEV pendiente |
 
 Preview vivo y límites/forma de detener sólo sus procesos en
-[PROBAR38_LOCAL](PROBAR38_LOCAL.md). La matriz histórica siguiente registra punto de
+[PROBAR38_LOCAL](../PROBAR38_LOCAL.md). La matriz histórica siguiente registra punto de
 partida y no sustituye este resultado posterior.
 
 | Ruta/recorrido | Evidencia1440/390 vigente | Hallazgo o criterio pendiente | Estado |

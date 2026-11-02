@@ -27,6 +27,9 @@ from upgradejusto.api.tower_plans import router as tower_plans_router
 from upgradejusto.api.tower_recommendations import (
     router as tower_recommendations_router,
 )
+from upgradejusto.api.tower_share_boundary import TowerShareBoundary
+from upgradejusto.api.tower_shares import public_router as public_tower_shares_router
+from upgradejusto.api.tower_shares import router as tower_shares_router
 from upgradejusto.api.towers import router as towers_router
 from upgradejusto.assistant.repository import Repository as ConversationRepository
 from upgradejusto.auth.security import HashBusy
@@ -60,6 +63,8 @@ app.include_router(tower_recommendations_router)
 app.include_router(recommendations_router)
 app.include_router(plans_router)
 app.include_router(tower_plans_router)
+app.include_router(tower_shares_router)
+app.include_router(public_tower_shares_router)
 app.include_router(shares_router)
 app.include_router(assistant_router)
 app.include_router(administration_router)
@@ -135,3 +140,5 @@ async def unavailable(request, exc):
 
 # Last-added user middleware is outermost; reject before FastAPI/BaseHTTP parsing.
 app.add_middleware(BodyLimits)
+# Headers must also cover BodyLimits' pre-router rejections, including CU09.
+app.add_middleware(TowerShareBoundary)

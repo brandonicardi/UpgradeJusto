@@ -1,5 +1,7 @@
 # CU04 — catálogo readonly Sprint31b A
 
+> Vigencia documental 27/10/2026: esta spec reúne requisitos y contratos por versión. Una frase fechada como «antes de implementar», «pendiente» o un resultado Sprint32/38 describe ese incremento; no acredita ni niega el estado de la entrega actual. Estado y aceptación únicos: [CONTINUAR](../CONTINUAR.md) y [matriz](../ENTREGA38_VISUAL.md). Desarrollo detenido; esta consolidación no autoriza ejecutar órdenes históricas.
+
 ## Delta autorizado38 — antes de implementar
 
 Nueve categorías torre; búsqueda/paginación remota y resolución por ID independientes
@@ -8,7 +10,7 @@ publicación versionados, sin modificar image:null/snapshots antiguos. HTTPS/hos
 permitidos, sin URL arbitraria/SVG ni descargador general; origen/fecha/derechos/
 variante/status y fallback honesto. Ofertas ARS contado/lista, stock/consulta/expiración,
 24h retail-offer-freshness-1; stale/fallo no es vigente/cero. DTO exacto
-[contrato38 §3](../../backend/INTEGRAL38_CONTRACT.md). Importación amplia idempotente,
+[contrato38 §3](CU03-pcs.md#origen-backend-integral38-contract-md). Importación amplia idempotente,
 sin tope60 ni combos/periféricos inflando; cuarentena y publicación atómica CU10.
 Aceptación >50, foto rota/variante/host, fecha/coste/stock/licencias. Es alcance,
 no importación ejecutada ni garantía de stock; históricos31b conservados.
@@ -60,3 +62,23 @@ Cierre histórico31b: **A verificado**. Build corroboró exit0 de pytest118, Ruf
 sync, tipos/build frontend actuales, lint, Vitest12 y Playwright2. Curación y revisión
 integrada cerradas sin hallazgos abiertos; smoke local catálogo/API/health satisfactorio
 informado por Build. No implica PostgreSQL, autenticación ni compatibilidad CU05.
+# Pedido92 — orden comercial visible, aceptado antes de implementación
+
+Brandon detectó que la página inicial presentaba sólo piezas de referencia sin fotos
+ni ofertas aunque ya existen productos comerciales publicados. Se acepta un orden
+explícito `sort=retail_first|id` para el GET de listado existente; sin endpoint nuevo,
+filtros por parecido ni consultas masivas desde navegador.
+
+- API conserva `id` por defecto para consumidores anteriores. La web puede iniciar
+  explícitamente en `retail_first`, con selector de orden visible y URL/paginación que
+  preserven la selección. No filtra ni oculta piezas incompletas; total y filtros AND
+  mantienen su significado.
+- Antes de paginar, ordenar determinísticamente por grupos: foto exacta verificada
+  publicada + importe ARS asociado; importe ARS asociado; foto; resto. Desempatar por ID.
+  Asociación de oferta por component_id, no por nombre; fotografía requiere exact_variant,
+  status verified y URL no nula. No descargar imágenes en el servicio de catálogo.
+- Ordenar por referencia publicada no demuestra vigencia, stock, compatibilidad ni
+  recomendación. Conservar estados, fechas, fuente y cantidades desconocidas. No
+  rejuvenecer precios, modificar revisiones ni cambiar el motor para ordenar tarjetas.
+- Enum cerrado y query acotada en API/BFF; mismos límites de página/tamaño y controles
+  de transporte. Conservar acceso al orden anterior y a fichas sin recursos.

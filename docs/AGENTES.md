@@ -1,5 +1,7 @@
 # Agentes de desarrollo
 
+> Vigencia 27/10/2026: desarrollo detenido por Brandon. Build coordinó el último encargo; el coordinador documental es un perfil disponible, no un segundo coordinador activo. Seis perfiles locales: backend, frontend, coordinador documental, revisor-codigo, revisor-proyecto (revisión acotada histórica) y revisor-seguridad (solo lectura). Modelos/permisos nativos preservados. Política y estado actuales: [AGENTS](../AGENTS.md) y [CONTINUAR](CONTINUAR.md). Las selecciones y etapas inferiores conservan historia; no autorizan ejecución ni cambios de modelo.
+
 No son agentes del producto ni implementan CU08. Política: [ORQUESTACION](ORQUESTACION.md).
 
 | Rol local | Responsabilidad | Tope por turno en31b |

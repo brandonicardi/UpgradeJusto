@@ -7,7 +7,7 @@ La autoridad operativa actual está en `docs/CONTINUAR.md`.
 ## Autorización vigente37/38 — revisión, seguridad, Git local y producto integral
 
 **38 en ejecución:** encargo completo leído después de aceptación37 y commits locales.
-Estado/criterios/responsables en [SPRINT38](SPRINT38.md). Contrato backend primero;
+Estado/criterios/responsables en [SPRINT38](../SPRINT38.md). Contrato backend primero;
 frontend usa skill efectiva y prepara entrada/guía independiente. No esperar push.
 
 HEAD local posterior `e499ac3`: cinco archivos MCP de correlación/contrato/tests,
@@ -22,7 +22,7 @@ frontend producción/factoryTEST shares con error-probeOFF. Web6600/API26276 só
 127.0.0.1; PG existente no modificado. Manifiesto propio:
 `.local/logs/preview38/20261027T043213Z-60bdb5dca922493a81de1d2da4fb7fca/owned-processes.json`.
 Ocho páginasHTTP200/health200/configGoogleenabledtrue verificados sin datos privados.
-Guía y parada por identidad en [PROBAR38_LOCAL](PROBAR38_LOCAL.md). No correr otros
+Guía y parada por identidad en [PROBAR38_LOCAL](../PROBAR38_LOCAL.md). No correr otros
 servidores/runners3000/8000 mientras se usa. No confundir TESTfactory con main montado
 productivo ni con cierre integral; chat continúa bloqueado.
 
@@ -60,7 +60,7 @@ No esperar otro sí/no de dirección; app integrada y cierre siguen pendientes.
 **Investigación local:** no Ollama/runtime/modelo disponible identificado; hardware
 9800X3D/31.6GiB/RX6800. Sin descargas, instalaciones o cambios de proveedor. Informe
 con soporte Windows/Vulkan, herramientas, límites y prueba condicionada en
-[IA_LOCAL38](IA_LOCAL38.md). Latencia no medida; no selector Ollama implementado.
+[IA_LOCAL38](../IA_LOCAL38.md). Latencia no medida; no selector Ollama implementado.
 
 **Checks nuevos focales:** catálogo5units/tipos/lint/build PASS; navegador real falló
 en174ms fasecatalog, diagnóstico granular pendiente del único escritor. No aprobación
@@ -124,7 +124,7 @@ DEV lifecycle sigue pendiente, no activar shares todavía.
 - CRUD/conversión torre, catálogos/ofertas, GIS backend/frontend y CU05 motor/API/UI
   tienen gates/revisiones locales. BIOS candidata, ocurrencias/variantes extraídas,
   stock por cantidad y materiales reutilizados corregidos; detalles y fallos previos
-  en [bitácora38](ai-log/2026-10-26-producto-integral38.md), no repetir gates por rutina.
+  en [bitácora38](2026-10-26-producto-integral38.md), no repetir gates por rutina.
 - Commits locales hasta `1a34cd4`; planes privados `a9a6764`, MCP `1a34cd4`, además
   técnica `043eb78`, resolver `01b3028` y contexto extracción `d669ec3`.
   Manifiesto exacto en REVISION_PUBLICACION; cinco originales conservados, sin push.
@@ -252,7 +252,7 @@ Después continuar38 desde `.local/handoffs/38-producto-integral.txt` sin otro p
 una vez aceptada la base; una espera de publicación no termina el trabajo integral.
 Diez CU y cierre básico/visual36 preservados, no equivalen a producto integral listo.
 Pruebas solo TEST; no importar workspace privado ni exponer credenciales. Estado37
-en [bitácora](ai-log/2026-10-26-revision37-seguridad-git.md); manifiesto de revisión
+en [bitácora](2026-10-26-revision37-seguridad-git.md); manifiesto de revisión
 previa a publicación en `REVISION_PUBLICACION.md`.
 
 37: correcciones aceptadas LOCALMENTE por revisora independiente, incluido borde
@@ -274,7 +274,7 @@ Motor/datasets/proveedores intactos; backend solo ante defecto concreto. Sin nue
 frameworks, permisos, commits/push/deploy/instalaciones globales. Frontend único
 escritor; coordinadora consultiva y Build herramientas/evidencia con runners exclusivos.
 La denegación documental del perfil coordinador no se elude ni modifica.
-Registro de cierre: [entrega visual](ai-log/2026-10-26-entrega-visual.md).
+Registro de cierre: [entrega visual](2026-10-26-entrega-visual.md).
 
 Resultado2B: pantallas implementadas; tipos/lint/build finales0 y94 unitarios aprobados
 más focales posteriores22/4 (solapados, no sumar como una sola suite).
@@ -297,13 +297,13 @@ de CSS0, privacidad85 candidatos sin patrones de credenciales, evidencia ignorad
 Abrir con `./scripts/dev.ps1 -SystemTrust` y `/pcs` en127.0.0.1:3000.
 Reservas: SVG propios no fotos; precios históricos, básico stock no certificación
 física; RAM en texto requiere cantidad numérica. Python predeploy pendiente histórico
-sin actualizar entorno. [Inventario y matriz](ENTREGA_LOCAL_INVENTARIO.md).
+sin actualizar entorno. [Inventario y matriz](../ENTREGA_LOCAL_INVENTARIO.md).
 **DETENER al cierre:** no hay otro bloque autorizado por esta entrega.
 
 DIEZ CU funcionales LOCALMENTE respecto del alcance actual, incluido CU05/CU06 básico
 stock; no certificación física exhaustiva ni despliegue.
-Cierres32/33 conservados: [SPRINT32](SPRINT32.md), [SPRINT33](SPRINT33.md),
-[bitácora33](ai-log/2026-10-24-cu02-cu10.md). No repetirlos por rutina.
+Cierres32/33 conservados: [SPRINT32](../SPRINT32.md), [SPRINT33](../SPRINT33.md),
+[bitácora33](2026-10-24-cu02-cu10.md). No repetirlos por rutina.
 
 ## Continuación vigente25/10 — posterior al cierre33
 
@@ -316,7 +316,7 @@ reconfiguración, permisos nuevos ni sustitutos de PostgreSQL.
 ## Checkpoint vigente25/10 — CIERRE LOCAL básico stock aprobado independientemente
 
 La revisión aceptada de alcance reemplaza el cierre exhaustivo histórico inferior.
-Contrato: [CU05](specs/CU05-compatibilidad.md), [CU06](specs/CU06-recomendaciones.md),
+Contrato: [CU05](../specs/CU05-compatibilidad.md), [CU06](../specs/CU06-recomendaciones.md),
 scope `cu05-basic-stock-1`/política `basic-stock-policy-1`. No certificación física;
 unknown necesario sigue unknown, fail conocido domina y advertencias adicionales
 visibles. No exigir universalmente DC por salida/transitorios ni mediciones físicas.
@@ -376,7 +376,7 @@ recomendaciones/presupuesto y móvil390×844; Build leyó scope y advertencias l
 [panel PC A](D:/Proyectos/UpgradeJusto-CursoIA/.local/evidence/cu05-cu06-scope-v1/after/2026-10-26T00-47-03-767Z-68774420/02pcAcompatible-panel.png),
 [capturas finales](D:/Proyectos/UpgradeJusto-CursoIA/.local/evidence/cu05-cu06-scope-v1/after/2026-10-26T00-47-03-767Z-68774420/).
 Evidencia/comandos a cargo de Build en
-[bitácora vigente](ai-log/2026-10-25-alcance-basico-datasets.md).
+[bitácora vigente](2026-10-25-alcance-basico-datasets.md).
 
 Límites: cooler stock5700X no registrado, sin certificación térmica/física; conflicto
 RM750e12V54,2/62,5 A visible; storage/frontales/periféricos adicionales no certificados.
@@ -427,7 +427,7 @@ El límite por resultado de herramienta no garantiza evitar413 con historial arb
 PGpost0: hashes de snapshots previos intactos, catálogo14 componentes activo Published,
 precios/fuentes iguales a seed restaurados mediante NUEVA revisión. Sin migraciones,
 seed/setup/env, cambios proveedor/modelo/cuentas, commits/push. Evidencia detallada y
-comandos literales: [bitácora CU05/06](ai-log/2026-10-25-cu05-cu06-evidencia.md).
+comandos literales: [bitácora CU05/06](2026-10-25-cu05-cu06-evidencia.md).
 Final: Ruff plataforma/recursos42 archivos0 y helper4 archivos0; privacidad252
 candidatos sin credenciales literales; índice vacío, HEADc1ced9e/cinco commits intactos.
 

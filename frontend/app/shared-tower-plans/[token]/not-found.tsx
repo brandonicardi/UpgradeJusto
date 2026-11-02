@@ -1,0 +1,1 @@
+export default function NotFound() { return <section><h1>Plan compartido no disponible</h1><p>El enlace no existe, fue revocado o dejó de estar disponible. No se confirma información privada.</p></section>; }

@@ -1,5 +1,9 @@
 # Carga explícita, sin ejecutar contenido .env ni imprimir secretos.
-param([switch]$TestDatabase)
+param(
+    [switch]$TestDatabase,
+    [ValidateSet('http://localhost:3000', 'http://127.0.0.1:3000')]
+    [string]$PublicOrigin
+)
 $root = Split-Path $PSScriptRoot -Parent
 $runtime = Join-Path $root '.local/postgresql/runtime.json'
 if (-not (Test-Path $runtime)) { throw 'Falta configuración del clúster exclusivo del proyecto.' }
@@ -39,5 +43,13 @@ if (Test-Path $envFile) {
 if ($env:UJ_TLS_TRUST -and $env:UJ_TLS_TRUST -notin @('certifi','system')) { throw 'UJ_TLS_TRUST debe ser certifi o system; TLS nunca se desactiva.' }
 $rag = Join-Path $root '.local/assistant-rag.json'
 $env:UJ_ASSISTANT_RAG_CONFIG = if (Test-Path -LiteralPath $rag) { $rag } else { $null }
-$env:UJ_ORIGIN = 'http://127.0.0.1:3000'
+$env:UJ_ORIGIN = if ($PublicOrigin) { $PublicOrigin } elseif ($TestDatabase) { 'http://127.0.0.1:3000' } else { 'http://localhost:3000' }
+# Public OAuth client identifier only; never search other integration files.
+$googleClientFile = Join-Path $root '.local/integration/google-client-id.txt'
+$env:UJ_GOOGLE_CLIENT_ID = $null
+if (Test-Path -LiteralPath $googleClientFile) {
+    $clientId = [IO.File]::ReadAllText($googleClientFile).Trim()
+    if ($clientId -notmatch '^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$') { throw 'Client ID público Google inválido; no se carga otro archivo.' }
+    $env:UJ_GOOGLE_CLIENT_ID = $clientId
+}
 $env:UJ_ALLOW_INSECURE_LOOPBACK = '1'

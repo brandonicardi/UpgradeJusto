@@ -33,7 +33,7 @@ test("@visual-core catálogo, PC, evaluaciones, mejoras, planes y publicación r
       expect(created.status).toBe(201); pcs.push(created.data as PC);
     }
     phase = "catalog";
-    await page.goto("/"); await expect(page).toHaveURL(/\/catalog$/);
+    await page.goto("/"); await page.getByRole("main").getByRole("link", { name: "Explorar el catálogo", exact: true }).click(); await expect(page).toHaveURL(/\/catalog$/);
     await expect(page.getByRole("main").getByRole("status")).toContainText("14 componentes");
     await captureBoth(page, directory, "02-catalogo");
     await page.goto("/catalog/P04"); await expect(page.getByRole("region", { name: "Resumen del componente", exact: true })).toBeVisible();

@@ -1,8 +1,9 @@
 import { test as base, type BrowserContext } from "@playwright/test";
 import { applicationOrigin, createSocketProxy } from "../support/socket-proxy";
+import { imageEvidenceBypass, imageEvidenceHeaders, imageEvidenceURL } from "../support/image-evidence-policy";
 
 type LocalProxy = Awaited<ReturnType<typeof createSocketProxy>>;
-export const test = base.extend<{ socketProxy: LocalProxy; newIsolatedContext: () => Promise<BrowserContext> }>({
+export const test = base.extend<{ socketProxy: LocalProxy; newIsolatedContext: () => Promise<BrowserContext>; newImageEvidenceContext: () => Promise<BrowserContext> }>({
   socketProxy: async ({ browserName }, provide) => {
     if (browserName !== "chromium") throw new Error("Socket proxy fixture requires configured Chromium");
     const proxy = await createSocketProxy();
@@ -16,6 +17,24 @@ export const test = base.extend<{ socketProxy: LocalProxy; newIsolatedContext: (
     const context = await browser.newContext({ baseURL: applicationOrigin, proxy: { server: socketProxy.server, bypass: "<-loopback>" } });
     try { await provide(context); }
     finally { await context.close(); }
+  },
+  newImageEvidenceContext: async ({ browser, socketProxy }, provide) => {
+    const contexts: BrowserContext[] = [];
+    try {
+      await provide(async () => {
+        // Fresh, no inherited storage/headers. Default context/isolated fixture
+        // remain app-only. Normal TLS; only these vendor hosts bypass proxy.
+        const context = await browser.newContext({ baseURL: applicationOrigin, serviceWorkers: "block", proxy: { server: socketProxy.server, bypass: imageEvidenceBypass } });
+        contexts.push(context);
+        await context.route("**/*", async route => {
+          const request = route.request();
+          if (new URL(request.url()).origin === applicationOrigin) { await route.continue(); return; }
+          if (!imageEvidenceURL(request.url(), request.method(), request.resourceType())) { await route.abort(); return; }
+          await route.continue({ headers: imageEvidenceHeaders(request.headers()) });
+        });
+        return context; // Global routing installed before caller can create pages.
+      });
+    } finally { await Promise.allSettled(contexts.map(context => context.close())); }
   },
   newIsolatedContext: async ({ browser, socketProxy }, provide) => {
     const contexts: BrowserContext[] = [];

@@ -1,10 +1,12 @@
 # CU06 — recomendaciones, Sprint32 F
 
+> Vigencia documental 27/10/2026: esta spec reúne requisitos y contratos por versión. Una frase fechada como «antes de implementar», «pendiente» o un resultado Sprint32/38 describe ese incremento; no acredita ni niega el estado de la entrega actual. Estado y aceptación únicos: [CONTINUAR](../CONTINUAR.md) y [matriz](../ENTREGA38_VISUAL.md). Desarrollo detenido; esta consolidación no autoriza ejecutar órdenes históricas.
+
 ## Delta autorizado38 — antes de implementar
 
 `/api/towers/{id}/recommendations/preview`: modo automatic o manual_comparison,
 objetivo general/gaming/productivity, ARS/condición cash/list y materiales explícitos;
-DTO en [contrato38 §5](../../backend/INTEGRAL38_CONTRACT.md). Automático busca catálogo
+DTO en [contrato38 §5](CU03-pcs.md#origen-backend-integral38-contract-md). Automático busca catálogo
 completo, beneficio pertinente por índice curado con contexto; no VRAM/núcleos/FPS
 inventados. Productividad Blender exige workload blender-cpu, no generalización.
 Sin respaldo: faltantes y comparación manual identificada. Coste incremental completo

@@ -1,0 +1,51 @@
+{
+  "status": "proposed_not_published",
+  "consulted_on": "2026-10-26",
+  "identity": {
+    "category": "cooler",
+    "manufacturer": "DeepCool",
+    "model": "AG400",
+    "manufacturer_part_number": "R-AG400-BKNNMN-G-1",
+    "retail_component_id": null,
+    "retail_crosswalk_confirmed": false
+  },
+  "source_url": "https://www.deepcool.com/products/Cooling/cpuaircoolers/GAMMAXX-AG400-Single-Tower-CPU-Cooler-1851-1700-AM5/2024/15898.shtml",
+  "locator": "Application For; Technical Spec / P/N, Fan Connector, Fan Rated Voltage, Fan Rated Current",
+  "observations": {
+    "cooler_sockets": {
+      "value": ["AM4", "AM5"],
+      "source_text": "AMD AM5/AM4",
+      "exhaustive_list": false
+    },
+    "fan_connector": {
+      "value": "4pin",
+      "source_text": "4-pin PWM"
+    },
+    "fan_voltage_mv": {
+      "value": 12000,
+      "source_text": "12 VDC",
+      "conversion": "12 V * 1000 mV/V"
+    },
+    "fan_current_ma": {
+      "value": 170,
+      "source_text": "0.17 A",
+      "conversion": "0.17 A * 1000 mA/A"
+    }
+  },
+  "unasserted": [
+    "thermal_compound_required_on_remount",
+    "thermal_compound_included",
+    "remaining_user_material",
+    "global_motherboard_fan_budget",
+    "current_price",
+    "current_stock",
+    "compatibility_verdict"
+  ],
+  "limitations": [
+    "No retail AG400 match was found by the recorded TEST query. Do not substitute AG400 ARGB or AK400.",
+    "The socket observation is only a supported subset. It must not become an exhaustive exclusion list in the evaluator without completing the official list.",
+    "The linked manual covers AG400 and AG400 LED. Its downloaded bytes do not establish package contents or thermal paste availability.",
+    "This file is not a tower_stock_v1 envelope, a publication or a complete set of required technical facts.",
+    "A future curation must bind the exact catalog identity and registered source metadata before consuming any field."
+  ]
+}

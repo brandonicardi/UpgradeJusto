@@ -1,14 +1,17 @@
 # Estado ACTUAL — UpgradeJusto
 
-Actualizado: **27/10/2026,12:17ART**. Única referencia operativa vigente.
+Actualizado: **27/10/2026, limpieza documental posterior al cierre**. Única referencia operativa vigente. Los procesos y pruebas inferiores conservan su fecha de comprobación; no se volvieron a ejecutar en esta revisión.
 Cronología preservada en [HISTÓRICO](ai-log/2026-10-27-continuar-historico.md) y bitácora38;
 sus previews/cuotas/aprobaciones anteriores no describen el estado actual.
 
 ## Autorización y límites
 
-- Brandon autoriza reanudar desde archivos existentes, completar versión usable hoy.
-  No reiniciar37/38 ni repetir instalaciones/pruebas sin delta.
-- Última medición real Codex: **25% semanal libre**, cuenta compartida. **Nuevo corte15%
+- Cierre posterior del 27/10: Brandon pidió conservar la app sin continuar desarrollo.
+  Solo autorizó presentación y limpieza documental; no reiniciar37/38 ni enviar prompts.
+  Automatización eliminada en control99; entrega parcial esperando decisión humana.
+- Medición histórica al reanudar: **25% semanal libre**; no es cuota actual.
+  Lectura directa al iniciar limpieza documental: **12% libre**. Cuenta compartida,
+  mediciones puntuales. Política de desarrollo: **corte15%
   libre para reservar10%**. Sustituye cortes anteriores. Ante orden externa: checkpoint
   breve y parar padre/hijos sin reanudar. Tokens/cost no miden esa cuota.
 - Sin pagos/reset/cambio de cuenta/push/deploy ni seguridad global. Conservar datos,
@@ -87,3 +90,8 @@ Brandon, no confundir detener agentes con apagar la URL solicitada. Dockerfiles/
 no encontrados; Docker/CI no ejecutados. Próximo paso funcional crítico: nueva hipótesis
 autorizada para CU08; no reintentar automáticamente. Resto de cambios frontend/CU09 y
 datos públicos acumulados sigue sin commit global, conservado y fuera del commit de chat.
+
+
+## Contratos y evidencia consolidados — 27/10/2026
+Los contratos antes dispersos por backend/ están integrados en specs: CU03 (torre/API común), CU05 (datos técnicos), CU07 (planes), CU08 (herramientas y Ollama), CU09 (compartir y DTO público). Consultar primero el cuerpo de la spec y abrir su detalle contractual solo si hace falta. Los textos de preparación conservados son históricos; no describen el estado actual.
+Entregas de agentes y revisión visual anteriores reunidas en docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md. Originales exactos respaldados en C:/Users/RISUS/Documents/ChatGPT/Proyecto IA/output/archivo-d-2026-10-27/originales.zip. No se alteró código, datos, modelos ni servicios. De perfiles solo se retiraron permisos de lectura exactos a archivos retirados; no se añadieron permisos. La lectura de specs ya estaba permitida en los perfiles implementadores.

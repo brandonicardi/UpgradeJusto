@@ -35,6 +35,15 @@ export function stampSocketIP(request: IncomingMessage): boolean {
 
 export function signedProxyHeaders(ipValue: unknown, method: string, pathname: string, secret: string | undefined, now = Date.now()): Record<string, string> | null {
   const ip = normalizeIP(ipValue);
+  const googlePath = (pathname === "/api/auth/google/config" && method === "GET") || (["/api/auth/google/attempts", "/api/auth/google"].includes(pathname) && method === "POST");
+  const towerEvaluationPath = method === "POST" && /^\/api\/towers\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\/(evaluate|simulate)$/.test(pathname);
+  const towerExtractionPath = method === "POST" && ["/api/towers/extract", "/api/towers/extract/confirm"].includes(pathname);
+  const towerRecommendationsPath = method === "POST" && /^\/api\/towers\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\/recommendations\/preview$/.test(pathname);
+  const towerPlanRoot = "\\/api\\/tower-plans\\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+  const towerSharePath = (new RegExp(`^${towerPlanRoot}/shares$`).test(pathname) && ["GET", "POST"].includes(method)) || (new RegExp(`^${towerPlanRoot}/shares/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`).test(pathname) && method === "DELETE");
+  const publicTowerSharePath = method === "GET" && /^\/api\/shared-tower-plans\/[A-Za-z0-9_-]{1,128}$/.test(pathname);
+  const towerPlansPath = (pathname === "/api/tower-plans" && ["GET", "POST"].includes(method)) || (new RegExp(`^${towerPlanRoot}$`).test(pathname) && ["GET", "DELETE"].includes(method)) || (new RegExp(`^${towerPlanRoot}/recalculate$`).test(pathname) && method === "POST") || (new RegExp(`^${towerPlanRoot}/revisions/[1-9]\\d{0,9}$`).test(pathname) && method === "GET");
+  const towersPath = (pathname === "/api/towers" && ["GET", "POST"].includes(method)) || (/^\/api\/towers\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(pathname) && ["GET", "PUT", "DELETE"].includes(method));
   const extractionPath = method === "POST" && ["/api/pcs/extract", "/api/pcs/extract/confirm"].includes(pathname);
   const administrationPath = adminGatewayPath(pathname, method);
   const compatibilityPath = /^\/api\/pcs\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/compatibility\/(evaluate|simulate)$/.test(pathname);
@@ -47,8 +56,8 @@ export function signedProxyHeaders(ipValue: unknown, method: string, pathname: s
   const conversationDetail = /^\/api\/conversations\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(pathname);
   const conversationMessages = /^\/api\/conversations\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/messages$/.test(pathname);
   const conversationsPath = (pathname === conversationRoot && ["GET", "POST"].includes(method)) || (conversationDetail && ["GET", "DELETE"].includes(method)) || (conversationMessages && ["GET", "POST"].includes(method));
-  const allowedPath = /^\/api\/auth\/[a-z]+$/.test(pathname) || /^\/api\/pcs(?:\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?$/.test(pathname) || (method === "POST" && (compatibilityPath || recommendationsPath)) || plansPath || sharesPath || publicPath || conversationsPath;
-  if (!ip || !secret || Buffer.byteLength(secret, "utf8") < 32 || !/^[A-Z]+$/.test(method) || !(extractionPath || administrationPath || allowedPath)) return null;
+  const allowedPath = /^\/api\/auth\/(?!google$)[a-z]+$/.test(pathname) || /^\/api\/pcs(?:\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?$/.test(pathname) || (method === "POST" && (compatibilityPath || recommendationsPath)) || plansPath || sharesPath || publicPath || conversationsPath;
+  if (!ip || !secret || Buffer.byteLength(secret, "utf8") < 32 || !/^[A-Z]+$/.test(method) || !(towerSharePath || publicTowerSharePath || towerPlansPath || towerRecommendationsPath || towerExtractionPath || towerEvaluationPath || googlePath || towersPath || extractionPath || administrationPath || allowedPath)) return null;
   const timestamp = String(Math.floor(now / 1000));
   const canonical = `${timestamp}\n${method}\n${pathname}\n${ip}`;
   return {

@@ -18,7 +18,7 @@ $frontend = $null
 try {
     $backend = Start-Process -FilePath $python -ArgumentList @('-m','uvicorn','upgradejusto.main:app','--host','127.0.0.1','--port','8000','--loop','asyncio','--http','h11','--no-proxy-headers','--no-access-log') -WorkingDirectory (Join-Path $root 'backend') -RedirectStandardOutput (Join-Path $logs 'backend.out.log') -RedirectStandardError (Join-Path $logs 'backend.err.log') -PassThru
     $frontend = Start-Process -FilePath $node -ArgumentList @(('"'+(Join-Path $root 'frontend/server.mjs')+'"'),'--dev') -WorkingDirectory (Join-Path $root 'frontend') -RedirectStandardOutput (Join-Path $logs 'frontend.out.log') -RedirectStandardError (Join-Path $logs 'frontend.err.log') -PassThru
-    Write-Host 'Web http://127.0.0.1:3000 — API http://127.0.0.1:8000 — Ctrl+C detiene solo estos procesos.'
+    Write-Host 'Web http://localhost:3000 — API loopback http://127.0.0.1:8000 — Ctrl+C detiene solo estos procesos.'
     while (-not $backend.HasExited -and -not $frontend.HasExited) { Start-Sleep -Seconds 1 }
     throw 'Un servidor terminó. Revisar .local/logs/ sin publicar datos sensibles.'
 } finally {

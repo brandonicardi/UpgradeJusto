@@ -1,9 +1,11 @@
 # CU10 — contrato Sprint33 (autorizado24/10)
 
+> Vigencia documental 27/10/2026: esta spec reúne requisitos y contratos por versión. Una frase fechada como «antes de implementar», «pendiente» o un resultado Sprint32/38 describe ese incremento; no acredita ni niega el estado de la entrega actual. Estado y aceptación únicos: [CONTINUAR](../CONTINUAR.md) y [matriz](../ENTREGA38_VISUAL.md). Desarrollo detenido; esta consolidación no autoriza ejecutar órdenes históricas.
+
 ## Publicación técnica38 — contrato aceptado antes de código
 
 CU10 existente permite `tower_stock_v1` cerrado con tipos, identidad exacta y fuentes
-registradas conforme [Technical38](../../backend/INTEGRAL38_TECHNICAL_CONTRACT.md).
+registradas conforme [Technical38](CU05-compatibilidad.md#origen-backend-integral38-technical-contract-md).
 Legacy2000 caracteres permanece salvo esa clave acotada24000 bytes; body37 según
 ruta sin aumentar. Referencia ausente/ambigua/conflictiva/extra es422 y rollback;
 rol fresco, revisión esperada y snapshots inmutables se conservan. Ningún downloader,
@@ -23,7 +25,7 @@ ejecutables/SQL arbitrario ni modificar snapshots publicados. Fuente/revisión/h
 fecha/licencia por importación, variante exacta antes de unir datos/foto/oferta.
 Actualización explícita/acotada/cache, no descarga masiva por render. Respeta robots
 Venex y no elude bloqueo/CAPTCHA; código kit sin licencia solo referencia no copiada.
-Contrato [§3/7](../../backend/INTEGRAL38_CONTRACT.md). Aceptación: idempotencia/cuarentena/
+Contrato [§3/7](CU03-pcs.md#origen-backend-integral38-contract-md). Aceptación: idempotencia/cuarentena/
 atomicidad/rol/precios vencidos/fuentes/licencias y conteos reales por categoría.
 No acredita importación amplia ni permisos probados por esta nota; histórico33 intacto.
 

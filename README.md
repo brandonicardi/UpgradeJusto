@@ -92,7 +92,7 @@ el trabajo autorizado sobre CU05/06, con sus faltantes explícitos.
 - Credenciales únicamente en los archivos locales protegidos `admin-demo-*.json`
   bajo `.local/postgresql/`; no copiarlas a Git ni a variables públicas del frontend.
   No repetir el script de preparación: rechaza sobrescribir cuentas ya preparadas.
-- Contrato, límites y comandos focales: [handoff backend](backend/CU02_CU10_HANDOFF.md)
+- Contrato, límites y comandos focales: [handoff backend](docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-cu02-cu10-handoff-md)
   y [checkpoint web](frontend/CU02_CU10_CHECKPOINT.md). Estado comprobado y fallos:
   [SPRINT33](docs/SPRINT33.md). Estos flujos no completan CU05/06.
 Cada bloque requiere spec, implementación, tests/demo y revisión; pantallas o imports

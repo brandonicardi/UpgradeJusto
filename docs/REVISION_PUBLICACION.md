@@ -4,6 +4,120 @@
 Los avances acumulados se registrarán con fecha/autor configurados reales, no como
 historia diaria retrospectiva. Los cinco commits originales se conservan.
 
+**38 en curso:** además de la base37 inferior existen avances locales posteriores.
+Antes de publicar, revisar también estos commits y el delta pendiente, no publicar
+solo por tener este manifiesto de base. Ningún commit se subió automáticamente.
+
+| Adicional | Hash real | Archivos exactos |
+|---|---|---|
+|Transporte local CU08, aceptación bloqueada27/10|`5f5ced3`|`docs/specs/CU08-asistente.md#origen-backend-integral92-local-contract-md`, `backend/pyproject.toml`, `backend/uv.lock`, `backend/upgradejusto/assistant/graph.py`, `backend/upgradejusto/assistant/provider.py`, `backend/upgradejusto/assistant/ollama_schema.py`, `backend/tests/test_assistant92_local_provider.py`;35puros PASS, turno real0tools FAIL; sin push|
+|Registro administrativo37|`fcfdf6e`|`docs/REVISION_PUBLICACION.md`, `docs/CONTINUAR.md`, `docs/ai-log/2026-10-26-revision37-seguridad-git.md`|
+|Adquisición/referencias38|`89a9e69`|`docs/REFERENCIAS_RENDIMIENTO38.md`, `scripts/fetch-store-catalog.py`, `scripts/review-publication.py`, `scripts/test-store-catalog.py`|
+|Torre38A|`cd4f286`|33 archivos exactos enumerados debajo; CRUD/persistencia aceptados, no motor torre integral|
+|Adquisición Venex38|`4e20451`|`scripts/fetch-venex-offers.py`, `scripts/test-venex-offers.py`; adaptador propio acotado y guardas, no publicación del catálogo|
+|Motor puro torre38|`ca9a962`|`docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-integral38-engine-handoff-md`, `backend/tests/test_tower38_engine.py`, `backend/upgradejusto/compatibility/tower_contract.py`, `backend/upgradejusto/compatibility/tower_engine.py`; no adapter/API ni datos reales aprobados por ese commit|
+|Preparación comercial38|`77ecc96`|`scripts/prepare-retail-batches.py`, `scripts/test-retail-batches.py`; conversión/guardas, raw y prueba navegador solo locales|
+|Google backend38B1|`89015c8`|19 archivos enumerados debajo; aceptación backend local, no login humano|
+|Recursos retail38B2|`b0ec116`|14 archivos enumerados debajo; publicación real solo TEST, sin atributos técnicos inventados|
+|Conservación por espacios38|`4f2233b`|`docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-integral38-retail-handoff-md`, `backend/tests/test_retail38_models.py`, `backend/tests/test_retail38_postgres.py`, `backend/upgradejusto/administration/repository.py`, `backend/upgradejusto/retail/models.py`|
+|Evaluación/simulación API38|`4bdad0d`|9 archivos enumerados debajo; no positivo de hardware real por este commit|
+|Representación técnica38|`043eb78`|12 archivos enumerados debajo; publicación tipada aprobada, resolver y hechos reales pendientes|
+|Resolver técnico38|`01b3028`|`docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-integral38-technical-handoff-md`, `backend/tests/test_tower38_technical_resolver.py`, `backend/upgradejusto/compatibility/tower_evidence.py`, `backend/upgradejusto/compatibility/tower_technical_resolver.py`; no cambio de política de fans|
+|Objetivos/extracción torre38|`ccda5ca`|19 archivos enumerados debajo; aceptación local de contratos/PG, Groq vivo502 pendiente|
+|Contexto pertinente extracción38|`d669ec3`|`docs/ai-log/2026-10-27-entregas-tecnicas-historicas.md#origen-backend-integral38-extraction-handoff-md`, `backend/tests/test_tower38_extraction.py`, `backend/tests/test_tower38_extraction_context.py`, `backend/tests/test_tower38_extraction_pg.py`, `backend/upgradejusto/extraction/tower_context.py`, `backend/upgradejusto/extraction/tower_provider.py`, `backend/upgradejusto/extraction/tower_service.py`, `docs/specs/CU02-extraccion.md`; no cambio TLS/proveedor|
+
+Lotes locales posteriores revisados, sin push:
+
+|Lote|Commit|Alcance|
+|---|---|---|
+|Planes privados torre38|`a9a6764`|17 archivos enumerados debajo; historial/etapas/ingress, frontend y CU09 separados|
+|MCP torre38|`1a34cd4`|20 archivos enumerados debajo; siete lecturas y contexto, streaming LLM propio pendiente|
+|Correlación MCP y binding38|`e499ac3`|5 archivos exactos debajo; contrato de simulación corregido, no solución LIVE|
+
+Archivos de `e499ac3`:
+- `docs/specs/CU08-asistente.md#origen-backend-integral38-assistant-contract-md`.
+- `backend/upgradejusto/assistant/mcp_schema.py` y `mcp_server.py`.
+- `backend/tests/test_tower38_mcp_schema_contract.py` y `test_mcp38_tower_pg.py`.
+
+Revisión de contenido y stagedpor nombre, diff--cached--check0;13puros y gate real
+stdio/PG/conversión/binding1PASS4.04s, lint/formato0. Revisión funcional acotada aceptó
+la corrección. Único LIVE postreparación FAIL4.39s, get_pc completó y segundo stream
+tool_use_failed: no presentar el commit como chat resuelto. Después del commit los
+cinco originales fueron comprobados ancestros mediante merge-base, índice vacío.
+Fuente/capturas privadas, perfiles, .env y salidas locales no incluidos. Sin push.
+
+Archivos de `a9a6764`:
+- `backend/`: `INTEGRAL38_PLAN_CONTRACT.md`, `INTEGRAL38_PLAN_HANDOFF.md`.
+- `backend/alembic/versions/`: `38_d_001_tower_plans.py`.
+- `backend/tests/`: `test_tower38_plan_migration.py`, `test_tower38_plan_mounted.py`, `test_tower38_plan_pg.py`, `test_tower38_plan_pure.py`.
+- `backend/upgradejusto/api/`: `proxy_ip.py`, `tower_plans.py`.
+- `backend/upgradejusto/`: `main.py`.
+- `backend/upgradejusto/plans/`: `tower_calculation.py`, `tower_models.py`, `tower_repository.py`, `tower_service.py`, `tower_tables.py`.
+- `docs/specs/`: `CU07-planes.md`, `CU09-compartir.md`.
+
+Archivos de `1a34cd4`:
+- `backend/`: `INTEGRAL38_ASSISTANT_CONTRACT.md`, `INTEGRAL38_ASSISTANT_HANDOFF.md`.
+- `backend/tests/`: `test_mcp38_tower_pg.py`, `test_mcp38_tower_plans_pg.py`, `test_tower38_assistant_plan_projection.py`, `test_tower38_assistant_pure.py`.
+- `backend/upgradejusto/assistant/`: `graph.py`, `mcp_server.py`, `models.py`, `repository.py`, `service.py`, `tool_inputs.py`, `tool_projection.py`, `tower_context.py`, `tower_inputs.py`, `tower_plan_projection.py`, `tower_plans.py`, `tower_projection.py`, `tower_tools.py`.
+- `docs/specs/`: `CU08-asistente.md`.
+
+Archivos de `ccda5ca`:
+- `backend/`: `INTEGRAL38_EXTRACTION_HANDOFF.md`, `INTEGRAL38_RECOMMEND_HANDOFF.md`.
+- `backend/tests/`: `test_tower38_extraction.py`, `test_tower38_extraction_pg.py`, `test_tower38_recommend_pg.py`, `test_tower38_recommend_pure.py`.
+- `backend/upgradejusto/api/`: `body_limits.py`, `tower_extraction.py`, `tower_recommendations.py`.
+- `backend/upgradejusto/extraction/`: `tower_models.py`, `tower_provider.py`, `tower_service.py`.
+- `backend/upgradejusto/`: `main.py`.
+- `backend/upgradejusto/recommendations/`: `tower_cost.py`, `tower_models.py`, `tower_references.py`, `tower_repository.py`, `tower_service.py`.
+- `docs/specs/`: `CU06-recomendaciones.md`.
+
+Archivos de `043eb78`:
+- `backend/`: `INTEGRAL38_TECHNICAL_CONTRACT.md`, `INTEGRAL38_TECHNICAL_HANDOFF.md`.
+- `backend/tests/`: `test_tower38_technical_models.py`, `test_tower38_technical_postgres.py`.
+- `backend/upgradejusto/administration/`: `models.py`, `repository.py`, `validation.py`.
+- `backend/upgradejusto/retail/`: `technical_models.py`, `technical_parser.py`, `technical_validation.py`.
+- `docs/specs/`: `CU05-compatibilidad.md`, `CU10-administracion.md`.
+
+Archivos de `4bdad0d`:
+- `backend/`: `INTEGRAL38_ENGINE_HANDOFF.md`.
+- `backend/tests/`: `test_tower38_api.py`, `test_tower38_application.py`.
+- `backend/upgradejusto/api/`: `tower_compatibility.py`.
+- `backend/upgradejusto/compatibility/`: `tower_application.py`, `tower_engine.py`, `tower_evidence.py`, `tower_http_models.py`.
+- `backend/upgradejusto/`: `main.py`.
+
+Archivos de `89015c8`:
+- `backend/`: `INTEGRAL38_B1_HANDOFF.md`, `pyproject.toml`, `uv.lock`.
+- `backend/alembic/versions/`: `38_b_001_google_identity.py`.
+- `backend/tests/`: `google38_fixtures.py`, `test_google38_migration.py`, `test_google38_pg.py`, `test_google38_verifier.py`.
+- `backend/upgradejusto/api/`: `google_auth.py`.
+- `backend/upgradejusto/auth/`: `google_models.py`, `google_repository.py`, `google_service.py`, `google_tables.py`, `google_verifier.py`, `maintenance.py`, `repository.py`, `service.py`.
+- `backend/upgradejusto/`: `main.py`.
+- `backend/upgradejusto/persistence/`: `schema.py`.
+
+Archivos de `b0ec116`:
+- `backend/`: `INTEGRAL38_RETAIL_HANDOFF.md`.
+- `backend/alembic/versions/`: `38_c_001_retail.py`.
+- `backend/tests/`: `test_retail38_models.py`, `test_retail38_postgres.py`.
+- `backend/upgradejusto/administration/`: `repository.py`.
+- `backend/upgradejusto/catalog/`: `models.py`, `postgres.py`.
+- `backend/upgradejusto/retail/`: `__init__.py`, `importer.py`, `models.py`, `reading.py`, `repository.py`, `service.py`, `tables.py`.
+
+Archivos de `cd4f286`, contrastados mediante `git diff-tree` (prefijos concatenados):
+- `backend/`: `INTEGRAL38_A_HANDOFF.md`, `INTEGRAL38_CONTRACT.md`.
+- `backend/alembic/versions/`: `38_a_001_towers.py`.
+- `backend/tests/`: `test_catalog.py`, `test_extraction.py`, `test_pcs_postgres.py`, `test_towers38_models.py`, `test_towers38_pg.py`.
+- `backend/upgradejusto/administration/`: `models.py`.
+- `backend/upgradejusto/api/`: `proxy_ip.py`, `towers.py`.
+- `backend/upgradejusto/catalog/`: `models.py`.
+- `backend/upgradejusto/compatibility/`: `http_models.py`.
+- `backend/upgradejusto/extraction/`: `models.py`, `service.py`.
+- `backend/upgradejusto/`: `main.py`.
+- `backend/upgradejusto/pcs/`: `models.py`, `repository.py`, `tower_models.py`, `tower_repository.py`, `tower_service.py`, `tower_tables.py`.
+- `backend/upgradejusto/persistence/`: `schema.py`.
+- `docs/specs/`: `CU01-cuentas.md`, `CU02-extraccion.md`, `CU03-pcs.md`, `CU04-catalogo.md`, `CU05-compatibilidad.md`, `CU06-recomendaciones.md`, `CU07-planes.md`, `CU08-asistente.md`, `CU09-compartir.md`, `CU10-administracion.md`.
+
+38 todavía no aceptado integralmente. La evidencia CPU/GPU es una referencia con
+contexto, no FPS/benchmark de PC propia; raw/capturas protegidas no se redistribuyen.
+
 ## Destino contrastado
 
 - Repositorio: `https://github.com/brandonicardi/UpgradeJusto`, **público**.

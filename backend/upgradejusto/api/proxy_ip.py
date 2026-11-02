@@ -20,16 +20,16 @@ GATEWAY_HEADERS = {
 
 
 def permitted_tower_plan_request(request: Request) -> bool:
-    """Closed CU07 route/method policy, identical for direct/signed ingress."""
+    """Closed CU07/CU09 route policy, identical for direct/signed ingress."""
     root = rb"/api/tower-plans"
     uid = rb"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
     path = request.scope["raw_path"]
     if request.method == "GET":
-        pattern = root + rb"(?:/" + uid + rb"(?:/revisions/[1-9][0-9]{0,9})?)?"
+        pattern = root + rb"(?:/" + uid + rb"(?:/revisions/[1-9][0-9]{0,9}|/shares)?)?"
     elif request.method == "POST":
-        pattern = root + rb"(?:/" + uid + rb"/recalculate)?"
+        pattern = root + rb"(?:/" + uid + rb"/(?:recalculate|shares))?"
     elif request.method == "DELETE":
-        pattern = root + rb"/" + uid
+        pattern = root + rb"/" + uid + rb"(?:/shares/" + uid + rb")?"
     else:
         return False
     if not re.fullmatch(pattern, path):
@@ -49,6 +49,18 @@ def permitted_tower_plan_request(request: Request) -> bool:
 
 
 def permitted_query(request: Request) -> bool:
+    if request.url.path == "/api/shared-tower-plans" or request.url.path.startswith(
+        "/api/shared-tower-plans/"
+    ):
+        return (
+            request.method == "GET"
+            and not request.scope.get("query_string")
+            and re.fullmatch(
+                rb"/api/shared-tower-plans/[A-Za-z0-9_-]{1,128}",
+                request.scope["raw_path"],
+            )
+            is not None
+        )
     if request.url.path == "/api/tower-plans" or request.url.path.startswith(
         "/api/tower-plans/"
     ):
@@ -113,6 +125,7 @@ def client_ip(request: Request) -> str:
             "/api/pcs",
             "/api/towers",
             "/api/tower-plans",
+            "/api/shared-tower-plans",
             "/api/plans",
             "/api/conversations",
             "/api/admin",
@@ -121,6 +134,7 @@ def client_ip(request: Request) -> str:
                 "/api/pcs/",
                 "/api/towers/",
                 "/api/tower-plans/",
+                "/api/shared-tower-plans/",
                 "/api/plans/",
                 "/api/shared-plans/",
                 "/api/conversations/",

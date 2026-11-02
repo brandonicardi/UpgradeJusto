@@ -32,6 +32,10 @@ output/
 .coverage.*
 htmlcov/
 build/
+# /build is also a real Next.js source route, not a generated build directory.
+!frontend/app/build/
+frontend/app/build/*
+!frontend/app/build/page.tsx
 dist/
 *.egg-info/
 
