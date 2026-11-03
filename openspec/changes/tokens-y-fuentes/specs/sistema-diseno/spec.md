@@ -24,6 +24,14 @@ aplicado por preferencia del sistema o por `data-theme="oscuro"`.
 - **WHEN** el sistema prefiere oscuro y `<html>` tiene `data-theme="claro"`
 - **THEN** se usan los valores del tema claro
 
+### Requirement: Tema claro fijo durante la migración
+El sistema SHALL mostrar el tema claro aunque el sistema operativo prefiera oscuro,
+mientras existan pantallas sin migrar al sistema de diseño.
+
+#### Scenario: Sistema operativo en modo oscuro
+- **WHEN** la persona tiene el sistema en modo oscuro y abre la app
+- **THEN** `<html>` tiene `data-theme="claro"` y se usan los valores del tema claro
+
 ### Requirement: Utilidades de Tailwind
 El sistema SHALL exponer los tokens en el `@theme` de Tailwind 4 para que se usen como
 clases (`bg-papel`, `text-tinta`, `border-linea-fuerte`, `font-display`, `rounded-pill`,
