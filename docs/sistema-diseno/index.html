@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UpgradeJusto · Sistema de diseño</title>
+<link rel="stylesheet" href="estilos/tokens.css">
+<link rel="stylesheet" href="estilos/componentes.css">
+<style>
+  body { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+  nav { background: var(--papel-alto); border-right: 1px solid var(--linea); padding: var(--space-5); overflow-y: auto; max-height: 100vh; position: sticky; top: 0; }
+  nav h1 { font: 650 24px/30px var(--font-display); margin: 0 0 var(--space-2); }
+  nav p { margin: 0 0 var(--space-5); }
+  nav h2 { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); margin: var(--space-5) 0 var(--space-2); }
+  nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  nav a { display: block; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); color: var(--tinta); text-decoration: none; }
+  nav a:hover { background: var(--papel-hundido); }
+  nav a[aria-current="page"] { background: var(--pino-suave); font-weight: 600; }
+  main { padding: var(--space-5); display: grid; gap: var(--space-3); align-content: start; min-width: 0; }
+  .head { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: baseline; justify-content: space-between; }
+  .head h2 { font: 650 24px/30px var(--font-display); margin: 0; }
+  iframe { width: 100%; border: 1px solid var(--linea); border-radius: var(--radius-md); background: var(--papel); }
+  @media (max-width: 800px) {
+    body { grid-template-columns: 1fr; }
+    nav { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--linea); }
+  }
+</style>
+</head>
+<body>
+<nav aria-label="Componentes y pantallas">
+  <h1>UpgradeJusto</h1>
+  <p class="uj-help">Sistema de diseño. Las reglas están en <a href="README.md">README.md</a>.</p>
+  <div id="menu"></div>
+</nav>
+<main>
+  <div class="head">
+    <h2 id="titulo"></h2>
+    <a id="abrir" class="uj-btn uj-btn-quieto uj-btn-chico" target="_blank">Abrir sola</a>
+  </div>
+  <p id="bajada" class="uj-muted" style="margin:0"></p>
+  <iframe id="vista" title="Vista previa"></iframe>
+</main>
+<script>
+(function () {
+  // Nombre, grupo, alto de la vista y bajada. Sale del comentario @dsCard de cada preview.html.
+  var ITEMS = [
+    ['Cover', 'Portada', 288, 'Presentación del sistema'],
+    ['Button', 'Acciones', 140, 'Principal, secundario, quieto y deshabilitado'],
+    ['Field', 'Formularios', 230, 'Normal y con error'],
+    ['Verdict', 'Veredictos', 88, 'Encaja · Falta un dato · No encaja'],
+    ['Notice', 'Veredictos', 300, 'Avisos que explican el porqué'],
+    ['GoalPicker', 'Objetivo y presupuesto', 170, 'Qué querés que tu PC haga mejor'],
+    ['BudgetSlider', 'Objetivo y presupuesto', 240, 'Cuánto querés gastar'],
+    ['PartCard', 'Piezas y precios', 230, 'Nombre simple primero, técnico después'],
+    ['PriceTag', 'Piezas y precios', 120, 'Monto con moneda, fecha y fuente'],
+    ['PcSlots', 'Tu PC', 300, 'Las nueve piezas de un vistazo'],
+    ['UpgradeCard', 'Recomendación y plan', 480, 'La sugerencia principal'],
+    ['PlanSteps', 'Recomendación y plan', 330, 'Tu plan, paso a paso'],
+    ['ChatBubble', 'Asistente', 400, 'Charla con el asistente'],
+    ['AsistenteFlotante', 'Asistente', 700, 'Asistente flotante: abajo a la derecha en cada pantalla'],
+    ['PantallaInicio', 'Pantallas', 1720, 'Inicio: objetivo, presupuesto y por dónde empezar'],
+    ['PantallaIngreso', 'Pantallas', 1000, 'Ingreso y registro: entrar o crear cuenta en un solo lugar, con errores claros'],
+    ['PantallaAgregarPC', 'Pantallas', 2150, 'Agregar PC: pegás tu lista, revisás lo que entendimos y recién ahí se guarda'],
+    ['PantallaMiPC', 'Pantallas', 1780, 'Mi PC: las nueve piezas, lo que falta y cómo completarlo'],
+    ['PantallaConviene', 'Pantallas', 2050, 'Lo que te conviene: la sugerencia, alternativas y próximo paso'],
+    ['PantallaMiPlan', 'Pantallas', 1900, 'Mi plan: etapas, plata y compartir'],
+    ['PantallaCatalogo', 'Pantallas', 1560, 'Catálogo: buscar piezas y ver si encajan en tu PC'],
+    ['PantallaPieza', 'Pantallas', 1500, 'Detalle de una pieza: para qué sirve, precios y si encaja'],
+    ['PantallaArmar', 'Pantallas', 1750, 'Armar una PC desde cero: objetivo, presupuesto y propuesta'],
+    ['PantallaAsistente', 'Pantallas', 1180, 'Asistente: charla con herramientas, respuestas claras y confirmación antes de cambiar algo'],
+    ['PantallaCompartir', 'Pantallas', 1300, 'Compartir un plan: crear, copiar y apagar enlaces'],
+    ['PantallaPlanCompartido', 'Pantallas', 1450, 'Plan compartido: lo que ve quien recibe el enlace'],
+    ['PantallaCuenta', 'Pantallas', 1350, 'Mi cuenta: datos, contraseña, lo que guardaste y salir'],
+    ['PantallaAdmin', 'Pantallas', 1550, 'Administración: piezas con datos faltantes y carga de precios con fuente']
+  ];
+  var menu = document.getElementById('menu'), vista = document.getElementById('vista');
+  var grupo = null, ul = null, links = {};
+  ITEMS.forEach(function (it) {
+    if (it[1] !== grupo) {
+      grupo = it[1];
+      var h = document.createElement('h2'); h.textContent = grupo; menu.appendChild(h);
+      ul = document.createElement('ul'); menu.appendChild(ul);
+    }
+    var li = document.createElement('li'), a = document.createElement('a');
+    a.href = '#' + it[0]; a.textContent = it[0].replace(/^Pantalla/, '');
+    li.appendChild(a); ul.appendChild(li); links[it[0]] = a;
+  });
+  function mostrar() {
+    var id = location.hash.slice(1), it = ITEMS[0];
+    ITEMS.forEach(function (x) { if (x[0] === id) it = x; });
+    Object.keys(links).forEach(function (k) { links[k].removeAttribute('aria-current'); });
+    links[it[0]].setAttribute('aria-current', 'page');
+    var src = 'componentes/' + it[0] + '/preview.html';
+    document.getElementById('titulo').textContent = it[0];
+    document.getElementById('bajada').textContent = it[3];
+    document.getElementById('abrir').href = src;
+    vista.style.height = it[2] + 'px';
+    vista.src = src;
+  }
+  window.addEventListener('hashchange', mostrar);
+  mostrar();
+})();
+</script>
+</body>
+</html>

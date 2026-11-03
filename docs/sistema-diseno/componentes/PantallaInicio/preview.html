@@ -1,0 +1,285 @@
+<!-- @dsCard group="Pantallas" page height=1720 width=1280 subtitle="Inicio: objetivo, presupuesto y por dónde empezar" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inicio — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; }
+  .wrap { padding-inline: var(--space-7); }
+
+  /* Barra superior */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+  .nav { display: flex; align-items: center; gap: var(--space-2); }
+  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+  .nav a:hover { background: var(--papel-hundido); }
+  .nav .uj-btn { margin-left: var(--space-2); }
+
+  /* Héroe */
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 560px); gap: var(--space-7); align-items: start; padding-top: var(--space-8); padding-bottom: var(--space-7); }
+  .hero h1 { margin: 0; font: 700 64px/66px var(--font-display); letter-spacing: -.03em; max-width: 12ch; }
+  .hero h1 mark { background: var(--lima); color: var(--sobre-lima); padding: 0 .12em; border-radius: var(--radius-sm); }
+  .lead { margin: var(--space-5) 0 0; font-size: 20px; line-height: 30px; color: var(--tinta-suave); max-width: 34ch; }
+  .promises { list-style: none; margin: var(--space-6) 0 0; padding: 0; display: grid; gap: var(--space-3); }
+  .promises li { display: flex; gap: var(--space-3); align-items: start; }
+  .promises .uj-icon { color: var(--pino); margin-top: 2px; }
+
+  .start { background: var(--papel-alto); border-radius: var(--radius-lg); box-shadow: var(--sombra-2); padding: var(--space-6); display: grid; gap: var(--space-6); }
+  .q { display: grid; gap: var(--space-4); }
+  .q-n { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
+  .q h2 { margin: 0; font: 650 24px/30px var(--font-display); letter-spacing: -.01em; }
+  .start .uj-goal { min-height: 44px; font-size: 15px; padding-block: var(--space-2); }
+  .start .uj-budget { max-width: none; }
+  .cta { display: grid; gap: var(--space-2); }
+  .cta .uj-btn { width: 100%; min-height: 56px; font-size: 17px; }
+  .cta .uj-help { text-align: center; }
+
+  /* Por dónde empezar */
+  .sec { padding-block: var(--space-7); }
+  .sec-head { display: grid; gap: var(--space-2); margin-bottom: var(--space-6); max-width: 60ch; }
+  .sec-head h2 { margin: 0; font: 700 34px/40px var(--font-display); letter-spacing: -.015em; }
+  .sec-head p { margin: 0; color: var(--tinta-suave); font-size: 18px; line-height: 28px; }
+  .paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+  .path { display: grid; gap: var(--space-3); align-content: start; padding: var(--space-5); background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); box-shadow: var(--sombra-1); color: var(--tinta); text-decoration: none; transition: border-color .15s; }
+  .path:hover { border-color: var(--linea-fuerte); }
+  .path-icon { width: 48px; height: 48px; border-radius: var(--radius-md); display: grid; place-items: center; background: var(--pino-suave); color: var(--pino); }
+  .path h3 { margin: 0; font: 650 20px/26px var(--font-display); }
+  .path p { margin: 0; color: var(--tinta-suave); }
+  .path .go { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--pino); font-weight: 700; margin-top: var(--space-2); }
+  .path.is-reco { background: var(--pino); border-color: var(--pino); color: var(--sobre-pino); }
+  .path.is-reco p, .path.is-reco .go { color: var(--sobre-pino); }
+  .path.is-reco .path-icon { background: var(--lima); color: var(--sobre-lima); }
+  .reco-tag { justify-self: start; background: var(--lima); color: var(--sobre-lima); font: 700 13px/16px var(--font-sans); letter-spacing: .02em; padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); }
+
+  /* Así funciona */
+  .how { background: var(--papel-hundido); border-radius: var(--radius-lg); padding: var(--space-7); display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: var(--space-7); align-items: center; }
+  .how h2 { margin: 0; font: 700 34px/40px var(--font-display); letter-spacing: -.015em; }
+  .how > div > p { margin: var(--space-3) 0 0; color: var(--tinta-suave); font-size: 18px; line-height: 28px; }
+  .how ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+  .how li { background: var(--papel-alto); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-2); }
+  .how li b { font: 700 32px/1 var(--font-display); color: var(--pino); }
+  .how li strong { font-weight: 700; }
+  .how li span { color: var(--tinta-suave); font-size: 15px; line-height: 22px; }
+
+  /* Pie */
+  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); padding-block: var(--space-6); border-top: 1px solid var(--linea); color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+  .foot a { color: var(--pino); }
+
+  @media (max-width: 1000px) {
+    .hero { grid-template-columns: 1fr; padding-top: var(--space-6); }
+    .hero h1 { font-size: 48px; line-height: 52px; }
+    .paths { grid-template-columns: 1fr; }
+    .how { grid-template-columns: 1fr; padding: var(--space-6); }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding-inline: var(--space-4); }
+    .nav a:not(.uj-btn) { display: none; }
+    .hero h1 { font-size: 36px; line-height: 40px; }
+    .lead { font-size: 18px; line-height: 28px; }
+    .start { padding: var(--space-5); border-radius: var(--radius-md); }
+    .how ol { grid-template-columns: 1fr; }
+    .sec-head h2, .how h2 { font-size: 28px; line-height: 34px; }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+
+  <header class="top wrap">
+    <a class="logo" href="#">UpgradeJusto</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#">Mi PC</a>
+      <a href="#">Mi plan</a>
+      <a href="#">Asistente</a>
+      <a href="#">Catálogo</a>
+      <a class="uj-btn uj-btn-secundario uj-btn-chico" href="#">Entrar</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <div>
+        <h1>Tu PC puede dar <mark>más</mark>.</h1>
+        <p class="lead">Contanos qué querés hacer y cuánto querés gastar. Te decimos qué conviene cambiar, cuánto cuesta y si encaja con lo que ya tenés.</p>
+        <ul class="promises">
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span>No hace falta saber de hardware.</span></li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span>Revisamos que cada pieza encaje antes de sugerirla.</span></li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span>Precios reales, con fecha y tienda.</span></li>
+        </ul>
+      </div>
+
+      <form class="start" onsubmit="return false" aria-label="Empezar">
+        <div class="q">
+          <span class="q-n">Paso 1 de 2</span>
+          <h2>¿Qué querés que tu PC haga mejor?</h2>
+          <div class="uj-goals" role="group" aria-label="Objetivo">
+            <button type="button" class="uj-goal" aria-pressed="false"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Jugar mejor</button>
+            <button type="button" class="uj-goal" aria-pressed="false"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Trabajar más rápido</button>
+            <button type="button" class="uj-goal" aria-pressed="false"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Editar fotos y video</button>
+            <button type="button" class="uj-goal" aria-pressed="false"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Que abra todo más rápido</button>
+          </div>
+        </div>
+
+        <div class="q">
+          <span class="q-n">Paso 2 de 2</span>
+          <div class="uj-budget">
+            <label class="q" for="b" style="gap:0"><h2>¿Cuánto querés gastar como máximo?</h2></label>
+            <div class="uj-budget-value" id="v">$ 400.000<small>ARS</small></div>
+            <input class="uj-range" id="b" type="range" min="100000" max="1500000" step="50000" value="400000" style="--fill:21.4%">
+            <div class="uj-budget-scale"><span>$ 100.000</span><span>$ 1.500.000</span></div>
+            <div class="uj-presets">
+              <button type="button" class="uj-chip" data-v="250000">$ 250 mil</button>
+              <button type="button" class="uj-chip" data-v="500000">$ 500 mil</button>
+              <button type="button" class="uj-chip" data-v="1000000">$ 1 millón</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cta">
+          <button class="uj-btn uj-btn-principal" id="go" disabled>Elegí qué querés mejorar</button>
+          <span class="uj-help">Mirar sugerencias no cambia nada de tu PC guardada.</span>
+        </div>
+      </form>
+    </section>
+
+    <section class="sec wrap" aria-labelledby="t-paths">
+      <div class="sec-head">
+        <h2 id="t-paths">¿Sabés qué tiene tu PC adentro?</h2>
+        <p>Con eso las sugerencias son exactas. Si no lo sabés, no pasa nada: te ayudamos a averiguarlo sin abrir la PC.</p>
+      </div>
+      <div class="paths">
+        <a class="path is-reco" href="#">
+          <span class="reco-tag">Si recién empezás</span>
+          <span class="path-icon"><svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></svg></span>
+          <h3>No sé qué tengo</h3>
+          <p>Te guiamos paso a paso para encontrar los datos en Windows. Tarda unos 5 minutos.</p>
+          <span class="go">Ayudame a averiguarlo <svg class="uj-icon uj-icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="path" href="#">
+          <span class="path-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2"/><circle cx="12" cy="16" r="2"/><path d="M9 6h6"/></svg></span>
+          <h3>Sé qué piezas tiene</h3>
+          <p>Elegilas de nuestra lista, una por una. Podés dejar en blanco las que no sepas.</p>
+          <span class="go">Cargar mi PC <svg class="uj-icon uj-icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="path" href="#">
+          <span class="path-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>
+          <h3>Tengo una lista</h3>
+          <p>Pegá lo que te pasó el vendedor o un programa. Te mostramos lo que entendimos y lo corregís antes de guardar.</p>
+          <span class="go">Pegar mi lista <svg class="uj-icon uj-icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="sec wrap" aria-labelledby="t-how">
+      <div class="how">
+        <div>
+          <h2 id="t-how">De tu PC a un plan que entendés</h2>
+          <p>Sin tecnicismos. Si nos falta un dato, te lo decimos y te mostramos cómo conseguirlo.</p>
+        </div>
+        <ol>
+          <li><b>1</b><strong>Tu PC</strong><span>Lo que ya tenés, aunque esté incompleto.</span></li>
+          <li><b>2</b><strong>Tu objetivo</strong><span>Qué querés lograr y cuánto podés gastar.</span></li>
+          <li><b>3</b><strong>Lo que te conviene</strong><span>El cambio que más rinde, con precio y si encaja.</span></li>
+          <li><b>4</b><strong>Tu plan</strong><span>Comprá por etapas, cuando puedas.</span></li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot wrap">
+    <span>Los precios son de tiendas argentinas y muestran la fecha en que los vimos. Verificá stock antes de comprar.</span>
+    <span>¿Sólo querés mirar? <a href="#">Explorar el catálogo</a></span>
+  </footer>
+</div>
+
+<script>
+  var goals = document.querySelectorAll('.uj-goal'), go = document.getElementById('go');
+  var r = document.getElementById('b'), v = document.getElementById('v'), chosen = null;
+  function money(n) { return '$ ' + Number(n).toLocaleString('es-AR'); }
+  function refresh() {
+    var p = (r.value - r.min) / (r.max - r.min) * 100;
+    r.style.setProperty('--fill', p + '%');
+    v.firstChild.nodeValue = money(r.value);
+    go.disabled = !chosen;
+    go.textContent = chosen ? 'Ver qué me conviene con ' + money(r.value) : 'Elegí qué querés mejorar';
+  }
+  goals.forEach(function (b) {
+    b.addEventListener('click', function () {
+      goals.forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+      chosen = b.textContent.trim(); refresh();
+    });
+  });
+  r.addEventListener('input', refresh);
+  document.querySelectorAll('[data-v]').forEach(function (c) { c.addEventListener('click', function () { r.value = c.dataset.v; refresh(); }); });
+  refresh();
+</script>
+
+<div class="uj-ayuda" id="ayuda">
+  <section class="uj-ayuda-panel" id="ayuda-panel" role="dialog" aria-labelledby="ayuda-title">
+    <header class="uj-ayuda-head">
+      <div><b id="ayuda-title">Asistente</b><small>Sobre: Inicio</small></div>
+      <a class="uj-ayuda-icon" href="#" aria-label="Abrir la charla en pantalla completa" title="Abrir en pantalla completa"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a>
+      <button class="uj-ayuda-icon" type="button" id="ayuda-x" aria-label="Cerrar el asistente"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="uj-ayuda-body" id="ayuda-body" aria-live="polite"></div>
+    <div class="uj-ayuda-foot">
+      <form class="uj-composer" id="ayuda-form"><input id="ayuda-in" placeholder="Escribí tu pregunta" aria-label="Tu pregunta" autocomplete="off"><button class="uj-btn uj-btn-principal uj-btn-chico" aria-label="Enviar"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></svg></button></form>
+      <span class="uj-help">Si algo encaja o no, lo revisamos con reglas fijas. El asistente te lo explica.</span>
+    </div>
+  </section>
+  <button class="uj-ayuda-btn" type="button" id="ayuda-btn" aria-expanded="false" aria-controls="ayuda-panel"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg><span>¿Dudas?</span></button>
+</div>
+<script>
+  // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
+  (function () {
+    var CTX = 'Inicio', OPEN = false, QA = [["¿Qué es UpgradeJusto?", "Te ayudamos a decidir qué mejorarle a tu PC, cuánto gastar y en qué orden. Empezá eligiendo qué querés que haga mejor."], ["¿Tengo que saber de computadoras?", "No. Te hablamos en criollo, y los nombres técnicos van en chiquito por si los querés buscar."], ["No sé qué tiene mi PC", "Pegá la lista que te da Windows y la ordenamos nosotros. Lo que no entendamos, te lo preguntamos antes de guardar."]];
+    var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
+    var inp = document.getElementById('ayuda-in'), started = false, asked = [];
+    var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    var VERDICT = { encaja: '<div><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></div>' };
+    function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function add(html) { var d = document.createElement('div'); d.innerHTML = html; var n = d.firstChild; body.appendChild(n); body.scrollTop = body.scrollHeight; return n; }
+    function botHtml(t) { return '<div class="uj-bubble uj-bubble-bot"><div class="uj-bubble-who"><i></i>Asistente</div>' + t + '</div>'; }
+    function chips() {
+      var left = QA.filter(function (x, i) { return asked.indexOf(i) < 0; });
+      if (!left.length) return;
+      var c = add('<div class="uj-chips"></div>');
+      QA.forEach(function (x, i) {
+        if (asked.indexOf(i) > -1) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'uj-chip'; b.textContent = x[0];
+        b.addEventListener('click', function () { asked.push(i); ask(x[0], x[1] + (x[2] ? VERDICT[x[2]] : '')); });
+        c.appendChild(b);
+      });
+    }
+    function ask(q, a) {
+      var old = body.querySelector('.uj-chips'); if (old) old.remove();
+      add('<div class="uj-bubble uj-bubble-user">' + esc(q) + '</div>');
+      var t = add('<div class="uj-typing" aria-label="Escribiendo"><span></span><span></span><span></span></div>');
+      setTimeout(function () { t.remove(); add(botHtml(a)); chips(); }, 700);
+    }
+    function open() {
+      root.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Cerrar el asistente');
+      btn.innerHTML = ICON_X + '<span>¿Dudas?</span>';
+      if (!started) { started = true; add(botHtml('Hola. Estás en <strong>' + CTX + '</strong>. ¿En qué te ayudo?')); chips(); }
+      inp.focus();
+    }
+    function close() {
+      root.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-label');
+      btn.innerHTML = ICON_CHAT + '<span>¿Dudas?</span>'; btn.focus();
+    }
+    btn.addEventListener('click', function () { root.classList.contains('is-open') ? close() : open(); });
+    document.getElementById('ayuda-x').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root.classList.contains('is-open')) close(); });
+    root.querySelector('a.uj-ayuda-icon').addEventListener('click', function (e) { e.preventDefault(); });
+    document.getElementById('ayuda-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = inp.value.trim(); if (!q) return; inp.value = '';
+      ask(q, 'Esto es una vista previa y acá no respondo preguntas libres. En la app te contesto con los datos de tu PC, y si no tengo un dato te lo digo.');
+    });
+    if (OPEN) open();
+  })();
+</script>
+</body>
+</html>

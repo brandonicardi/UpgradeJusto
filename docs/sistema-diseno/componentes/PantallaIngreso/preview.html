@@ -1,0 +1,225 @@
+<!-- @dsCard group="Pantallas" page height=1000 width=1280 subtitle="Ingreso y registro: entrar o crear cuenta en un solo lugar, con errores claros" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; min-height: 1000px; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+
+  /* Lado de marca */
+  .brand { background: var(--pino); color: var(--sobre-pino); padding: var(--space-7); display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-6); position: relative; overflow: hidden; }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--sobre-pino); text-decoration: none; }
+  .brand-mid { align-self: center; display: grid; gap: var(--space-5); position: relative; z-index: 1; }
+  .brand h1 { margin: 0; font: 700 48px/52px var(--font-display); letter-spacing: -.02em; max-width: 12ch; }
+  .brand h1 mark { background: var(--lima); color: var(--sobre-lima); padding: 0 .12em; border-radius: 6px; }
+  .brand ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); font-size: 18px; line-height: 28px; }
+  .brand li { display: flex; gap: var(--space-3); align-items: start; }
+  .brand li .uj-icon { flex: none; width: 24px; height: 24px; margin-top: 2px; color: var(--lima); }
+  .brand-foot { font-size: 15px; line-height: 22px; opacity: .9; position: relative; z-index: 1; }
+  .blob { position: absolute; right: -80px; bottom: -60px; width: 320px; height: 200px; border-radius: 999px; background: var(--lima); opacity: .9; transform: rotate(-12deg); }
+  .blob + .blob { right: 140px; bottom: -110px; width: 200px; height: 160px; background: var(--pino-suave); opacity: .35; transform: rotate(8deg); }
+
+  /* Formulario */
+  .side { padding: var(--space-7); display: grid; align-content: center; justify-items: center; }
+  .box { width: 100%; max-width: 440px; display: grid; gap: var(--space-5); }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: var(--radius-pill); background: var(--papel-hundido); }
+  .tabs button { min-height: 44px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--tinta-suave); font: 600 16px/24px var(--font-sans); cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--papel-alto); color: var(--tinta); box-shadow: var(--sombra-1); }
+  .box h2 { margin: 0; font: 700 34px/40px var(--font-display); letter-spacing: -.015em; }
+  .box > p { margin: -12px 0 0; color: var(--tinta-suave); }
+  form { display: grid; gap: var(--space-4); }
+  .uj-field { max-width: none; }
+  .uj-input { width: 100%; box-sizing: border-box; }
+  .pass { position: relative; }
+  .pass .uj-input { padding-right: 96px; }
+  .pass button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 36px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--pino); font: 600 14px/20px var(--font-sans); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .label-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); }
+  .label-row a { color: var(--pino); font-size: 14px; font-weight: 600; }
+  .rules { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); font-size: 14px; line-height: 20px; color: var(--tinta-suave); font-weight: 500; }
+  .rules li { display: inline-flex; align-items: center; gap: var(--space-1); }
+  .rules .uj-icon { width: 16px; height: 16px; }
+  .rules li.ok { color: var(--tinta); }
+  .rules li.ok .uj-icon { color: var(--pino); }
+  .check { display: flex; gap: var(--space-3); align-items: start; font-size: 15px; line-height: 22px; }
+  .check input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--pino); flex: none; }
+  .check a { color: var(--pino); font-weight: 600; }
+  .submit { width: 100%; }
+  .or { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--space-3); align-items: center; color: var(--tinta-suave); font-size: 14px; font-weight: 600; }
+  .or::before, .or::after { content: ""; height: 1px; background: var(--linea); }
+  .alt { width: 100%; }
+  .guest { text-align: center; font-size: 15px; line-height: 22px; color: var(--tinta-suave); }
+  .guest a { color: var(--pino); font-weight: 600; }
+  .private { display: flex; gap: var(--space-2); font-size: 14px; line-height: 20px; color: var(--tinta-suave); font-weight: 500; border-top: 1px solid var(--linea); padding-top: var(--space-4); }
+  .private .uj-icon { width: 18px; height: 18px; flex: none; color: var(--pino); }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 900px) {
+    .pg { grid-template-columns: 1fr; min-height: 0; }
+    .brand { padding: var(--space-5) var(--space-4) var(--space-6); grid-template-rows: auto auto; }
+    .brand h1 { font-size: 34px; line-height: 40px; }
+    .brand ul, .brand-foot { display: none; }
+    .blob { width: 200px; height: 120px; right: -60px; bottom: -50px; }
+    .blob + .blob { display: none; }
+    .side { padding: var(--space-6) var(--space-4) var(--space-7); }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+
+  <section class="brand" aria-label="UpgradeJusto">
+    <a class="logo" href="#">UpgradeJusto</a>
+    <div class="brand-mid">
+      <h1>Tu PC puede dar <mark>más</mark>.</h1>
+      <ul>
+        <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Guardá tus PCs para no cargarlas de nuevo.</li>
+        <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Armá un plan y seguilo de a una compra por vez.</li>
+        <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Retomá tus charlas con el asistente donde las dejaste.</li>
+      </ul>
+    </div>
+    <p class="brand-foot">Te decimos qué te conviene, cuánto cuesta y si encaja. Lo que no sabemos, te lo decimos también.</p>
+    <span class="blob" aria-hidden="true"></span><span class="blob" aria-hidden="true"></span>
+  </section>
+
+  <main class="side">
+    <div class="box">
+      <div class="tabs" role="tablist" aria-label="Elegí una opción">
+        <button role="tab" id="t-in" aria-selected="true" aria-controls="f-in">Entrar</button>
+        <button role="tab" id="t-up" aria-selected="false" aria-controls="f-up">Crear cuenta</button>
+      </div>
+
+      <!-- Entrar -->
+      <div id="f-in" role="tabpanel" aria-labelledby="t-in" style="display:grid;gap:var(--space-5)">
+        <h2>Hola de nuevo</h2>
+        <form id="login" novalidate>
+          <div class="uj-notice uj-notice-no" id="login-err" role="alert" hidden style="max-width:none">
+            <svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            <div><strong>No pudimos entrar</strong><p>El correo o la contraseña no coinciden. Revisalos y probá otra vez.</p></div>
+          </div>
+          <label class="uj-field" id="in-mail-f">
+            <span class="uj-label">Tu correo</span>
+            <input class="uj-input" id="in-mail" type="email" autocomplete="email" placeholder="nombre@correo.com">
+            <span class="uj-help" hidden></span>
+          </label>
+          <div class="uj-field" id="in-pass-f">
+            <div class="label-row"><label class="uj-label" for="in-pass">Tu contraseña</label><a href="#">¿Te la olvidaste?</a></div>
+            <div class="pass"><input class="uj-input" id="in-pass" type="password" autocomplete="current-password"><button type="button" class="show" aria-controls="in-pass">Mostrar</button></div>
+            <span class="uj-help" hidden></span>
+          </div>
+          <button class="uj-btn uj-btn-principal submit">Entrar</button>
+        </form>
+      </div>
+
+      <!-- Crear cuenta -->
+      <div id="f-up" role="tabpanel" aria-labelledby="t-up" hidden style="display:grid;gap:var(--space-5)">
+        <h2>Creá tu cuenta</h2>
+        <p>Es gratis y te lleva un minuto.</p>
+        <form id="signup" novalidate>
+          <label class="uj-field">
+            <span class="uj-label">¿Cómo te llamamos? <span class="uj-muted" style="font-weight:500">(opcional)</span></span>
+            <input class="uj-input" id="up-name" autocomplete="given-name" placeholder="Tu nombre o apodo">
+          </label>
+          <label class="uj-field" id="up-mail-f">
+            <span class="uj-label">Tu correo</span>
+            <input class="uj-input" id="up-mail" type="email" autocomplete="email" placeholder="nombre@correo.com">
+            <span class="uj-help" hidden></span>
+          </label>
+          <div class="uj-field" id="up-pass-f">
+            <label class="uj-label" for="up-pass">Elegí una contraseña</label>
+            <div class="pass"><input class="uj-input" id="up-pass" type="password" autocomplete="new-password" aria-describedby="rules"><button type="button" class="show" aria-controls="up-pass">Mostrar</button></div>
+            <ul class="rules" id="rules">
+              <li data-r="len"><svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>8 caracteres o más</li>
+              <li data-r="num"><svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>Al menos un número</li>
+            </ul>
+            <span class="uj-help" hidden></span>
+          </div>
+          <label class="check" id="up-terms-f"><input type="checkbox" id="up-terms"><span>Leí y acepto las <a href="#">condiciones de uso</a> y la <a href="#">política de privacidad</a>.</span></label>
+          <span class="uj-help" id="terms-err" hidden style="color:var(--no-encaja)">Para crear la cuenta tenés que aceptarlas.</span>
+          <button class="uj-btn uj-btn-principal submit">Crear mi cuenta</button>
+        </form>
+      </div>
+
+      <div class="uj-notice uj-notice-encaja" id="ok" role="status" hidden style="max-width:none">
+        <svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+        <div><strong id="ok-t">¡Listo!</strong><p>Vista previa: acá no se envía nada.</p></div>
+      </div>
+
+      <div class="or">o</div>
+      <button class="uj-btn uj-btn-secundario alt" type="button"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M9 8l-4 4 4 4M5 12h11" transform="rotate(180 10.5 12)"/></svg><span id="alt-t">Entrar con Google</span></button>
+      <p class="guest">¿Solo querés mirar? <a href="#">Seguí sin cuenta</a>. Para guardar tu PC y tu plan vas a necesitar una.</p>
+
+      <p class="private"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Tus PCs, planes y charlas son privados. Solo se ve un plan si vos lo compartís, y podés dejar de compartirlo cuando quieras.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+  var X = '<svg class="uj-icon uj-icon-sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  var OK = '<path d="M5 12l5 5L20 7"/>', DOT = '<circle cx="12" cy="12" r="8"/>';
+  var tIn = document.getElementById('t-in'), tUp = document.getElementById('t-up');
+  var fIn = document.getElementById('f-in'), fUp = document.getElementById('f-up'), ok = document.getElementById('ok');
+  function tab(up) {
+    tIn.setAttribute('aria-selected', !up); tUp.setAttribute('aria-selected', up);
+    fIn.hidden = up; fUp.hidden = !up; ok.hidden = true;
+    document.getElementById('alt-t').textContent = up ? 'Crear cuenta con Google' : 'Entrar con Google';
+  }
+  tIn.addEventListener('click', function () { tab(false); });
+  tUp.addEventListener('click', function () { tab(true); });
+
+  document.querySelectorAll('.show').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var i = document.getElementById(b.getAttribute('aria-controls')), on = i.type === 'password';
+      i.type = on ? 'text' : 'password'; b.textContent = on ? 'Ocultar' : 'Mostrar';
+    });
+  });
+
+  function setErr(id, msg) {
+    var f = document.getElementById(id), h = f.querySelector('.uj-help:last-child') || f.querySelector('.uj-help');
+    var input = f.querySelector('input');
+    f.classList.toggle('is-error', !!msg); input.setAttribute('aria-invalid', !!msg);
+    h.hidden = !msg; h.innerHTML = msg ? X + msg : '';
+    return !msg;
+  }
+  function mailMsg(v) {
+    if (!v) return 'Escribí tu correo.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return v.indexOf('@') < 0 ? 'Le falta la @.' : 'Le falta el final, por ejemplo @gmail.com';
+    return '';
+  }
+
+  document.getElementById('login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var a = setErr('in-mail-f', mailMsg(document.getElementById('in-mail').value.trim()));
+    var b = setErr('in-pass-f', document.getElementById('in-pass').value ? '' : 'Escribí tu contraseña.');
+    document.getElementById('login-err').hidden = true;
+    if (a && b) {
+      if (document.getElementById('in-pass').value === 'mal') { document.getElementById('login-err').hidden = false; return; }
+      document.getElementById('ok-t').textContent = '¡Hola de nuevo!'; ok.hidden = false;
+    }
+  });
+
+  var upPass = document.getElementById('up-pass');
+  function rules() {
+    var v = upPass.value, r = { len: v.length >= 8, num: /\d/.test(v) };
+    document.querySelectorAll('#rules li').forEach(function (li) {
+      var good = r[li.dataset.r]; li.classList.toggle('ok', good); li.querySelector('svg').innerHTML = good ? OK : DOT;
+    });
+    return r.len && r.num;
+  }
+  upPass.addEventListener('input', rules);
+
+  document.getElementById('signup').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var a = setErr('up-mail-f', mailMsg(document.getElementById('up-mail').value.trim()));
+    var b = setErr('up-pass-f', rules() ? '' : 'Todavía no cumple lo de arriba.');
+    var t = document.getElementById('up-terms').checked;
+    document.getElementById('terms-err').hidden = t;
+    if (a && b && t) {
+      var n = document.getElementById('up-name').value.trim();
+      document.getElementById('ok-t').textContent = n ? '¡Hola, ' + n + '! Ya tenés tu cuenta.' : '¡Cuenta creada!'; ok.hidden = false;
+    }
+  });
+</script>
+</body>
+</html>

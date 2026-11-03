@@ -1,0 +1,280 @@
+<!-- @dsCard group="Pantallas" page height=1750 width=1280 subtitle="Armar una PC desde cero: objetivo, presupuesto y propuesta" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armar una PC — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; }
+  .wrap { padding-inline: var(--space-7); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+  .nav { display: flex; align-items: center; gap: var(--space-2); }
+  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+  .nav a:hover { background: var(--papel-hundido); }
+  .nav a[aria-current] { background: var(--pino-suave); }
+
+  .head { padding-top: var(--space-7); padding-bottom: var(--space-6); display: grid; gap: var(--space-2); max-width: 760px; }
+  .head h1 { margin: 0; font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
+  .head p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
+
+  .ask { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+  .panel { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); align-content: start; }
+  .num { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
+  .panel h2 { margin: 0; font: 650 24px/30px var(--font-display); letter-spacing: -.01em; }
+  .uj-goals { grid-template-columns: 1fr 1fr; }
+
+  /* Propuesta */
+  .result { margin-top: var(--space-7); display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--space-6); align-items: start; }
+  .r-head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-4); }
+  .r-head h2 { margin: 0; font: 700 32px/38px var(--font-display); letter-spacing: -.015em; }
+  .r-head p { margin: var(--space-1) 0 0; color: var(--tinta-suave); }
+  .list { display: grid; gap: var(--space-3); }
+  .list .uj-part { max-width: none; box-shadow: none; }
+  .list .uj-part-photo { width: 56px; height: 56px; }
+  .sum { position: sticky; top: var(--space-5); display: grid; gap: var(--space-4); }
+  .total { background: var(--tinta); color: var(--papel); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-2); }
+  .total .lbl { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; opacity: .8; }
+  .total .val { font: 700 40px/44px var(--font-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .total small { opacity: .8; font-size: 14px; line-height: 20px; }
+  .meter { height: 10px; border-radius: var(--radius-pill); background: rgba(255,255,255,.18); overflow: hidden; margin-top: var(--space-2); }
+  .meter i { display: block; height: 100%; background: var(--lima); border-radius: var(--radius-pill); transition: width .3s; }
+  .acts { display: grid; gap: var(--space-2); }
+  .acts .uj-btn { justify-content: center; }
+  .note { font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
+  .hidden { display: none !important; }
+
+  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-8); padding-block: var(--space-6); border-top: 1px solid var(--linea); color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+  .foot a { color: var(--pino); }
+
+  @media (max-width: 1050px) { .ask, .result { grid-template-columns: 1fr; } .sum { position: static; } }
+  @media (max-width: 700px) {
+    .wrap { padding-inline: var(--space-4); }
+    .nav a:not([aria-current]) { display: none; }
+    .head h1 { font-size: 36px; line-height: 40px; }
+    .uj-goals { grid-template-columns: 1fr; }
+    .list .uj-part { grid-template-columns: 48px 1fr; }
+    .list .uj-part-side { grid-column: 1 / -1; justify-items: start; text-align: left; }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+  <header class="top wrap">
+    <a class="logo" href="#">UpgradeJusto</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#">Mi PC</a>
+      <a href="#" aria-current="page">Armar una PC</a>
+      <a href="#">Mi plan</a>
+      <a href="#">Catálogo</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="head wrap">
+      <h1>Armemos una PC nueva</h1>
+      <p>Contanos para qué la querés y cuánto querés gastar. Te proponemos piezas que encajan entre sí y podés cambiar las que quieras.</p>
+    </section>
+
+    <section class="ask wrap">
+      <div class="panel">
+        <span class="num">Paso 1</span>
+        <h2>¿Para qué la vas a usar?</h2>
+        <div class="uj-goals" id="goals" role="group" aria-label="Objetivo">
+          <button class="uj-goal" aria-pressed="true" data-g="jugar"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Jugar</button>
+          <button class="uj-goal" aria-pressed="false" data-g="trabajar"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Trabajar y estudiar</button>
+          <button class="uj-goal" aria-pressed="false" data-g="editar"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Editar fotos y video</button>
+          <button class="uj-goal" aria-pressed="false" data-g="todo"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Un poco de todo</button>
+        </div>
+      </div>
+      <div class="panel">
+        <span class="num">Paso 2</span>
+        <h2>¿Hasta cuánto querés gastar?</h2>
+        <div class="uj-budget">
+          <div class="uj-budget-value" id="bv">$ 1.000.000<small>ARS</small></div>
+          <input class="uj-range" id="b" type="range" min="400000" max="2000000" step="50000" value="1000000" aria-label="Presupuesto máximo">
+          <div class="uj-budget-scale"><span>$ 400.000</span><span>$ 2.000.000</span></div>
+          <div class="uj-presets">
+            <button class="uj-chip" data-v="600000">$ 600 mil</button>
+            <button class="uj-chip" data-v="1000000">$ 1 millón</button>
+            <button class="uj-chip" data-v="1500000">$ 1,5 millones</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="uj-notice uj-notice-revisar hidden" id="low" role="status" style="margin-top:var(--space-7)">
+        <svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></svg>
+        <div><strong>Con ese monto no llegamos a una PC completa</strong><p>Con los precios que vimos esta semana, la más barata que encaja cuesta <span id="cheap"></span>. Podés subir el presupuesto o mejorar una PC que ya tengas.</p></div>
+      </div>
+
+      <div class="result" id="result">
+        <div>
+          <div class="r-head">
+            <div><h2 id="title">Una PC para jugar</h2><p></p></div>
+            <span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Todo encaja</span>
+          </div>
+          <div class="list" id="list"></div>
+        </div>
+        <aside class="sum">
+          <div class="total">
+            <span class="lbl">Total de la propuesta</span>
+            <span class="val" id="tot"></span>
+            <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+            <small id="left"></small>
+          </div>
+          <div class="acts">
+            <button class="uj-btn uj-btn-principal">Guardar como plan</button>
+            <button class="uj-btn uj-btn-secundario">Cambiar una pieza</button>
+          </div>
+          <span class="note">Guardarla como plan no compra nada. Después podés comprar de a una pieza.</span>
+          <div class="uj-notice uj-notice-info">
+            <svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+            <div><strong>No incluye monitor, teclado ni mouse</strong><p>Solo lo que va dentro del gabinete.</p></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot wrap">
+    <span>Precios en pesos de tiendas argentinas, con la fecha en que los vimos. Pueden cambiar antes de que compres.</span>
+    <span><a href="#">¿Ya tenés una PC? Mejorala en lugar de armar otra</a></span>
+  </footer>
+</div>
+
+<script>
+  var IC = {
+    cpu: '<rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+    mobo: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h4v4H7zM15 7v4M7 15h10"/>',
+    ram: '<path d="M3 8h18v8H3z"/><path d="M7 16v3M11 16v3M15 16v3M19 16v3"/>',
+    gpu: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+    ssd: '<rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 12h.01M11 12h.01"/>',
+    psu: '<path d="M13 3L6 13h5l-1 8 7-10h-5z"/>',
+    caja: '<rect x="6" y="2.5" width="12" height="19" rx="2"/><circle cx="12" cy="16" r="2"/><path d="M9 6h6"/>'
+  };
+  // Dos propuestas de ejemplo: la que entra en el presupuesto, la más completa primero.
+  var BUILDS = [
+    { min: 1400000, parts: [
+      ['cpu', 'Procesador', 'Rápido para jugar y transmitir', 'Ryzen 7 7700', 389000, '28/10 · Tienda de ejemplo A'],
+      ['mobo', 'Placa madre', 'Base con lugar para crecer', 'B650 · ATX', 245000, '27/10 · Tienda de ejemplo B'],
+      ['ram', 'Memoria', 'Para tener muchas cosas abiertas', '2 × 16 GB DDR5 5600', 118000, '26/10 · Tienda de ejemplo A'],
+      ['gpu', 'Placa de video', 'Para jugar en máxima calidad', 'GeForce RTX 4070 · 12 GB', 649000, '27/10 · Tienda de ejemplo B'],
+      ['ssd', 'Almacenamiento', 'Lugar para muchos juegos', 'SSD 1 TB · M.2 NVMe', 60000, '26/10 · Tienda de ejemplo B'],
+      ['psu', 'Fuente', 'Energía de sobra', '750 W · 80 Plus Gold', 98000, '27/10 · Tienda de ejemplo B'],
+      ['caja', 'Gabinete', 'Grande, con buena ventilación', 'Mid tower ATX · 4 ventiladores', 74000, '25/10 · Tienda de ejemplo A']
+    ] },
+    { min: 0, parts: [
+      ['cpu', 'Procesador', 'Bueno para jugar, trae su cooler', 'Ryzen 5 5600', 168000, '28/10 · Tienda de ejemplo A'],
+      ['mobo', 'Placa madre', 'Base sencilla y confiable', 'B550M · Micro ATX', 139000, '28/10 · Tienda de ejemplo A'],
+      ['ram', 'Memoria', 'Para tener muchas cosas abiertas', '2 × 16 GB DDR4 3200', 92500, '27/10 · Tienda de ejemplo B'],
+      ['gpu', 'Placa de video', 'Para jugar en alta calidad', 'GeForce RTX 4060 · 8 GB', 389900, '28/10 · Tienda de ejemplo A'],
+      ['ssd', 'Almacenamiento', 'Lugar para muchos juegos', 'SSD 1 TB · M.2 NVMe', 60000, '26/10 · Tienda de ejemplo B'],
+      ['psu', 'Fuente', 'Alcanza y sobra un poco', '650 W · 80 Plus Bronze', 72000, '27/10 · Tienda de ejemplo B'],
+      ['caja', 'Gabinete', 'Compacto, con dos ventiladores', 'Micro ATX · 2 ventiladores', 47000, '26/10 · Tienda de ejemplo A']
+    ] }
+  ];
+  BUILDS.forEach(function (b) { b.min = b.parts.reduce(function (s, p) { return s + p[4]; }, 0); });
+  var GOAL = { jugar: 'Una PC para jugar', trabajar: 'Una PC para trabajar y estudiar', editar: 'Una PC para editar', todo: 'Una PC para un poco de todo' };
+  function money(n) { return '$ ' + Number(n).toLocaleString('es-AR'); }
+  var r = document.getElementById('b');
+  document.getElementById('cheap').textContent = money(BUILDS[BUILDS.length - 1].min);
+
+  function render() {
+    var budget = +r.value;
+    r.style.setProperty('--fill', (budget - r.min) / (r.max - r.min) * 100 + '%');
+    document.getElementById('bv').firstChild.nodeValue = money(budget);
+    var build = BUILDS.filter(function (b) { return b.min <= budget; })[0];
+    document.getElementById('low').classList.toggle('hidden', !!build);
+    document.getElementById('result').classList.toggle('hidden', !build);
+    if (!build) return;
+    document.getElementById('list').innerHTML = build.parts.map(function (p) {
+      return '<article class="uj-part"><div class="uj-part-photo"><svg class="uj-icon" viewBox="0 0 24 24">' + IC[p[0]] + '</svg></div>' +
+        '<div><div class="uj-part-kind">' + p[1] + '</div><div class="uj-part-name">' + p[2] + '</div><div class="uj-part-tech">' + p[3] + '</div></div>' +
+        '<div class="uj-part-side"><span class="uj-price-amount"><small>ARS</small>' + money(p[4]) + '</span><span class="uj-price-meta">Visto el ' + p[5] + '</span></div></article>';
+    }).join('');
+    document.getElementById('tot').textContent = money(build.min);
+    document.getElementById('meter').style.width = Math.round(build.min / budget * 100) + '%';
+    document.getElementById('left').textContent = build.min === budget ? 'Justo lo que querías gastar' : 'Te sobran ' + money(budget - build.min) + ' de tu presupuesto';
+    document.querySelector('.r-head p').textContent = build.parts.length + ' piezas · las revisamos entre sí';
+  }
+  r.addEventListener('input', render);
+  document.querySelectorAll('[data-v]').forEach(function (c) { c.addEventListener('click', function () { r.value = c.dataset.v; render(); }); });
+  document.querySelectorAll('#goals .uj-goal').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#goals .uj-goal').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+      document.getElementById('title').textContent = GOAL[b.dataset.g];
+    });
+  });
+  render();
+</script>
+
+<div class="uj-ayuda" id="ayuda">
+  <section class="uj-ayuda-panel" id="ayuda-panel" role="dialog" aria-labelledby="ayuda-title">
+    <header class="uj-ayuda-head">
+      <div><b id="ayuda-title">Asistente</b><small>Sobre: Armar una PC</small></div>
+      <a class="uj-ayuda-icon" href="#" aria-label="Abrir la charla en pantalla completa" title="Abrir en pantalla completa"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a>
+      <button class="uj-ayuda-icon" type="button" id="ayuda-x" aria-label="Cerrar el asistente"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="uj-ayuda-body" id="ayuda-body" aria-live="polite"></div>
+    <div class="uj-ayuda-foot">
+      <form class="uj-composer" id="ayuda-form"><input id="ayuda-in" placeholder="Escribí tu pregunta" aria-label="Tu pregunta" autocomplete="off"><button class="uj-btn uj-btn-principal uj-btn-chico" aria-label="Enviar"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></svg></button></form>
+      <span class="uj-help">Si algo encaja o no, lo revisamos con reglas fijas. El asistente te lo explica.</span>
+    </div>
+  </section>
+  <button class="uj-ayuda-btn" type="button" id="ayuda-btn" aria-expanded="false" aria-controls="ayuda-panel"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg><span>¿Dudas?</span></button>
+</div>
+<script>
+  // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
+  (function () {
+    var CTX = 'Armar una PC', OPEN = false, QA = [["¿Incluye monitor?", "No. La propuesta es solo lo que va dentro del gabinete: no hay monitor, teclado ni mouse."], ["¿Puedo cambiar una pieza?", "Sí. Si la cambiás, volvemos a revisar que todo siga encajando antes de mostrártela."], ["¿Por qué no me alcanza?", "Si tu presupuesto es menor que la PC más barata que encaja, te lo decimos en vez de proponerte algo incompleto."]];
+    var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
+    var inp = document.getElementById('ayuda-in'), started = false, asked = [];
+    var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    var VERDICT = { encaja: '<div><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></div>' };
+    function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function add(html) { var d = document.createElement('div'); d.innerHTML = html; var n = d.firstChild; body.appendChild(n); body.scrollTop = body.scrollHeight; return n; }
+    function botHtml(t) { return '<div class="uj-bubble uj-bubble-bot"><div class="uj-bubble-who"><i></i>Asistente</div>' + t + '</div>'; }
+    function chips() {
+      var left = QA.filter(function (x, i) { return asked.indexOf(i) < 0; });
+      if (!left.length) return;
+      var c = add('<div class="uj-chips"></div>');
+      QA.forEach(function (x, i) {
+        if (asked.indexOf(i) > -1) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'uj-chip'; b.textContent = x[0];
+        b.addEventListener('click', function () { asked.push(i); ask(x[0], x[1] + (x[2] ? VERDICT[x[2]] : '')); });
+        c.appendChild(b);
+      });
+    }
+    function ask(q, a) {
+      var old = body.querySelector('.uj-chips'); if (old) old.remove();
+      add('<div class="uj-bubble uj-bubble-user">' + esc(q) + '</div>');
+      var t = add('<div class="uj-typing" aria-label="Escribiendo"><span></span><span></span><span></span></div>');
+      setTimeout(function () { t.remove(); add(botHtml(a)); chips(); }, 700);
+    }
+    function open() {
+      root.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Cerrar el asistente');
+      btn.innerHTML = ICON_X + '<span>¿Dudas?</span>';
+      if (!started) { started = true; add(botHtml('Hola. Estás en <strong>' + CTX + '</strong>. ¿En qué te ayudo?')); chips(); }
+      inp.focus();
+    }
+    function close() {
+      root.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-label');
+      btn.innerHTML = ICON_CHAT + '<span>¿Dudas?</span>'; btn.focus();
+    }
+    btn.addEventListener('click', function () { root.classList.contains('is-open') ? close() : open(); });
+    document.getElementById('ayuda-x').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root.classList.contains('is-open')) close(); });
+    root.querySelector('a.uj-ayuda-icon').addEventListener('click', function (e) { e.preventDefault(); });
+    document.getElementById('ayuda-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = inp.value.trim(); if (!q) return; inp.value = '';
+      ask(q, 'Esto es una vista previa y acá no respondo preguntas libres. En la app te contesto con los datos de tu PC, y si no tengo un dato te lo digo.');
+    });
+    if (OPEN) open();
+  })();
+</script>
+</body>
+</html>

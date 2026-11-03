@@ -23,7 +23,12 @@ output/
 
 # Configuración personal de herramientas: revisar antes de cualquier publicación.
 /opencode.json
-/.opencode/
+# Agentes, comandos, skills y scripts de OpenCode SÍ se versionan (son parte del entorno).
+/.opencode/*
+!/.opencode/agents/
+!/.opencode/commands/
+!/.opencode/skills/
+!/.opencode/scripts/
 
 # Respaldos de entornos y artefactos de desarrollo locales.
 .venv-*/

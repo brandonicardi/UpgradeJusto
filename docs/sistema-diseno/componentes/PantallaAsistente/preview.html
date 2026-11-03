@@ -1,0 +1,281 @@
+<!-- @dsCard group="Pantallas" page height=1180 width=1280 subtitle="Asistente: charla con herramientas, respuestas claras y confirmación antes de cambiar algo" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asistente — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; }
+  .wrap { padding-inline: var(--space-7); }
+
+  /* Barra superior */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+  .nav { display: flex; align-items: center; gap: var(--space-2); }
+  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+  .nav a:hover { background: var(--papel-hundido); }
+  .nav a[aria-current] { background: var(--pino-suave); }
+
+  .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr) 300px; gap: var(--space-5); align-items: start; padding-top: var(--space-4); }
+
+  /* Charlas */
+  .convs { display: grid; gap: var(--space-3); position: sticky; top: var(--space-5); }
+  .convs .uj-btn { width: 100%; }
+  .convs h2 { margin: var(--space-3) 0 0; font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
+  .conv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
+  .conv { display: grid; gap: 2px; width: 100%; text-align: left; padding: var(--space-3); border-radius: var(--radius-md); border: 0; background: transparent; color: var(--tinta); cursor: pointer; font-family: var(--font-sans); }
+  .conv:hover { background: var(--papel-hundido); }
+  .conv[aria-current="true"] { background: var(--papel-alto); box-shadow: var(--sombra-1); }
+  .conv b { font-weight: 600; font-size: 15px; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .conv span { font-size: 13px; line-height: 16px; color: var(--tinta-suave); font-weight: 500; }
+
+  /* Charla */
+  .thread-wrap { background: var(--papel-alto); border-radius: var(--radius-lg); box-shadow: var(--sombra-1); display: grid; grid-template-rows: auto 1fr auto; min-height: 960px; overflow: hidden; }
+  .thread-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--linea); }
+  .thread-head h1 { margin: 0; font: 650 20px/26px var(--font-display); }
+  .thread-head p { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--tinta-suave); font-weight: 500; }
+  .thread { padding: var(--space-5); display: grid; gap: var(--space-4); align-content: start; }
+  .day { justify-self: center; font: 700 13px/16px var(--font-sans); color: var(--tinta-suave); }
+
+  .msg-user { justify-self: end; max-width: 75%; background: var(--pino-suave); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border-bottom-right-radius: 4px; }
+  .msg-bot { justify-self: start; max-width: 90%; display: grid; gap: var(--space-3); }
+  .who { display: flex; align-items: center; gap: var(--space-2); font: 700 13px/16px var(--font-sans); color: var(--tinta-suave); }
+  .who i { width: 22px; height: 22px; border-radius: 50%; background: var(--pino); display: grid; place-items: center; }
+  .who i::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--lima); }
+  .bot-text { font-size: 17px; line-height: 28px; }
+  .bot-text p { margin: 0 0 var(--space-2); }
+  .bot-text p:last-child { margin-bottom: 0; }
+
+  /* Lo que hizo el asistente */
+  .did { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .did span { display: inline-flex; align-items: center; gap: var(--space-1); padding: 4px var(--space-3) 4px var(--space-2); border-radius: var(--radius-pill); background: var(--papel); border: 1px solid var(--linea); font: 600 13px/18px var(--font-sans); color: var(--tinta-suave); }
+  .did .uj-icon { width: 14px; height: 14px; color: var(--pino); stroke-width: 2.25; }
+
+  /* Tarjeta dentro de la charla */
+  .mini-up { border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-4); display: grid; gap: var(--space-3); background: var(--papel); }
+  .mini-up-head { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); flex-wrap: wrap; }
+  .mini-up h3 { margin: 2px 0 0; font: 650 18px/24px var(--font-display); }
+  .mini-up .uj-price-amount { font-size: 22px; line-height: 26px; }
+  .mini-up-foot { display: flex; justify-content: space-between; align-items: end; gap: var(--space-3); flex-wrap: wrap; }
+
+  .confirm { border: 1.5px solid var(--pino); border-radius: var(--radius-md); padding: var(--space-4); display: grid; gap: var(--space-3); background: var(--papel-alto); }
+  .confirm strong { font-weight: 700; }
+  .confirm p { margin: 0; color: var(--tinta-suave); font-size: 15px; line-height: 22px; }
+  .confirm.done { border-color: var(--linea); }
+
+  .uj-typing span { animation: blink 1.2s infinite; }
+  .uj-typing span:nth-child(2) { animation-delay: .2s; }
+  .uj-typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+  .composer-area { border-top: 1px solid var(--linea); padding: var(--space-4) var(--space-5) var(--space-5); display: grid; gap: var(--space-3); background: var(--papel-alto); }
+  .composer-area .uj-help { text-align: center; }
+  .stop { display: none; justify-self: center; }
+  .stop.on { display: inline-flex; }
+
+  /* Contexto */
+  .ctx { display: grid; gap: var(--space-4); position: sticky; top: var(--space-5); }
+  .card { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-3); }
+  .card h2 { margin: 0; font: 650 18px/24px var(--font-display); }
+  .card > p { margin: 0; color: var(--tinta-suave); font-size: 15px; line-height: 22px; }
+  .ctx-pc { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+  .ctx-pc b { font-weight: 700; }
+  .ctx select { min-height: 44px; }
+  .can { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); font-size: 15px; line-height: 22px; }
+  .can li { display: flex; gap: var(--space-2); }
+  .can .uj-icon { width: 18px; height: 18px; color: var(--pino); margin-top: 2px; }
+  .cant .uj-icon { color: var(--tinta-suave); }
+  .trust { background: var(--pino); color: var(--sobre-pino); border-color: var(--pino); }
+  .trust > p { color: var(--sobre-pino); }
+
+  @media (max-width: 1150px) {
+    .layout { grid-template-columns: 220px minmax(0, 1fr); }
+    .ctx { grid-column: 1 / -1; position: static; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .wrap { padding-inline: var(--space-4); }
+    .nav a:not([aria-current]) { display: none; }
+    .layout { grid-template-columns: 1fr; }
+    .convs { position: static; }
+    .conv-list { display: none; }
+    .convs h2 { display: none; }
+    .ctx { grid-template-columns: 1fr; }
+    .thread-wrap { border-radius: var(--radius-md); min-height: 0; }
+    .thread { padding: var(--space-4); }
+    .msg-user { max-width: 88%; }
+    .msg-bot { max-width: 100%; }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+
+  <header class="top wrap">
+    <a class="logo" href="#">UpgradeJusto</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#">Mi PC</a>
+      <a href="#">Lo que te conviene</a>
+      <a href="#">Mi plan</a>
+      <a href="#" aria-current="page">Asistente</a>
+    </nav>
+  </header>
+
+  <div class="layout wrap">
+
+    <aside class="convs" aria-label="Tus charlas">
+      <button class="uj-btn uj-btn-principal"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva charla</button>
+      <h2>Tus charlas</h2>
+      <ul class="conv-list">
+        <li><button class="conv" aria-current="true"><b>¿Procesador o placa de video?</b><span>Hoy · La de casa</span></button></li>
+        <li><button class="conv"><b>Cuánta memoria necesito para editar</b><span>Ayer · La del trabajo</span></button></li>
+        <li><button class="conv"><b>¿Entra una placa larga en mi gabinete?</b><span>24/10 · La de casa</span></button></li>
+        <li><button class="conv"><b>Fuente para el plan</b><span>20/10 · La de casa</span></button></li>
+      </ul>
+    </aside>
+
+    <main class="thread-wrap">
+      <div class="thread-head">
+        <div><h1>¿Procesador o placa de video?</h1><p>Hablando de: La de casa</p></div>
+        <button class="uj-btn uj-btn-quieto uj-btn-chico">Renombrar</button>
+      </div>
+
+      <div class="thread" id="thread" aria-live="polite">
+        <span class="day">Hoy</span>
+
+        <div class="msg-user">Quiero jugar mejor. ¿Me conviene cambiar el procesador o la placa de video?</div>
+
+        <div class="msg-bot">
+          <div class="who"><i></i>Asistente</div>
+          <div class="did" aria-label="Lo que revisó el asistente">
+            <span><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Miré tu PC</span>
+            <span><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Busqué en el catálogo</span>
+            <span><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Revisé que encaje</span>
+          </div>
+          <div class="bot-text">
+            <p>La placa de video. Tu procesador (Ryzen 5 5600) todavía rinde bien para jugar; la que te está frenando es la GTX 1650.</p>
+            <p>Con tu presupuesto de $ 400.000, esta es la que más te conviene:</p>
+          </div>
+          <div class="mini-up">
+            <div class="mini-up-head">
+              <div><div class="uj-part-kind">Placa de video</div><h3>RTX 4060 · 8 GB</h3></div>
+              <span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span>
+            </div>
+            <div class="mini-up-foot">
+              <div class="uj-price"><span class="uj-price-amount"><small>ARS</small>$ 389.900</span><span class="uj-price-meta">Contado · visto el 28/10 en <a href="#">Tienda de ejemplo A</a></span></div>
+              <button class="uj-btn uj-btn-secundario uj-btn-chico">Ver detalle</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="msg-user">¿Y si le pongo una RTX 4070?</div>
+
+        <div class="msg-bot">
+          <div class="who"><i></i>Asistente</div>
+          <div class="did">
+            <span><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Revisé que encaje</span>
+          </div>
+          <div class="bot-text">
+            <p>Esa no entra sin cambiar otra cosa. Necesita una fuente de 650 W y la tuya es de 550 W.</p>
+          </div>
+          <div class="uj-notice uj-notice-no" style="max-width:none">
+            <svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            <div><strong>RTX 4070 · No encaja con tu PC</strong><p>Tu fuente no alcanza. Si la querés igual, tendrías que sumar una fuente nueva al plan.</p></div>
+          </div>
+          <div class="bot-text"><p>Si querés, te armo un plan con las dos cosas para que veas cuánto sale todo junto.</p></div>
+        </div>
+
+        <div class="msg-user">No, me quedo con la 4060. Sumala a mi plan.</div>
+
+        <div class="msg-bot">
+          <div class="who"><i></i>Asistente</div>
+          <div class="confirm" id="confirm">
+            <strong>¿Sumo la RTX 4060 a tu plan «Jugar mejor»?</strong>
+            <p>Va como etapa 2, después de la memoria. Tu PC guardada no cambia.</p>
+            <div class="uj-row">
+              <button class="uj-btn uj-btn-principal uj-btn-chico" id="yes">Sí, sumala</button>
+              <button class="uj-btn uj-btn-secundario uj-btn-chico" id="no">Todavía no</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer-area">
+        <button class="uj-btn uj-btn-secundario uj-btn-chico stop" id="stop"><svg class="uj-icon uj-icon-sm" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1"/></svg>Detener respuesta</button>
+        <div class="uj-chips" id="chips">
+          <button class="uj-chip">¿Cómo la instalo?</button>
+          <button class="uj-chip">¿Conviene esperar a que baje?</button>
+          <button class="uj-chip">¿Qué hago con la placa vieja?</button>
+        </div>
+        <form class="uj-composer" id="form" onsubmit="return false">
+          <input id="msg" placeholder="Preguntá lo que quieras sobre tu PC" aria-label="Tu mensaje">
+          <button class="uj-btn uj-btn-principal uj-btn-chico" aria-label="Enviar"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></svg></button>
+        </form>
+        <span class="uj-help">No escribas contraseñas ni datos personales. El asistente puede equivocarse al explicar; si algo encaja lo decide nuestro revisor.</span>
+      </div>
+    </main>
+
+    <aside class="ctx" aria-label="Contexto">
+      <div class="card">
+        <h2>Estamos hablando de</h2>
+        <label class="uj-field" style="max-width:none"><span class="uj-label">Tu PC</span>
+          <select class="uj-input"><option>La de casa</option><option>La del trabajo</option></select></label>
+        <a class="uj-btn uj-btn-quieto uj-btn-chico" href="#" style="justify-self:start;padding-inline:0">Ver sus 9 piezas</a>
+      </div>
+
+      <div class="card trust">
+        <h2>¿Quién decide si encaja?</h2>
+        <p>Nuestro revisor automático, con reglas fijas y los datos de tu PC. El asistente te lo explica, pero no lo inventa.</p>
+      </div>
+
+      <div class="card">
+        <h2>Puedo ayudarte a</h2>
+        <ul class="can">
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Elegir qué mejorar primero</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Revisar si una pieza encaja</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Armar o cambiar tu plan, siempre con tu OK</li>
+          <li class="cant"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Comprar por vos ni cambiar tu PC sin preguntarte</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  var thread = document.getElementById('thread'), stop = document.getElementById('stop'), timer = null;
+  var CHECK = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
+  var replies = {
+    '¿Cómo la instalo?': 'Apagá y desenchufá la PC. Sacá la tapa, quitá los tornillos de la placa vieja y la traba de la ranura. Poné la nueva, atornillala y conectá el cable de 8 pines de la fuente. Si querés, te lo explico de a un paso por vez.',
+    '¿Conviene esperar a que baje?': 'No tengo forma de saber si va a bajar. Lo que sí puedo hacer es mostrarte los precios que vimos en las últimas semanas, con su fecha y tienda.',
+    '¿Qué hago con la placa vieja?': 'Podés venderla usada o guardarla de repuesto. No te doy un precio porque no tengo datos confiables de usados.'
+  };
+  function el(html) { var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
+  function ask(text) {
+    if (!text) return;
+    thread.appendChild(el('<div class="msg-user"></div>')).textContent = text;
+    var bot = thread.appendChild(el('<div class="msg-bot"><div class="who"><i></i>Asistente</div><div class="uj-typing" aria-label="Escribiendo"><span></span><span></span><span></span></div></div>'));
+    stop.classList.add('on');
+    var answer = replies[text] || 'Buena pregunta. En esta vista previa sólo tengo respuestas de ejemplo, pero en la app te contestaría con los datos de tu PC.';
+    var words = answer.split(' '), i = 0;
+    timer = setTimeout(function () {
+      bot.querySelector('.uj-typing').remove();
+      bot.appendChild(el('<div class="did"><span>' + CHECK + 'Miré tu PC</span></div>'));
+      var p = bot.appendChild(el('<div class="bot-text"><p></p></div>')).firstChild;
+      (function tick() {
+        p.textContent = words.slice(0, ++i).join(' ');
+        if (i < words.length) timer = setTimeout(tick, 45); else stop.classList.remove('on');
+      })();
+    }, 700);
+  }
+  stop.addEventListener('click', function () { clearTimeout(timer); stop.classList.remove('on'); var t = thread.querySelector('.uj-typing'); if (t) t.parentNode.appendChild(el('<div class="bot-text"><p class="uj-muted">Detuviste la respuesta.</p></div>')), t.remove(); });
+  document.querySelectorAll('#chips .uj-chip').forEach(function (c) { c.addEventListener('click', function () { ask(c.textContent); }); });
+  document.getElementById('form').addEventListener('submit', function () { var m = document.getElementById('msg'); ask(m.value.trim()); m.value = ''; });
+  function settle(msg) {
+    var c = document.getElementById('confirm'); c.classList.add('done');
+    c.innerHTML = '<strong>' + msg + '</strong>';
+  }
+  document.getElementById('yes').addEventListener('click', function () { settle('Listo: la RTX 4060 quedó como etapa 2 de tu plan.'); });
+  document.getElementById('no').addEventListener('click', function () { settle('Perfecto, no cambié nada. Avisame cuando quieras sumarla.'); });
+</script>
+</body>
+</html>

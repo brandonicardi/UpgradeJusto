@@ -1,0 +1,264 @@
+<!-- @dsCard group="Pantallas" page height=1300 width=1280 subtitle="Compartir un plan: crear, copiar y apagar enlaces" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compartir plan — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; }
+  .wrap { padding-inline: var(--space-7); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+  .nav { display: flex; align-items: center; gap: var(--space-2); }
+  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+  .nav a:hover { background: var(--papel-hundido); }
+  .nav a[aria-current] { background: var(--pino-suave); }
+
+  .back { display: inline-flex; gap: var(--space-2); align-items: center; color: var(--pino); font-weight: 600; text-decoration: none; padding-top: var(--space-5); }
+  .back .uj-icon { width: 18px; height: 18px; }
+  .head { padding-top: var(--space-4); padding-bottom: var(--space-6); display: grid; gap: var(--space-2); max-width: 760px; }
+  .eyebrow { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
+  .head h1 { margin: 0; font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
+  .head p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
+
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: var(--space-6); align-items: start; }
+
+  .new { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); box-shadow: var(--sombra-1); }
+  .new h2, .links h2, .card h2 { margin: 0; font: 650 22px/28px var(--font-display); }
+  .new-row { display: flex; gap: var(--space-3); align-items: end; flex-wrap: wrap; }
+  .new-row .uj-field { flex: 1; min-width: 240px; }
+
+  .links { margin-top: var(--space-7); display: grid; gap: var(--space-3); }
+  #list { display: grid; gap: var(--space-3); }
+  .link { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; padding: var(--space-4) var(--space-5); background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); }
+  .l-ic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--pino-suave); color: var(--pino); }
+  .l-name { font-weight: 700; }
+  .l-meta { font-size: 14px; line-height: 20px; color: var(--tinta-suave); overflow-wrap: anywhere; }
+  .l-acts { display: flex; gap: var(--space-2); }
+  .state { display: inline-flex; align-items: center; gap: 6px; font: 700 13px/16px var(--font-sans); margin-left: var(--space-2); color: var(--encaja); }
+  .state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .link.is-off { background: transparent; border-style: dashed; }
+  .link.is-off .l-ic { background: var(--papel-hundido); color: var(--tinta-suave); }
+  .link.is-off .state { color: var(--tinta-suave); }
+  .link.is-off .l-name { color: var(--tinta-suave); }
+
+  .side { display: grid; gap: var(--space-4); position: sticky; top: var(--space-5); }
+  .card { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-3); }
+  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); font-size: 15px; line-height: 22px; }
+  .list li { display: flex; gap: var(--space-2); }
+  .list .uj-icon { width: 18px; height: 18px; margin-top: 2px; flex: none; }
+  .yes .uj-icon { color: var(--encaja); }
+  .no .uj-icon { color: var(--no-encaja); }
+
+  /* Confirmación de apagar */
+  dialog { border: 0; border-radius: var(--radius-lg); padding: var(--space-6); max-width: 440px; background: var(--papel-alto); color: var(--tinta); box-shadow: var(--sombra-2); }
+  dialog::backdrop { background: rgba(0,0,0,.35); }
+  dialog h2 { margin: 0 0 var(--space-2); font: 650 22px/28px var(--font-display); }
+  dialog p { margin: 0 0 var(--space-5); color: var(--tinta-suave); }
+
+  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-8); padding-block: var(--space-6); border-top: 1px solid var(--linea); color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+  .foot a { color: var(--pino); }
+
+  @media (max-width: 1050px) { .body { grid-template-columns: 1fr; } .side { position: static; } }
+  @media (max-width: 700px) {
+    .wrap { padding-inline: var(--space-4); }
+    .nav a:not([aria-current]) { display: none; }
+    .head h1 { font-size: 36px; line-height: 40px; }
+    .link { grid-template-columns: 44px minmax(0, 1fr); }
+    .l-acts { grid-column: 1 / -1; }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+  <header class="top wrap">
+    <a class="logo" href="#">UpgradeJusto</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#">Mi PC</a>
+      <a href="#">Lo que te conviene</a>
+      <a href="#" aria-current="page">Mi plan</a>
+      <a href="#">Catálogo</a>
+    </nav>
+  </header>
+
+  <a class="back wrap" href="#"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Volver al plan</a>
+  <section class="head wrap">
+    <span class="eyebrow">La de casa · para jugar mejor</span>
+    <h1>Compartir tu plan</h1>
+    <p>Creá un enlace para cada persona. Así, si después no querés que alguien lo vea más, apagás solo el suyo.</p>
+  </section>
+
+  <main class="body wrap">
+    <div>
+      <section class="new">
+        <h2>Nuevo enlace</h2>
+        <div class="new-row">
+          <label class="uj-field">
+            <span class="uj-label">¿Para quién es? <span class="uj-muted">(opcional)</span></span>
+            <input class="uj-input" id="who" placeholder="Por ejemplo: Para mamá">
+            <span class="uj-help">Solo lo ves vos, para acordarte.</span>
+          </label>
+          <button class="uj-btn uj-btn-principal" id="create" style="margin-bottom:28px">Crear enlace</button>
+        </div>
+        <span class="uj-help" id="msg" role="status"></span>
+      </section>
+
+      <section class="links" aria-label="Tus enlaces">
+        <h2>Tus enlaces</h2>
+        <div id="list">
+          <div class="link">
+            <span class="l-ic"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg></span>
+            <div><div class="l-name">Para mamá<span class="state">Activo</span></div><div class="l-meta">upgradejusto.app/p/k7Q2mX · creado el 28/10</div></div>
+            <div class="l-acts"><button class="uj-btn uj-btn-secundario uj-btn-chico" data-copy>Copiar</button><button class="uj-btn uj-btn-quieto uj-btn-chico" data-off>Apagar</button></div>
+          </div>
+          <div class="link">
+            <span class="l-ic"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg></span>
+            <div><div class="l-name">Grupo de amigos<span class="state">Activo</span></div><div class="l-meta">upgradejusto.app/p/Rt9wLb · creado el 30/10</div></div>
+            <div class="l-acts"><button class="uj-btn uj-btn-secundario uj-btn-chico" data-copy>Copiar</button><button class="uj-btn uj-btn-quieto uj-btn-chico" data-off>Apagar</button></div>
+          </div>
+          <div class="link is-off">
+            <span class="l-ic"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/><path d="M4 4l16 16"/></svg></span>
+            <div><div class="l-name">Sin nombre<span class="state">Apagado</span></div><div class="l-meta">Lo apagaste el 25/10 · ya no funciona para nadie</div></div>
+            <div class="l-acts"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Lo que ve quien lo abre</h2>
+        <ul class="list yes">
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Las etapas, las piezas y los precios con su fecha</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Qué etapas ya compraste</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Lo que nunca ve</h2>
+        <ul class="list no">
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Tu correo ni tu nombre completo</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Tus otras PCs y otros planes</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Tus charlas con el asistente</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Ningún botón para cambiar el plan</li>
+        </ul>
+      </div>
+      <a class="uj-btn uj-btn-quieto" href="#">Ver cómo lo ven</a>
+    </aside>
+  </main>
+
+  <footer class="foot wrap">
+    <span>Cada enlace es único y difícil de adivinar. Si lo apagás, deja de funcionar al instante.</span>
+    <span><a href="#">Volver a mi plan</a></span>
+  </footer>
+</div>
+
+<dialog id="dlg">
+  <h2>¿Apagar este enlace?</h2>
+  <p>Quien lo tenga ya no va a poder ver tu plan. Si después te arrepentís, vas a tener que crear uno nuevo.</p>
+  <div class="uj-row"><button class="uj-btn uj-btn-principal" id="dlg-yes">Sí, apagar</button><button class="uj-btn uj-btn-quieto" id="dlg-no">Cancelar</button></div>
+</dialog>
+
+<script>
+  var list = document.getElementById('list'), dlg = document.getElementById('dlg'), msg = document.getElementById('msg'), pending = null;
+  var LINK = '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>';
+  function code() { var c = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = ''; for (var i = 0; i < 6; i++) s += c[Math.floor(Math.random() * c.length)]; return s; }
+  document.getElementById('create').addEventListener('click', function () {
+    var who = document.getElementById('who').value.trim() || 'Sin nombre';
+    var el = document.createElement('div'); el.className = 'link';
+    el.innerHTML = '<span class="l-ic"><svg class="uj-icon" viewBox="0 0 24 24">' + LINK + '</svg></span><div><div class="l-name"></div><div class="l-meta">upgradejusto.app/p/' + code() + ' · creado hoy</div></div><div class="l-acts"><button class="uj-btn uj-btn-secundario uj-btn-chico" data-copy>Copiar</button><button class="uj-btn uj-btn-quieto uj-btn-chico" data-off>Apagar</button></div>';
+    el.querySelector('.l-name').textContent = who;
+    el.querySelector('.l-name').insertAdjacentHTML('beforeend', '<span class="state">Activo</span>');
+    list.insertBefore(el, list.firstChild);
+    document.getElementById('who').value = '';
+    msg.textContent = 'Listo. Copialo y mandáselo a ' + (who === 'Sin nombre' ? 'quien quieras' : 'esa persona') + '.';
+  });
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var row = b.closest('.link');
+    if (b.hasAttribute('data-copy')) {
+      try { navigator.clipboard.writeText(row.querySelector('.l-meta').textContent.split(' · ')[0]); } catch (x) {}
+      b.textContent = 'Copiado'; setTimeout(function () { b.textContent = 'Copiar'; }, 1500);
+    } else if (b.hasAttribute('data-off')) {
+      pending = row; if (dlg.showModal) dlg.showModal(); else turnOff();
+    }
+  });
+  function turnOff() {
+    if (!pending) return;
+    pending.classList.add('is-off');
+    pending.querySelector('.state').textContent = 'Apagado';
+    pending.querySelector('.l-meta').textContent = 'Lo apagaste hoy · ya no funciona para nadie';
+    pending.querySelector('.l-acts').innerHTML = '';
+    pending = null;
+  }
+  document.getElementById('dlg-yes').addEventListener('click', function () { turnOff(); dlg.close(); });
+  document.getElementById('dlg-no').addEventListener('click', function () { pending = null; dlg.close(); });
+</script>
+
+<div class="uj-ayuda" id="ayuda">
+  <section class="uj-ayuda-panel" id="ayuda-panel" role="dialog" aria-labelledby="ayuda-title">
+    <header class="uj-ayuda-head">
+      <div><b id="ayuda-title">Asistente</b><small>Sobre: Compartir tu plan</small></div>
+      <a class="uj-ayuda-icon" href="#" aria-label="Abrir la charla en pantalla completa" title="Abrir en pantalla completa"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a>
+      <button class="uj-ayuda-icon" type="button" id="ayuda-x" aria-label="Cerrar el asistente"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="uj-ayuda-body" id="ayuda-body" aria-live="polite"></div>
+    <div class="uj-ayuda-foot">
+      <form class="uj-composer" id="ayuda-form"><input id="ayuda-in" placeholder="Escribí tu pregunta" aria-label="Tu pregunta" autocomplete="off"><button class="uj-btn uj-btn-principal uj-btn-chico" aria-label="Enviar"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></svg></button></form>
+      <span class="uj-help">Si algo encaja o no, lo revisamos con reglas fijas. El asistente te lo explica.</span>
+    </div>
+  </section>
+  <button class="uj-ayuda-btn" type="button" id="ayuda-btn" aria-expanded="false" aria-controls="ayuda-panel"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg><span>¿Dudas?</span></button>
+</div>
+<script>
+  // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
+  (function () {
+    var CTX = 'Compartir tu plan', OPEN = false, QA = [["¿Qué ve la otra persona?", "Las etapas, las piezas y los precios con su fecha. No ve tu correo, ni tus otras PCs, ni tus charlas."], ["¿Puede cambiar mi plan?", "No. Quien abre el enlace solo puede mirarlo."], ["¿Qué pasa si lo apago?", "Deja de funcionar al instante para quien lo tenga. Si te arrepentís, creás uno nuevo."]];
+    var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
+    var inp = document.getElementById('ayuda-in'), started = false, asked = [];
+    var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    var VERDICT = { encaja: '<div><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></div>' };
+    function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function add(html) { var d = document.createElement('div'); d.innerHTML = html; var n = d.firstChild; body.appendChild(n); body.scrollTop = body.scrollHeight; return n; }
+    function botHtml(t) { return '<div class="uj-bubble uj-bubble-bot"><div class="uj-bubble-who"><i></i>Asistente</div>' + t + '</div>'; }
+    function chips() {
+      var left = QA.filter(function (x, i) { return asked.indexOf(i) < 0; });
+      if (!left.length) return;
+      var c = add('<div class="uj-chips"></div>');
+      QA.forEach(function (x, i) {
+        if (asked.indexOf(i) > -1) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'uj-chip'; b.textContent = x[0];
+        b.addEventListener('click', function () { asked.push(i); ask(x[0], x[1] + (x[2] ? VERDICT[x[2]] : '')); });
+        c.appendChild(b);
+      });
+    }
+    function ask(q, a) {
+      var old = body.querySelector('.uj-chips'); if (old) old.remove();
+      add('<div class="uj-bubble uj-bubble-user">' + esc(q) + '</div>');
+      var t = add('<div class="uj-typing" aria-label="Escribiendo"><span></span><span></span><span></span></div>');
+      setTimeout(function () { t.remove(); add(botHtml(a)); chips(); }, 700);
+    }
+    function open() {
+      root.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Cerrar el asistente');
+      btn.innerHTML = ICON_X + '<span>¿Dudas?</span>';
+      if (!started) { started = true; add(botHtml('Hola. Estás en <strong>' + CTX + '</strong>. ¿En qué te ayudo?')); chips(); }
+      inp.focus();
+    }
+    function close() {
+      root.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-label');
+      btn.innerHTML = ICON_CHAT + '<span>¿Dudas?</span>'; btn.focus();
+    }
+    btn.addEventListener('click', function () { root.classList.contains('is-open') ? close() : open(); });
+    document.getElementById('ayuda-x').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root.classList.contains('is-open')) close(); });
+    root.querySelector('a.uj-ayuda-icon').addEventListener('click', function (e) { e.preventDefault(); });
+    document.getElementById('ayuda-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = inp.value.trim(); if (!q) return; inp.value = '';
+      ask(q, 'Esto es una vista previa y acá no respondo preguntas libres. En la app te contesto con los datos de tu PC, y si no tengo un dato te lo digo.');
+    });
+    if (OPEN) open();
+  })();
+</script>
+</body>
+</html>

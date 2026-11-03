@@ -1,0 +1,374 @@
+<!-- @dsCard group="Pantallas" page height=1780 width=1280 subtitle="Mi PC: las nueve piezas, lo que falta y cómo completarlo" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi PC — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; }
+  .wrap { padding-inline: var(--space-7); }
+
+  /* Barra superior */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+  .nav { display: flex; align-items: center; gap: var(--space-2); }
+  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+  .nav a:hover { background: var(--papel-hundido); }
+  .nav a[aria-current] { background: var(--pino-suave); }
+
+  /* Selector de PC */
+  .pcs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding-top: var(--space-6); }
+  .pcs-label { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); margin-right: var(--space-2); }
+  .pc-tab { min-height: 40px; padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill); border: 1.5px solid var(--linea-fuerte); background: var(--papel-alto); color: var(--tinta); font: 600 15px/20px var(--font-sans); cursor: pointer; }
+  .pc-tab[aria-pressed="true"] { background: var(--tinta); border-color: var(--tinta); color: var(--papel); }
+  .pc-add { display: inline-flex; align-items: center; gap: var(--space-1); }
+
+  /* Encabezado */
+  .head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-6); align-items: end; padding-top: var(--space-5); padding-bottom: var(--space-6); }
+  .head h1 { margin: 0; font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
+  .head p { margin: var(--space-2) 0 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
+  .complete { min-width: 320px; display: grid; gap: var(--space-2); }
+  .complete-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); }
+  .complete-top strong { font: 700 28px/32px var(--font-display); }
+  .complete-top span { color: var(--tinta-suave); font-size: 14px; font-weight: 500; }
+  .dots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+  .dots i { height: 10px; border-radius: var(--radius-pill); background: var(--pino); }
+  .dots i.q { background: var(--revisar); }
+  .dots i.e { background: var(--papel-hundido); }
+
+  /* Cuerpo */
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--space-6); align-items: start; }
+
+  .parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+  .part { display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4); background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); min-width: 0; }
+  .part-top { display: flex; align-items: center; gap: var(--space-3); }
+  .part-icon { width: 44px; height: 44px; flex: none; border-radius: var(--radius-sm); display: grid; place-items: center; background: var(--pino-suave); color: var(--pino); }
+  .part-kind { font-weight: 700; }
+  .part-what { font-size: 14px; line-height: 20px; color: var(--tinta-suave); font-weight: 500; }
+  .part-model { background: var(--papel); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); }
+  .part-model b { display: block; font-weight: 600; overflow-wrap: anywhere; }
+  .part-model small { display: block; font-size: 14px; line-height: 20px; color: var(--tinta-suave); font-weight: 500; }
+  .part-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); min-height: 32px; }
+  .part-foot .uj-btn-quieto { min-height: 32px; padding: 0; font-size: 14px; }
+  .saved { display: inline-flex; align-items: center; gap: var(--space-1); font-size: 14px; color: var(--tinta-suave); font-weight: 500; }
+  .saved .uj-icon { width: 16px; height: 16px; color: var(--pino); stroke-width: 2.25; }
+
+  .part.is-q { border-color: var(--revisar); box-shadow: 0 0 0 1px var(--revisar); }
+  .part.is-q .part-icon { background: var(--revisar-fondo); color: var(--revisar); }
+  .part.is-empty { background: transparent; border: 1.5px dashed var(--linea-fuerte); }
+  .part.is-empty .part-icon { background: var(--papel-hundido); color: var(--tinta-suave); }
+  .part.is-empty .part-model { background: transparent; padding: 0; }
+
+  /* Editor de una pieza */
+  .editor { grid-column: 1 / -1; background: var(--papel-alto); border-radius: var(--radius-lg); box-shadow: var(--sombra-2); padding: var(--space-6); display: grid; gap: var(--space-5); }
+  .editor-head { display: flex; justify-content: space-between; align-items: start; gap: var(--space-4); flex-wrap: wrap; }
+  .editor h2 { margin: 0; font: 650 24px/30px var(--font-display); letter-spacing: -.01em; }
+  .editor-head p { margin: var(--space-1) 0 0; color: var(--tinta-suave); }
+  .fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+  .fields .uj-field { max-width: none; }
+  .unknown-row { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+  .uj-chip[aria-pressed="true"] { background: var(--revisar-fondo); border-color: var(--revisar); color: var(--tinta); }
+  .uj-input:disabled { background: var(--papel-hundido); color: var(--tinta-suave); border-color: var(--linea); }
+  .howto { background: var(--papel); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); }
+  .howto summary { cursor: pointer; font-weight: 600; color: var(--pino); min-height: 40px; display: flex; align-items: center; }
+  .howto ol { margin: var(--space-2) 0 var(--space-2); padding-left: var(--space-5); display: grid; gap: var(--space-2); }
+  .howto kbd { font: 600 14px/20px var(--font-sans); padding: 1px 6px; border: 1.5px solid var(--linea-fuerte); border-radius: 6px; background: var(--papel-alto); }
+  .editor-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; border-top: 1px solid var(--linea); padding-top: var(--space-4); }
+  .editor-foot .uj-help { max-width: 46ch; }
+
+  /* Columna lateral */
+  .side { display: grid; gap: var(--space-4); position: sticky; top: var(--space-5); }
+  .card { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-4); }
+  .card h2 { margin: 0; font: 650 20px/26px var(--font-display); }
+  .card p { margin: 0; color: var(--tinta-suave); }
+  .status-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+  .status-list li { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); font-size: 15px; }
+  .act { background: var(--pino); color: var(--sobre-pino); border-color: var(--pino); }
+  .act p { color: var(--sobre-pino); }
+  .act .uj-btn { background: var(--lima); color: var(--sobre-lima); width: 100%; }
+  .links { display: grid; gap: var(--space-1); }
+  .links a { display: flex; align-items: center; justify-content: space-between; min-height: 44px; color: var(--tinta); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--linea); }
+  .links a:last-child { border-bottom: 0; }
+  .links .uj-icon { color: var(--pino); }
+
+  .toast { display: none; }
+  .toast.show { display: grid; }
+
+  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-8); padding-block: var(--space-6); border-top: 1px solid var(--linea); color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+  .foot a { color: var(--pino); }
+
+  @media (max-width: 1100px) {
+    .body { grid-template-columns: 1fr; }
+    .side { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .parts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .wrap { padding-inline: var(--space-4); }
+    .nav a:not([aria-current]) { display: none; }
+    .head { grid-template-columns: 1fr; }
+    .head h1 { font-size: 36px; line-height: 40px; }
+    .complete { min-width: 0; }
+    .parts, .fields, .side { grid-template-columns: 1fr; }
+    .editor { padding: var(--space-5); border-radius: var(--radius-md); }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+
+  <header class="top wrap">
+    <a class="logo" href="#">UpgradeJusto</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#" aria-current="page">Mi PC</a>
+      <a href="#">Lo que te conviene</a>
+      <a href="#">Mi plan</a>
+      <a href="#">Asistente</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="pcs wrap" role="group" aria-label="Tus PCs">
+      <span class="pcs-label">Tus PCs</span>
+      <button class="pc-tab" aria-pressed="true">La de casa</button>
+      <button class="pc-tab" aria-pressed="false">La del trabajo</button>
+      <button class="uj-btn uj-btn-quieto uj-btn-chico pc-add"><svg class="uj-icon uj-icon-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Agregar otra PC</button>
+    </div>
+
+    <section class="head wrap">
+      <div>
+        <h1>La de casa</h1>
+        <p>Guardada el 28/10/2026. Esto es lo que sabemos de tu PC.</p>
+      </div>
+      <div class="complete" aria-label="7 de 9 piezas cargadas, 1 dato por confirmar">
+        <div class="complete-top"><strong>7 de 9 piezas</strong><span>1 dato por confirmar</span></div>
+        <div class="dots" aria-hidden="true"><i></i><i class="q"></i><i></i><i></i><i></i><i></i><i></i><i class="e"></i><i class="e"></i></div>
+      </div>
+    </section>
+
+    <div class="body wrap">
+      <section aria-label="Piezas de tu PC">
+        <div class="parts">
+
+          <article class="part">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span><div><div class="part-kind">Procesador</div><div class="part-what">El cerebro: hace todas las cuentas.</div></div></div>
+            <div class="part-model"><b>AMD Ryzen 5 5600</b><small>6 núcleos · zócalo AM4</small></div>
+            <div class="part-foot"><span class="saved"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Completo</span><button class="uj-btn uj-btn-quieto">Cambiar</button></div>
+          </article>
+
+          <article class="part is-q" id="mem">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h4v4H7zM15 7v4M7 15h10"/></svg></span><div><div class="part-kind">Placa madre</div><div class="part-what">Donde se conecta todo lo demás.</div></div></div>
+            <div class="part-model"><b>Gigabyte B550M DS3H</b><small id="mem-speed">Lugares para discos M.2: no los sabemos</small></div>
+            <div class="part-foot"><span class="uj-verdict uj-verdict-revisar" id="mem-badge"><svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></svg>Falta un dato</span><button class="uj-btn uj-btn-quieto" id="mem-open">Completar</button></div>
+          </article>
+
+          <form class="editor" id="editor" onsubmit="return false" aria-labelledby="ed-title">
+            <div class="editor-head">
+              <div>
+                <h2 id="ed-title">Completá tu placa madre</h2>
+                <p>Con este dato sabemos si te entra otro disco rápido, de los que van sin cables.</p>
+              </div>
+              <button type="button" class="uj-btn uj-btn-quieto uj-btn-chico" id="ed-close">Cerrar</button>
+            </div>
+            <div class="fields">
+              <div class="uj-field"><label class="uj-label" for="speed">¿Cuántos lugares M.2 tiene?</label>
+                <input class="uj-input" id="speed" inputmode="numeric" placeholder="Por ejemplo: 2">
+                <div class="unknown-row"><button type="button" class="uj-chip" id="dunno" aria-pressed="false">No lo sé</button><span class="uj-help">Son ranuras cortas y planas, con un tornillito en la punta.</span></div></div>
+            </div>
+            <details class="howto">
+              <summary>¿Cómo lo averiguo sin abrir la PC?</summary>
+              <ol>
+                <li>Buscá <strong>Gigabyte B550M DS3H</strong> en la página del fabricante.</li>
+                <li>Entrá en <strong>Especificaciones</strong> y buscá la parte de <strong>Almacenamiento</strong>.</li>
+                <li>Contá cuántos lugares <strong>M.2</strong> menciona.</li>
+              </ol>
+            </details>
+            <div class="editor-foot">
+              <span class="uj-help">Si elegís «No lo sé», lo dejamos pendiente: no adivinamos ni lo damos por bueno.</span>
+              <div class="uj-row"><button type="button" class="uj-btn uj-btn-secundario uj-btn-chico" id="ed-cancel">Cancelar</button><button class="uj-btn uj-btn-principal" id="ed-save">Guardar cambios</button></div>
+            </div>
+            <div class="uj-notice uj-notice-encaja toast" id="toast" role="status"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><div><strong>Guardamos tu placa madre</strong><p>Ya podemos revisar si te entra otro disco.</p></div></div>
+          </form>
+
+          <article class="part">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M3 8h18v8H3z"/><path d="M7 16v3M11 16v3M15 16v3M19 16v3M7 11v2M11 11v2M15 11v2"/></svg></span><div><div class="part-kind">Memoria</div><div class="part-what">Lo que tu PC puede tener abierto a la vez.</div></div></div>
+            <div class="part-model"><b>2 × 16 GB DDR4 3200</b><small>32 GB en total · de tu plan, comprada el 20/10</small></div>
+            <div class="part-foot"><span class="saved"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Completo</span><button class="uj-btn uj-btn-quieto">Cambiar</button></div>
+          </article>
+
+          <article class="part">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><div><div class="part-kind">Placa de video</div><div class="part-what">Dibuja la imagen. Clave para jugar.</div></div></div>
+            <div class="part-model"><b>NVIDIA GTX 1650</b><small>4 GB</small></div>
+            <div class="part-foot"><span class="saved"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Completo</span><button class="uj-btn uj-btn-quieto">Cambiar</button></div>
+          </article>
+
+          <article class="part">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M13 3L6 13h5l-1 8 7-10h-5z"/></svg></span><div><div class="part-kind">Fuente</div><div class="part-what">Le da energía a todo.</div></div></div>
+            <div class="part-model"><b>Thermaltake Smart 550 W</b><small>Certificación 80 Plus</small></div>
+            <div class="part-foot"><span class="saved"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Completo</span><button class="uj-btn uj-btn-quieto">Cambiar</button></div>
+          </article>
+
+          <article class="part">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2"/><circle cx="12" cy="16" r="2"/><path d="M9 6h6"/></svg></span><div><div class="part-kind">Gabinete</div><div class="part-what">La caja donde va todo.</div></div></div>
+            <div class="part-model"><b>Sentey Mid Tower</b><small>Placas de video de hasta 32 cm</small></div>
+            <div class="part-foot"><span class="saved"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Completo</span><button class="uj-btn uj-btn-quieto">Cambiar</button></div>
+          </article>
+
+          <article class="part">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 12h.01M11 12h.01"/></svg></span><div><div class="part-kind">Almacenamiento</div><div class="part-what">Donde se guardan tus archivos y juegos.</div></div></div>
+            <div class="part-model"><b>SSD Kingston 500 GB</b><small>NVMe</small></div>
+            <div class="part-foot"><span class="saved"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Completo</span><button class="uj-btn uj-btn-quieto">Cambiar</button></div>
+          </article>
+
+          <article class="part is-empty">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M12 10c0-4 1-7 4-7 2 0 2 3-1 5M14 12c4 0 7 1 7 4 0 2-3 2-5-1M12 14c0 4-1 7-4 7-2 0-2-3 1-5M10 12c-4 0-7-1-7-4 0-2 3-2 5 1"/></svg></span><div><div class="part-kind">Cooler</div><div class="part-what">Mantiene fresco el procesador.</div></div></div>
+            <div class="part-model"><small>Sin cargar</small></div>
+            <div class="part-foot"><span></span><button class="uj-btn uj-btn-quieto">Agregar</button></div>
+          </article>
+
+          <article class="part is-empty">
+            <div class="part-top"><span class="part-icon"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h7"/></svg></span><div><div class="part-kind">Ventiladores</div><div class="part-what">Mueven el aire dentro de la caja.</div></div></div>
+            <div class="part-model"><small>Sin cargar</small></div>
+            <div class="part-foot"><span></span><button class="uj-btn uj-btn-quieto">Agregar</button></div>
+          </article>
+
+        </div>
+      </section>
+
+      <aside class="side">
+        <div class="card act">
+          <h2>¿Qué querés hacer con esta PC?</h2>
+          <p>Te mostramos qué conviene cambiar según tu objetivo y presupuesto.</p>
+          <button class="uj-btn">Ver qué me conviene</button>
+        </div>
+
+        <div class="card">
+          <h2>¿Encaja todo entre sí?</h2>
+          <ul class="status-list">
+            <li><span>Procesador y placa madre</span><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></li>
+            <li><span>Fuente y placa de video</span><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></li>
+            <li><span>Memoria y placa madre</span><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></li>
+            <li><span>Lugar para otro disco M.2</span><span class="uj-verdict uj-verdict-revisar" id="side-mem"><svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></svg>Falta un dato</span></li>
+          </ul>
+          <p>Lo que tenés hoy encaja. Para sumar otro disco necesitamos completar la placa madre.</p>
+        </div>
+
+        <div class="card">
+          <div class="links">
+            <a href="#">Ver mi plan <svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            <a href="#">Preguntarle al asistente <svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            <a href="#">Pegar una lista para actualizarla <svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="foot wrap">
+    <span>Tu PC sólo cambia cuando tocás «Guardar cambios». Mirar sugerencias no la modifica.</span>
+    <span><a href="#">Volver al inicio</a></span>
+  </footer>
+</div>
+
+<script>
+  var ed = document.getElementById('editor'), speed = document.getElementById('speed'), dunno = document.getElementById('dunno');
+  var toast = document.getElementById('toast');
+  function show(on) { ed.style.display = on ? '' : 'none'; toast.classList.remove('show'); }
+  document.getElementById('mem-open').addEventListener('click', function () { show(true); speed.focus(); });
+  document.getElementById('ed-close').addEventListener('click', function () { show(false); });
+  document.getElementById('ed-cancel').addEventListener('click', function () { show(false); });
+  dunno.addEventListener('click', function () {
+    var on = dunno.getAttribute('aria-pressed') !== 'true';
+    dunno.setAttribute('aria-pressed', String(on)); speed.disabled = on; if (on) speed.value = '';
+  });
+  document.getElementById('ed-save').addEventListener('click', function () {
+    var known = !speed.disabled && /^[1-4]$/.test(speed.value.trim());
+    if (!known && dunno.getAttribute('aria-pressed') === 'true') { show(false); return; }
+    if (!known) { speed.parentNode.classList.add('is-error'); speed.nextElementSibling.querySelector('.uj-help').textContent = 'Escribí sólo el número, por ejemplo 2, o tocá «No lo sé».'; speed.focus(); return; }
+    speed.parentNode.classList.remove('is-error');
+    var n = +speed.value.trim();
+    document.getElementById('mem-speed').textContent = n === 1 ? '1 lugar para discos M.2' : n + ' lugares para discos M.2';
+    var side = document.getElementById('side-mem');
+    if (side) side.outerHTML = n > 1
+      ? '<span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span>'
+      : '<span class="uj-verdict uj-verdict-no"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>No encaja</span>';
+    var ok = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
+    var badge = document.getElementById('mem-badge');
+    badge.outerHTML = '<span class="saved">' + ok + 'Completo</span>';
+    document.getElementById('mem').classList.remove('is-q');
+    document.querySelector('.dots .q').classList.remove('q');
+    document.querySelector('.complete-top span').textContent = 'Sin datos por confirmar';
+    toast.classList.add('show');
+  });
+  // Pestañas de PC
+  var tabs = document.querySelectorAll('.pc-tab');
+  tabs.forEach(function (t) { t.addEventListener('click', function () { tabs.forEach(function (o) { o.setAttribute('aria-pressed', String(o === t)); }); document.querySelector('.head h1').textContent = t.textContent; }); });
+</script>
+
+<div class="uj-ayuda" id="ayuda">
+  <section class="uj-ayuda-panel" id="ayuda-panel" role="dialog" aria-labelledby="ayuda-title">
+    <header class="uj-ayuda-head">
+      <div><b id="ayuda-title">Asistente</b><small>Sobre: Mi PC · La de casa</small></div>
+      <a class="uj-ayuda-icon" href="#" aria-label="Abrir la charla en pantalla completa" title="Abrir en pantalla completa"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a>
+      <button class="uj-ayuda-icon" type="button" id="ayuda-x" aria-label="Cerrar el asistente"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="uj-ayuda-body" id="ayuda-body" aria-live="polite"></div>
+    <div class="uj-ayuda-foot">
+      <form class="uj-composer" id="ayuda-form"><input id="ayuda-in" placeholder="Escribí tu pregunta" aria-label="Tu pregunta" autocomplete="off"><button class="uj-btn uj-btn-principal uj-btn-chico" aria-label="Enviar"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></svg></button></form>
+      <span class="uj-help">Si algo encaja o no, lo revisamos con reglas fijas. El asistente te lo explica.</span>
+    </div>
+  </section>
+  <button class="uj-ayuda-btn" type="button" id="ayuda-btn" aria-expanded="false" aria-controls="ayuda-panel"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg><span>¿Dudas?</span></button>
+</div>
+<script>
+  // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
+  (function () {
+    var CTX = 'Mi PC · La de casa', OPEN = false, QA = [["¿Qué es un lugar M.2?", "Es una ranura corta en la placa madre para discos rápidos que van sin cables. Tu SSD actual ya usa uno."], ["¿Por qué dice «Falta un dato»?", "No sabemos cuántos lugares M.2 tiene tu placa madre. Sin ese dato no podemos decirte si te entra otro disco de ese tipo."], ["¿Qué me conviene mejorar?", "Para jugar, lo que más se nota es la placa de video. En «Lo que te conviene» tenés las opciones con su precio."]];
+    var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
+    var inp = document.getElementById('ayuda-in'), started = false, asked = [];
+    var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    var VERDICT = { encaja: '<div><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></div>' };
+    function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function add(html) { var d = document.createElement('div'); d.innerHTML = html; var n = d.firstChild; body.appendChild(n); body.scrollTop = body.scrollHeight; return n; }
+    function botHtml(t) { return '<div class="uj-bubble uj-bubble-bot"><div class="uj-bubble-who"><i></i>Asistente</div>' + t + '</div>'; }
+    function chips() {
+      var left = QA.filter(function (x, i) { return asked.indexOf(i) < 0; });
+      if (!left.length) return;
+      var c = add('<div class="uj-chips"></div>');
+      QA.forEach(function (x, i) {
+        if (asked.indexOf(i) > -1) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'uj-chip'; b.textContent = x[0];
+        b.addEventListener('click', function () { asked.push(i); ask(x[0], x[1] + (x[2] ? VERDICT[x[2]] : '')); });
+        c.appendChild(b);
+      });
+    }
+    function ask(q, a) {
+      var old = body.querySelector('.uj-chips'); if (old) old.remove();
+      add('<div class="uj-bubble uj-bubble-user">' + esc(q) + '</div>');
+      var t = add('<div class="uj-typing" aria-label="Escribiendo"><span></span><span></span><span></span></div>');
+      setTimeout(function () { t.remove(); add(botHtml(a)); chips(); }, 700);
+    }
+    function open() {
+      root.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Cerrar el asistente');
+      btn.innerHTML = ICON_X + '<span>¿Dudas?</span>';
+      if (!started) { started = true; add(botHtml('Hola. Estás en <strong>' + CTX + '</strong>. ¿En qué te ayudo?')); chips(); }
+      inp.focus();
+    }
+    function close() {
+      root.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-label');
+      btn.innerHTML = ICON_CHAT + '<span>¿Dudas?</span>'; btn.focus();
+    }
+    btn.addEventListener('click', function () { root.classList.contains('is-open') ? close() : open(); });
+    document.getElementById('ayuda-x').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root.classList.contains('is-open')) close(); });
+    root.querySelector('a.uj-ayuda-icon').addEventListener('click', function (e) { e.preventDefault(); });
+    document.getElementById('ayuda-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = inp.value.trim(); if (!q) return; inp.value = '';
+      ask(q, 'Esto es una vista previa y acá no respondo preguntas libres. En la app te contesto con los datos de tu PC, y si no tengo un dato te lo digo.');
+    });
+    if (OPEN) open();
+  })();
+</script>
+</body>
+</html>

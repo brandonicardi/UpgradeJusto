@@ -1,0 +1,24 @@
+<!-- @dsCard group="Objetivo y presupuesto" height=240 subtitle="Cuánto querés gastar" -->
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BudgetSlider</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="uj-pad">
+  <div class="uj-budget">
+    <label class="uj-label" for="b">¿Cuánto querés gastar como máximo?</label>
+    <div class="uj-budget-value" id="v">$ 400.000<small>ARS</small></div>
+    <input class="uj-range" id="b" type="range" min="100000" max="1500000" step="50000" value="400000" style="--fill:21.4%">
+    <div class="uj-budget-scale"><span>$ 100.000</span><span>$ 1.500.000</span></div>
+    <div class="uj-presets">
+      <button class="uj-chip" data-v="250000">$ 250 mil</button>
+      <button class="uj-chip" data-v="500000">$ 500 mil</button>
+      <button class="uj-chip" data-v="1000000">$ 1 millón</button>
+    </div>
+  </div>
+</div>
+<script>
+var r = document.getElementById('b'), v = document.getElementById('v');
+function upd() { var p = (r.value - r.min) / (r.max - r.min) * 100; r.style.setProperty('--fill', p + '%'); v.firstChild.nodeValue = '$ ' + Number(r.value).toLocaleString('es-AR'); }
+r.addEventListener('input', upd);
+document.querySelectorAll('[data-v]').forEach(function (c) { c.addEventListener('click', function () { r.value = c.dataset.v; upd(); }); });
+</script>
+</body></html>

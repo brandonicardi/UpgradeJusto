@@ -1,0 +1,174 @@
+<!-- @dsCard group="Pantallas" page height=1550 width=1280 subtitle="Administración: piezas con datos faltantes y carga de precios con fuente" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administración — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; }
+  .wrap { padding-inline: var(--space-7); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+  .badge { font: 700 12px/16px var(--font-sans); padding: 4px var(--space-3); border-radius: var(--radius-pill); background: var(--tinta); color: var(--papel); margin-left: var(--space-3); vertical-align: middle; }
+  .nav { display: flex; align-items: center; gap: var(--space-2); }
+  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+  .nav a:hover { background: var(--papel-hundido); }
+
+  .head { padding-top: var(--space-6); padding-bottom: var(--space-5); display: grid; gap: var(--space-2); }
+  .head h1 { margin: 0; font: 700 44px/48px var(--font-display); letter-spacing: -.02em; }
+  .head p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); padding-bottom: var(--space-6); }
+  .stat { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-1); }
+  .stat b { font: 700 34px/38px var(--font-display); font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+  .stat.warn { border-color: var(--revisar); background: var(--revisar-fondo); }
+  .stat.bad { border-color: var(--no-encaja); background: var(--no-encaja-fondo); }
+
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: var(--space-6); align-items: start; }
+
+  .tabs { display: flex; gap: var(--space-1); border-bottom: 1px solid var(--linea); margin-bottom: var(--space-4); }
+  .tab { appearance: none; background: none; border: 0; border-bottom: 3px solid transparent; padding: var(--space-3) var(--space-4); font: 700 15px/20px var(--font-sans); color: var(--tinta-suave); cursor: pointer; }
+  .tab[aria-selected="true"] { color: var(--tinta); border-bottom-color: var(--pino); }
+  .tab .n { margin-left: var(--space-2); font-size: 12px; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--papel-hundido); }
+
+  .table { border: 1px solid var(--linea); border-radius: var(--radius-md); overflow: hidden; background: var(--papel-alto); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 22px; }
+  th, td { text-align: left; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--linea); vertical-align: middle; }
+  th { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); background: var(--papel-hundido); }
+  tr:last-child td { border-bottom: 0; }
+  td .sub { display: block; font-size: 13px; line-height: 18px; color: var(--tinta-suave); }
+  .miss { display: inline-flex; align-items: center; gap: 6px; font: 600 13px/18px var(--font-sans); padding: 2px var(--space-2); border-radius: var(--radius-pill); background: var(--revisar-fondo); color: var(--tinta); margin: 2px 4px 2px 0; }
+  .old { color: var(--no-encaja); font-weight: 600; }
+  .panel-hidden { display: none; }
+
+  .form { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); box-shadow: var(--sombra-2); position: sticky; top: var(--space-5); }
+  .form h2 { margin: 0; font: 650 22px/28px var(--font-display); }
+  .form > p { margin: 0; color: var(--tinta-suave); font-size: 15px; line-height: 22px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+  .uj-field select { min-height: 48px; padding: 0 var(--space-3); border-radius: var(--radius-sm); border: 1.5px solid var(--linea-fuerte); background: var(--papel); color: var(--tinta); font: 500 16px var(--font-sans); }
+  .form .uj-btn { justify-content: center; }
+
+  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-8); padding-block: var(--space-6); border-top: 1px solid var(--linea); color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+
+  @media (max-width: 1100px) { .body { grid-template-columns: 1fr; } .form { position: static; } .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) {
+    .wrap { padding-inline: var(--space-4); }
+    .nav { display: none; }
+    .head h1 { font-size: 34px; line-height: 38px; }
+    .row2 { grid-template-columns: 1fr; }
+    .table { overflow-x: auto; }
+    table { min-width: 560px; }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+  <header class="top wrap">
+    <span><a class="logo" href="#">UpgradeJusto</a><span class="badge">Administración</span></span>
+    <nav class="nav" aria-label="Administración">
+      <a href="#">Ver el sitio</a>
+      <a href="#">Salir</a>
+    </nav>
+  </header>
+
+  <section class="head wrap">
+    <h1>Qué hay que atender</h1>
+    <p>Piezas a las que les faltan datos y precios que ya están viejos. Sin datos, el revisor dice “Falta un dato”; sin precio reciente, la pieza no se recomienda.</p>
+  </section>
+
+  <section class="stats wrap" aria-label="Resumen">
+    <div class="stat"><b>412</b><span>Piezas en el catálogo</span></div>
+    <div class="stat warn"><b>23</b><span>Con datos faltantes</span></div>
+    <div class="stat bad"><b>38</b><span>Sin precio de los últimos 7 días</span></div>
+    <div class="stat"><b>6</b><span>Tiendas que usamos como fuente</span></div>
+  </section>
+
+  <main class="body wrap">
+    <div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-p="datos">Datos faltantes<span class="n">23</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-p="precios">Precios viejos<span class="n">38</span></button>
+      </div>
+
+      <div class="table" id="p-datos" role="tabpanel">
+        <table>
+          <thead><tr><th>Pieza</th><th>Le falta</th><th>Afecta a</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>Mid tower ATX · 4 ventiladores<span class="sub">Gabinete</span></td><td><span class="miss">Largo máximo de placa de video</span><span class="miss">Alto máximo de cooler</span></td><td>14 PCs</td><td><button class="uj-btn uj-btn-quieto uj-btn-chico">Completar</button></td></tr>
+            <tr><td>B550M · Micro ATX<span class="sub">Placa madre</span></td><td><span class="miss">Cantidad de lugares M.2</span></td><td>31 PCs</td><td><button class="uj-btn uj-btn-quieto uj-btn-chico">Completar</button></td></tr>
+            <tr><td>650 W · 80 Plus Bronze<span class="sub">Fuente</span></td><td><span class="miss">Conectores de 8 pines</span></td><td>9 PCs</td><td><button class="uj-btn uj-btn-quieto uj-btn-chico">Completar</button></td></tr>
+            <tr><td>Cooler torre 120 mm<span class="sub">Cooler</span></td><td><span class="miss">Altura</span><span class="miss">Zócalos que acepta</span></td><td>2 PCs</td><td><button class="uj-btn uj-btn-quieto uj-btn-chico">Completar</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table panel-hidden" id="p-precios" role="tabpanel">
+        <table>
+          <thead><tr><th>Pieza</th><th>Último precio</th><th>Visto el</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>Mid tower ATX · 4 ventiladores<span class="sub">Gabinete</span></td><td>ARS $ 74.000<span class="sub">Tienda de ejemplo A</span></td><td class="old">18/10 · hace 15 días</td><td><button class="uj-btn uj-btn-quieto uj-btn-chico" data-fill="Mid tower ATX · 4 ventiladores">Cargar precio</button></td></tr>
+            <tr><td>GeForce RTX 4060 · 8 GB<span class="sub">Placa de video</span></td><td>ARS $ 371.500<span class="sub">Tienda de ejemplo C</span></td><td class="old">12/10 · hace 21 días</td><td><button class="uj-btn uj-btn-quieto uj-btn-chico" data-fill="GeForce RTX 4060 · 8 GB">Cargar precio</button></td></tr>
+            <tr><td>Ryzen 5 5600<span class="sub">Procesador</span></td><td>ARS $ 168.000<span class="sub">Tienda de ejemplo B</span></td><td class="old">24/10 · hace 9 días</td><td><button class="uj-btn uj-btn-quieto uj-btn-chico" data-fill="Ryzen 5 5600">Cargar precio</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <form class="form" id="form" novalidate>
+      <h2>Cargar un precio</h2>
+      <p>Todos los campos son obligatorios. Un precio sin fuente o sin fecha no se publica.</p>
+      <label class="uj-field" data-req><span class="uj-label">Pieza</span><input class="uj-input" id="pieza" placeholder="Buscá por nombre"><span class="uj-help">Elegí una del catálogo.</span></label>
+      <div class="row2">
+        <label class="uj-field" data-req><span class="uj-label">Monto</span><input class="uj-input" id="monto" inputmode="numeric" placeholder="389900"><span class="uj-help">Precio de contado.</span></label>
+        <label class="uj-field"><span class="uj-label">Moneda</span><select id="moneda"><option>ARS</option><option>USD</option></select><span class="uj-help">Se muestra siempre.</span></label>
+      </div>
+      <div class="row2">
+        <label class="uj-field" data-req><span class="uj-label">Tienda</span><select id="tienda"><option value="">Elegí una</option><option>Tienda de ejemplo A</option><option>Tienda de ejemplo B</option><option>Tienda de ejemplo C</option></select><span class="uj-help">&nbsp;</span></label>
+        <label class="uj-field" data-req><span class="uj-label">Visto el</span><input class="uj-input" id="fecha" type="date" value="2026-11-02"><span class="uj-help">No puede ser futura.</span></label>
+      </div>
+      <label class="uj-field" data-req><span class="uj-label">Enlace donde lo viste</span><input class="uj-input" id="url" type="url" placeholder="https://"><span class="uj-help">Es la fuente que ve la gente al lado del precio.</span></label>
+      <button class="uj-btn uj-btn-principal" type="submit">Publicar precio</button>
+      <div id="out" role="status"></div>
+    </form>
+  </main>
+
+  <footer class="foot wrap">
+    <span>Cada cambio queda registrado con quién lo hizo y cuándo.</span>
+    <span>Los datos técnicos de una pieza se cargan solo desde la ficha del fabricante.</span>
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (o) { o.setAttribute('aria-selected', String(o === t)); });
+      document.getElementById('p-datos').classList.toggle('panel-hidden', t.dataset.p !== 'datos');
+      document.getElementById('p-precios').classList.toggle('panel-hidden', t.dataset.p !== 'precios');
+    });
+  });
+  document.querySelectorAll('[data-fill]').forEach(function (b) {
+    b.addEventListener('click', function () { var p = document.getElementById('pieza'); p.value = b.dataset.fill; document.getElementById('monto').focus(); });
+  });
+  var MSG = { pieza: 'Elegí la pieza.', monto: 'Escribí el monto, solo números.', tienda: 'Sin tienda no sabemos de dónde viene.', fecha: 'Poné la fecha en que lo viste, de hoy para atrás.', url: 'Sin enlace no hay fuente: no se puede publicar.' };
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var bad = 0;
+    Object.keys(MSG).forEach(function (id) {
+      var el = document.getElementById(id), f = el.closest('.uj-field'), v = el.value.trim(), ok = !!v;
+      if (id === 'monto') ok = /^\d+$/.test(v.replace(/\./g, '')) && +v.replace(/\./g, '') > 0;
+      if (id === 'fecha') ok = !!v && v <= '2026-11-02';
+      if (id === 'url') ok = /^https?:\/\/\S+\.\S+/.test(v);
+      f.classList.toggle('is-error', !ok);
+      var h = f.querySelector('.uj-help');
+      if (!h.dataset.orig) h.dataset.orig = h.innerHTML;
+      h.innerHTML = ok ? h.dataset.orig : MSG[id];
+      if (!ok) bad++;
+    });
+    document.getElementById('out').innerHTML = bad ? '' :
+      '<div class="uj-notice uj-notice-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><div><strong>Vista previa: acá no se publica nada</strong><p>Se mostraría como ' + document.getElementById('moneda').value + ' $ ' + Number(document.getElementById('monto').value.replace(/\./g, '')).toLocaleString('es-AR') + ', visto el ' + document.getElementById('fecha').value.split('-').reverse().slice(0, 2).join('/') + ' en ' + document.getElementById('tienda').value + '.</p></div></div>';
+  });
+</script>
+</body>
+</html>

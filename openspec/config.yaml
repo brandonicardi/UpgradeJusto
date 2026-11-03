@@ -1,0 +1,45 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es (español rioplatense, claro y breve).
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English
+  (ej.: "El sistema SHALL ...").
+
+  Proyecto: UpgradeJusto, web para mejorar una PC existente o armar una desde cero
+  según compatibilidad, objetivo de uso y presupuesto. Trabajo final de curso.
+  Stack: backend FastAPI + SQLAlchemy + Alembic (Python 3.12, uv); frontend Next.js 16
+  + React 19 + Tailwind 4; PostgreSQL 18 + pgvector; chat con LangChain/LangGraph
+  (Groq por defecto, Ollama opcional) y herramientas vía un servidor MCP propio.
+  Todo se levanta con Docker Compose.
+
+  Reglas no negociables:
+  - Solo el motor determinístico decide compatibilidad; el LLM explica.
+  - Veredictos: compatible, incompatible, requiere_verificacion. Desconocido nunca
+    equivale a compatible.
+  - Identidad y propiedad se resuelven en el servidor; nunca un user_id del cliente.
+  - Simular no modifica la PC guardada; extraer requiere confirmación antes de guardar.
+  - No inventar precios, FPS ni datos de fabricante.
+
+  Las specs están escritas para agentes de IA: cortas, sin historia ni justificaciones
+  largas. Cada requisito describe un comportamiento observable y verificable.
+
+rules:
+  proposal:
+    - Máximo 300 palabras. Decir qué queda fuera de alcance.
+  specs:
+    - Un requisito = un comportamiento observable. Escenarios con WHEN/THEN.
+    - No repetir reglas globales que ya están en AGENTS.md.
+  design:
+    - Solo decisiones que no sean obvias; máximo 400 palabras.
+  tasks:
+    - Tareas chicas (máx. ~1 hora), cada una con su prueba de verificación.
+    - Separar tareas de backend y de frontend para delegarlas a agentes distintos.
+
+operations:
+  apply:
+    guidance:
+      - Implementar una tarea por vez y marcarla solo con su prueba en verde.
+  archive:
+    guidance:
+      - Archivar solo con aprobación explícita de Brandon.

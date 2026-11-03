@@ -1,0 +1,17 @@
+<!-- @dsCard group="Formularios" height=230 subtitle="Normal y con error" -->
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Field</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="uj-pad uj-row" style="align-items:start;gap:var(--space-6)">
+  <label class="uj-field">
+    <span class="uj-label">¿Cómo se llama tu PC?</span>
+    <input class="uj-input" placeholder="Por ejemplo: La de casa">
+    <span class="uj-help">Es sólo para que la reconozcas después.</span>
+  </label>
+  <label class="uj-field is-error">
+    <span class="uj-label">Tu correo</span>
+    <input class="uj-input" value="nombre@" aria-invalid="true">
+    <span class="uj-help"><svg class="uj-icon uj-icon-sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Le falta el final, por ejemplo @gmail.com</span>
+  </label>
+</div>
+</body></html>

@@ -1,0 +1,19 @@
+<!-- @dsCard group="Objetivo y presupuesto" height=170 subtitle="Qué querés que tu PC haga mejor" -->
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>GoalPicker</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="uj-pad uj-stack">
+  <div class="uj-display" style="font-size:24px;line-height:30px;font-weight:650">¿Qué querés que tu PC haga mejor?</div>
+  <div class="uj-goals" role="group" aria-label="Objetivo">
+    <button class="uj-goal" aria-pressed="true"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Jugar mejor</button>
+    <button class="uj-goal" aria-pressed="false"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Trabajar más rápido</button>
+    <button class="uj-goal" aria-pressed="false"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Editar fotos y video</button>
+    <button class="uj-goal" aria-pressed="false"><span class="uj-goal-check"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>Que arranque y abra todo más rápido</button>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.uj-goal').forEach(function (b) {
+  b.addEventListener('click', function () { document.querySelectorAll('.uj-goal').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); }); });
+});
+</script>
+</body></html>

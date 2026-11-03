@@ -1,0 +1,420 @@
+<!-- @dsCard group="Pantallas" page height=2150 width=1280 subtitle="Agregar PC: pegás tu lista, revisás lo que entendimos y recién ahí se guarda" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agregar PC — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; }
+  .wrap { padding-inline: var(--space-7); }
+
+  /* Barra superior */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+  .nav { display: flex; align-items: center; gap: var(--space-2); }
+  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+  .nav a:hover { background: var(--papel-hundido); }
+  .nav a[aria-current] { background: var(--pino-suave); }
+
+  .back { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--tinta-suave); font-weight: 600; text-decoration: none; margin-top: var(--space-4); }
+  .back:hover { color: var(--tinta); }
+  .hero { padding-top: var(--space-4); padding-bottom: var(--space-6); max-width: 760px; }
+  .hero h1 { margin: 0 0 var(--space-3); font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
+  .hero p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
+
+  /* Pasos de arriba */
+  .progress { list-style: none; margin: 0 0 var(--space-6); padding: 0; display: flex; gap: var(--space-3); flex-wrap: wrap; }
+  .progress li { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2); border-radius: var(--radius-pill); background: var(--papel-hundido); color: var(--tinta-suave); font-weight: 600; }
+  .progress b { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--papel-alto); color: var(--tinta); font-size: 14px; }
+  .progress li[aria-current="step"] { background: var(--pino); color: var(--sobre-pino); }
+  .progress li[aria-current="step"] b { background: var(--lima); color: var(--sobre-lima); }
+  .progress li.is-done { background: var(--pino-suave); color: var(--tinta); }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--space-6); align-items: start; padding-bottom: var(--space-8); }
+  .main { display: grid; gap: var(--space-6); }
+
+  .panel { background: var(--papel-alto); border-radius: var(--radius-lg); box-shadow: var(--sombra-1); padding: var(--space-6); display: grid; gap: var(--space-5); }
+  .panel-head { display: grid; gap: var(--space-2); }
+  .panel-head .n { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
+  .panel-head h2 { margin: 0; font: 650 28px/34px var(--font-display); letter-spacing: -.01em; }
+  .panel-head p { margin: 0; color: var(--tinta-suave); }
+  .panel.is-locked { box-shadow: none; background: transparent; border: 1.5px dashed var(--linea-fuerte); }
+  .panel.is-locked .panel-body { display: none; }
+
+  /* Pegar */
+  .paste { width: 100%; min-height: 220px; resize: vertical; font: 400 16px/24px var(--font-sans); }
+  .where { border-top: 1px solid var(--linea); padding-top: var(--space-4); }
+  .where summary { cursor: pointer; font-weight: 600; color: var(--pino); }
+  .where ol { margin: var(--space-3) 0 0; padding-left: var(--space-5); display: grid; gap: var(--space-2); }
+  .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+  .reading { display: none; align-items: center; gap: var(--space-3); color: var(--tinta-suave); font-weight: 600; }
+  .reading.on { display: flex; }
+
+  /* Revisar */
+  .count { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .tag { display: inline-flex; align-items: center; gap: var(--space-1); padding: 4px var(--space-3) 4px var(--space-2); border-radius: var(--radius-pill); font: 700 13px/18px var(--font-sans); letter-spacing: .02em; }
+  .tag .uj-icon { width: 16px; height: 16px; stroke-width: 2.25; }
+  .tag-ok { background: var(--pino-suave); color: var(--tinta); }
+  .tag-ok .uj-icon { color: var(--pino); }
+  .tag-check { background: var(--revisar-fondo); color: var(--revisar); }
+  .tag-none { background: var(--papel-hundido); color: var(--tinta-suave); }
+
+  .rows { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+  .row { display: grid; grid-template-columns: 180px minmax(0, 1fr) auto; gap: var(--space-4); align-items: start; padding: var(--space-4); border: 1px solid var(--linea); border-radius: var(--radius-md); background: var(--papel); }
+  .row.is-check { border-color: var(--revisar); }
+  .row.is-none { border-style: dashed; border-color: var(--linea-fuerte); }
+  .row-kind { display: grid; gap: 2px; }
+  .row-kind b { font-weight: 700; }
+  .row-kind span { font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
+  .row-edit { display: grid; gap: var(--space-2); }
+  .row-edit .uj-input { width: 100%; }
+  .quote { font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
+  .quote q { color: var(--tinta); font-style: italic; }
+  .ask { font-size: 15px; line-height: 22px; color: var(--revisar); font-weight: 600; }
+  .row .uj-chip[aria-pressed="true"] { background: var(--tinta); color: var(--papel); border-color: var(--tinta); }
+
+  /* Guardar */
+  .name-field { max-width: 420px; }
+  .summary { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+  .summary li { display: flex; gap: var(--space-2); }
+  .summary .uj-icon { width: 20px; height: 20px; color: var(--pino); flex: none; margin-top: 2px; }
+  .saved { display: none; gap: var(--space-4); }
+  .saved.on { display: grid; }
+
+  /* Costado */
+  .side { display: grid; gap: var(--space-4); position: sticky; top: var(--space-5); }
+  .card { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-3); }
+  .card h2 { margin: 0; font: 650 18px/24px var(--font-display); }
+  .card p { margin: 0; color: var(--tinta-suave); font-size: 15px; line-height: 22px; }
+  .card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); font-size: 15px; line-height: 22px; }
+  .card li { display: flex; gap: var(--space-2); }
+  .card li .uj-icon { width: 18px; height: 18px; color: var(--pino); flex: none; margin-top: 2px; }
+  .trust { background: var(--pino); border-color: var(--pino); color: var(--sobre-pino); }
+  .trust p, .trust li .uj-icon { color: var(--sobre-pino); }
+
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    .side { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .wrap { padding-inline: var(--space-4); }
+    .nav a:not([aria-current]) { display: none; }
+    .hero h1 { font-size: 34px; line-height: 40px; }
+    .panel { padding: var(--space-5) var(--space-4); border-radius: var(--radius-md); }
+    .panel-head h2 { font-size: 24px; line-height: 30px; }
+    .row { grid-template-columns: 1fr; gap: var(--space-2); }
+    .side { grid-template-columns: 1fr; }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+
+  <header class="top wrap">
+    <a class="logo" href="#">UpgradeJusto</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#" aria-current="page">Mi PC</a>
+      <a href="#">Lo que te conviene</a>
+      <a href="#">Mi plan</a>
+      <a href="#">Asistente</a>
+    </nav>
+  </header>
+
+  <div class="wrap">
+    <a class="back" href="#"><svg class="uj-icon uj-icon-sm" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Volver a Mi PC</a>
+    <section class="hero">
+      <h1>Contanos qué tiene tu PC</h1>
+      <p>Pegá lo que tengas a mano y nosotros lo ordenamos. Antes de guardar, revisás todo y corregís lo que haga falta.</p>
+    </section>
+
+    <ol class="progress" id="progress">
+      <li aria-current="step"><b>1</b>Pegá tu lista</li>
+      <li><b>2</b>Revisá lo que entendimos</li>
+      <li><b>3</b>Guardala</li>
+    </ol>
+  </div>
+
+  <div class="layout wrap">
+    <div class="main">
+
+      <!-- Paso 1 -->
+      <section class="panel" id="p1">
+        <div class="panel-head">
+          <span class="n">PASO 1 DE 3</span>
+          <h2>Pegá lo que sepas de tu PC</h2>
+          <p>Sirve cualquier cosa: la factura, un mensaje de quien te la armó o lo que muestra Windows. No hace falta que esté completo ni ordenado.</p>
+        </div>
+        <label class="uj-field" style="max-width:none">
+          <span class="uj-label">Tu lista</span>
+          <textarea class="uj-input paste" id="paste" placeholder="Por ejemplo: Procesador Ryzen 5 5600, 16 GB de memoria, placa de video GTX 1650…"></textarea>
+          <span class="uj-help">No pegues contraseñas, números de tarjeta ni datos personales.</span>
+        </label>
+        <div class="actions">
+          <button class="uj-btn uj-btn-principal" id="read" disabled>Ordenar mi lista</button>
+          <button class="uj-btn uj-btn-quieto" id="sample">Probar con un ejemplo</button>
+          <span class="reading" id="reading" role="status"><span class="uj-typing" aria-hidden="true"><span></span><span></span><span></span></span>Leyendo tu lista…</span>
+        </div>
+        <details class="where">
+          <summary>¿No sabés de dónde sacar la lista?</summary>
+          <ol>
+            <li>En Windows, abrí <strong>Configuración → Sistema → Información</strong>. Ahí ves el procesador y la memoria.</li>
+            <li>Abrí el <strong>Administrador de tareas</strong> (Ctrl + Shift + Esc) y entrá a <strong>Rendimiento</strong>. Ahí aparecen la placa de video y los discos.</li>
+            <li>Copiá lo que veas y pegalo arriba. Lo que falte lo completamos después.</li>
+          </ol>
+        </details>
+      </section>
+
+      <!-- Paso 2 -->
+      <section class="panel is-locked" id="p2" aria-labelledby="p2t">
+        <div class="panel-head">
+          <span class="n">PASO 2 DE 3</span>
+          <h2 id="p2t">Revisá lo que entendimos</h2>
+          <p>Cada pieza muestra de qué parte de tu texto la sacamos. Corregí lo que esté mal. Lo que no sepas, dejalo así: no lo vamos a adivinar.</p>
+        </div>
+        <div class="panel-body" style="display:grid;gap:var(--space-5)">
+          <div class="count" aria-label="Resumen">
+            <span class="tag tag-ok"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>4 las leímos bien</span>
+            <span class="tag tag-check"><svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></svg>3 para revisar</span>
+            <span class="tag tag-none"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>2 no estaban</span>
+          </div>
+
+          <p class="uj-help" id="demo" hidden>Vista previa: acá siempre se muestra el resultado de la lista de ejemplo, no el de tu texto.</p>
+          <div class="uj-notice uj-notice-info" style="max-width:none">
+            <svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+            <div><strong>Todavía no guardamos nada</strong><p>Esto es una propuesta. Tu PC se guarda recién cuando confirmes en el paso 3.</p></div>
+          </div>
+
+          <ul class="rows">
+            <li class="row">
+              <div class="row-kind"><b>Procesador</b><span>El cerebro de la PC</span></div>
+              <div class="row-edit"><input class="uj-input" value="AMD Ryzen 5 5600" aria-label="Procesador"><span class="quote">De tu texto: <q>Procesador AMD Ryzen 5 5600</q></span></div>
+              <span class="tag tag-ok"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Leída</span>
+            </li>
+            <li class="row is-check">
+              <div class="row-kind"><b>Placa madre</b><span>Donde se conecta todo</span></div>
+              <div class="row-edit">
+                <input class="uj-input" value="B450M" aria-label="Placa madre">
+                <span class="quote">De tu texto: <q>Placa madre B450M</q></span>
+                <span class="ask">Varias marcas tienen una placa «B450M». ¿Sabés cuál es?</span>
+                <select class="uj-input" aria-label="Marca de la placa madre"><option>No lo sé todavía</option><option>ASRock</option><option>ASUS</option><option>Gigabyte</option><option>MSI</option><option>Otra</option></select>
+              </div>
+              <span class="tag tag-check">Revisala</span>
+            </li>
+            <li class="row">
+              <div class="row-kind"><b>Memoria</b><span>Para tener cosas abiertas</span></div>
+              <div class="row-edit"><input class="uj-input" value="2 × 8 GB DDR4" aria-label="Memoria"><span class="quote">De tu texto: <q>16gb de ram (2x8)</q> · La velocidad no estaba; queda sin dato.</span></div>
+              <span class="tag tag-ok"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Leída</span>
+            </li>
+            <li class="row">
+              <div class="row-kind"><b>Placa de video</b><span>La que dibuja los juegos</span></div>
+              <div class="row-edit"><input class="uj-input" value="NVIDIA GeForce GTX 1650 · 4 GB" aria-label="Placa de video"><span class="quote">De tu texto: <q>Placa de video GTX 1650 4GB</q></span></div>
+              <span class="tag tag-ok"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Leída</span>
+            </li>
+            <li class="row is-check">
+              <div class="row-kind"><b>Fuente</b><span>Le da energía a todo</span></div>
+              <div class="row-edit">
+                <input class="uj-input" value="550 W" aria-label="Fuente">
+                <span class="quote">De tu texto: <q>Fuente 550w</q></span>
+                <span class="ask">Falta la marca y el modelo. Sin eso no podemos saber cuánta energía da de verdad.</span>
+                <input class="uj-input" placeholder="Marca y modelo, si lo sabés" aria-label="Marca y modelo de la fuente">
+              </div>
+              <span class="tag tag-check">Revisala</span>
+            </li>
+            <li class="row">
+              <div class="row-kind"><b>Almacenamiento</b><span>Donde guardás tus cosas</span></div>
+              <div class="row-edit"><input class="uj-input" value="SSD Kingston 500 GB" aria-label="Almacenamiento"><span class="quote">De tu texto: <q>Disco SSD Kingston 500gb</q></span></div>
+              <span class="tag tag-ok"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Leída</span>
+            </li>
+            <li class="row is-check">
+              <div class="row-kind"><b>Gabinete</b><span>La caja que lo guarda todo</span></div>
+              <div class="row-edit">
+                <input class="uj-input" value="Sentey" aria-label="Gabinete">
+                <span class="quote">De tu texto: <q>Gabinete Sentey</q></span>
+                <span class="ask">Tenemos la marca pero no el modelo. Lo necesitamos para saber qué piezas entran.</span>
+                <input class="uj-input" placeholder="Modelo, si lo sabés" aria-label="Modelo del gabinete">
+              </div>
+              <span class="tag tag-check">Revisala</span>
+            </li>
+            <li class="row is-none">
+              <div class="row-kind"><b>Cooler</b><span>Enfría el procesador</span></div>
+              <div class="row-edit"><input class="uj-input" placeholder="No estaba en tu lista" aria-label="Cooler"><div class="uj-row" style="gap:var(--space-2)"><button type="button" class="uj-chip" aria-pressed="false">Viene con el procesador</button><button type="button" class="uj-chip" aria-pressed="true">No lo sé</button></div></div>
+              <span class="tag tag-none">Sin dato</span>
+            </li>
+            <li class="row is-none">
+              <div class="row-kind"><b>Ventiladores</b><span>Mueven el aire de la caja</span></div>
+              <div class="row-edit"><input class="uj-input" placeholder="No estaba en tu lista" aria-label="Ventiladores"><div class="uj-row" style="gap:var(--space-2)"><button type="button" class="uj-chip" aria-pressed="true">No lo sé</button></div></div>
+              <span class="tag tag-none">Sin dato</span>
+            </li>
+          </ul>
+          <div class="actions">
+            <button class="uj-btn uj-btn-principal" id="next">Está bien, seguir</button>
+            <button class="uj-btn uj-btn-quieto" id="again">Volver a pegar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Paso 3 -->
+      <section class="panel is-locked" id="p3" aria-labelledby="p3t">
+        <div class="panel-head">
+          <span class="n">PASO 3 DE 3</span>
+          <h2 id="p3t">Guardala</h2>
+          <p>Fijate el resumen y confirmá. Después vas a poder cambiar cualquier pieza desde Mi PC.</p>
+        </div>
+        <div class="panel-body" style="display:grid;gap:var(--space-5)" id="p3body">
+          <label class="uj-field name-field">
+            <span class="uj-label">¿Cómo le decimos a esta PC?</span>
+            <input class="uj-input" id="pcname" value="La de casa">
+          </label>
+          <ul class="summary">
+            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>4 piezas completas</strong>: procesador, memoria, placa de video y almacenamiento.</span></li>
+            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>3 piezas a medias</strong> (placa madre, fuente y gabinete) si no completaste lo que te preguntamos.</span></li>
+            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>2 piezas sin dato</strong> (cooler y ventiladores). Lo que falta queda como «Falta un dato» hasta que lo completes.</span></li>
+            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span>Mientras falten datos, algunas sugerencias van a decir «Falta un dato» en vez de «Encaja».</span></li>
+          </ul>
+          <div class="actions" id="confirm">
+            <button class="uj-btn uj-btn-principal" id="save">Sí, guardar mi PC</button>
+            <button class="uj-btn uj-btn-secundario" id="back2">Volver a revisar</button>
+          </div>
+          <div class="saved" id="saved" role="status">
+            <div class="uj-notice uj-notice-encaja" style="max-width:none">
+              <svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+              <div><strong id="savedtitle">Listo, guardamos «La de casa»</strong><p>Tiene 7 de 9 piezas y a algunas les falta un dato. Cuando quieras, las completás desde Mi PC.</p></div>
+            </div>
+            <div class="actions">
+              <a class="uj-btn uj-btn-principal" href="#">Ver qué me conviene</a>
+              <a class="uj-btn uj-btn-secundario" href="#">Ir a Mi PC</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side" aria-label="Cómo funciona">
+      <div class="card trust">
+        <h2>Vos tenés la última palabra</h2>
+        <ul>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Solo leemos las piezas de tu texto.</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Te mostramos de dónde salió cada dato.</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Nada se guarda hasta que confirmes.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>¿Y si no sé algo?</h2>
+        <p>No pasa nada. Lo dejamos como «sin dato» y te avisamos cuando haga falta. Nunca lo completamos por nuestra cuenta.</p>
+      </div>
+      <div class="card">
+        <h2>¿Preferís otra forma?</h2>
+        <p>Si conocés las piezas, podés elegirlas una por una del catálogo.</p>
+        <a class="uj-btn uj-btn-secundario uj-btn-chico" href="#" style="justify-self:start">Elegir pieza por pieza</a>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  var SAMPLE = 'Hola! Te paso lo que tiene la compu:\nProcesador AMD Ryzen 5 5600\nPlaca madre B450M\n16gb de ram (2x8)\nPlaca de video GTX 1650 4GB\nFuente 550w\nDisco SSD Kingston 500gb\nGabinete Sentey';
+  var paste = document.getElementById('paste'), read = document.getElementById('read'), reading = document.getElementById('reading');
+  var p1 = document.getElementById('p1'), p2 = document.getElementById('p2'), p3 = document.getElementById('p3');
+  var steps = document.querySelectorAll('#progress li');
+  function stepTo(n) {
+    steps.forEach(function (li, i) {
+      li.classList.toggle('is-done', i < n - 1);
+      if (i === n - 1) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    });
+  }
+  function unlock(panel) { panel.classList.remove('is-locked'); panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  paste.addEventListener('input', function () { read.disabled = !paste.value.trim(); });
+  document.getElementById('sample').addEventListener('click', function () { paste.value = SAMPLE; read.disabled = false; paste.focus(); });
+  read.addEventListener('click', function () {
+    read.disabled = true; reading.classList.add('on');
+    setTimeout(function () {
+      reading.classList.remove('on'); read.disabled = false;
+      document.getElementById('demo').hidden = paste.value.trim() === SAMPLE;
+      stepTo(2); unlock(p2);
+    }, 1100);
+  });
+  document.getElementById('again').addEventListener('click', function () { p2.classList.add('is-locked'); p3.classList.add('is-locked'); stepTo(1); p1.scrollIntoView({ behavior: 'smooth' }); paste.focus(); });
+  document.getElementById('next').addEventListener('click', function () { stepTo(3); unlock(p3); });
+  document.getElementById('back2').addEventListener('click', function () { p3.classList.add('is-locked'); stepTo(2); p2.scrollIntoView({ behavior: 'smooth' }); });
+  document.querySelectorAll('.row .uj-chip').forEach(function (c) {
+    c.addEventListener('click', function () {
+      c.parentNode.querySelectorAll('.uj-chip').forEach(function (o) { o.setAttribute('aria-pressed', o === c ? 'true' : 'false'); });
+    });
+  });
+  document.getElementById('save').addEventListener('click', function () {
+    var name = document.getElementById('pcname').value.trim() || 'Mi PC';
+    document.getElementById('savedtitle').textContent = 'Listo, guardamos «' + name + '»';
+    document.getElementById('confirm').style.display = 'none';
+    document.getElementById('saved').classList.add('on');
+    steps[2].classList.add('is-done');
+  });
+</script>
+
+<div class="uj-ayuda" id="ayuda">
+  <section class="uj-ayuda-panel" id="ayuda-panel" role="dialog" aria-labelledby="ayuda-title">
+    <header class="uj-ayuda-head">
+      <div><b id="ayuda-title">Asistente</b><small>Sobre: Agregar PC</small></div>
+      <a class="uj-ayuda-icon" href="#" aria-label="Abrir la charla en pantalla completa" title="Abrir en pantalla completa"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a>
+      <button class="uj-ayuda-icon" type="button" id="ayuda-x" aria-label="Cerrar el asistente"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="uj-ayuda-body" id="ayuda-body" aria-live="polite"></div>
+    <div class="uj-ayuda-foot">
+      <form class="uj-composer" id="ayuda-form"><input id="ayuda-in" placeholder="Escribí tu pregunta" aria-label="Tu pregunta" autocomplete="off"><button class="uj-btn uj-btn-principal uj-btn-chico" aria-label="Enviar"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></svg></button></form>
+      <span class="uj-help">Si algo encaja o no, lo revisamos con reglas fijas. El asistente te lo explica.</span>
+    </div>
+  </section>
+  <button class="uj-ayuda-btn" type="button" id="ayuda-btn" aria-expanded="false" aria-controls="ayuda-panel"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg><span>¿Dudas?</span></button>
+</div>
+<script>
+  // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
+  (function () {
+    var CTX = 'Agregar PC', OPEN = false, QA = [["¿De dónde saco la lista?", "En Windows: Configuración → Sistema → Información. Copiá lo que aparece y pegalo en el cuadro."], ["¿Se guarda apenas pego?", "No. Primero te mostramos lo que entendimos, lo corregís si hace falta y se guarda recién cuando confirmás."], ["¿Y si no sé una pieza?", "Marcala con «No lo sé». No la adivinamos: queda pendiente y te avisamos cuando haga falta."]];
+    var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
+    var inp = document.getElementById('ayuda-in'), started = false, asked = [];
+    var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    var VERDICT = { encaja: '<div><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></div>' };
+    function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function add(html) { var d = document.createElement('div'); d.innerHTML = html; var n = d.firstChild; body.appendChild(n); body.scrollTop = body.scrollHeight; return n; }
+    function botHtml(t) { return '<div class="uj-bubble uj-bubble-bot"><div class="uj-bubble-who"><i></i>Asistente</div>' + t + '</div>'; }
+    function chips() {
+      var left = QA.filter(function (x, i) { return asked.indexOf(i) < 0; });
+      if (!left.length) return;
+      var c = add('<div class="uj-chips"></div>');
+      QA.forEach(function (x, i) {
+        if (asked.indexOf(i) > -1) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'uj-chip'; b.textContent = x[0];
+        b.addEventListener('click', function () { asked.push(i); ask(x[0], x[1] + (x[2] ? VERDICT[x[2]] : '')); });
+        c.appendChild(b);
+      });
+    }
+    function ask(q, a) {
+      var old = body.querySelector('.uj-chips'); if (old) old.remove();
+      add('<div class="uj-bubble uj-bubble-user">' + esc(q) + '</div>');
+      var t = add('<div class="uj-typing" aria-label="Escribiendo"><span></span><span></span><span></span></div>');
+      setTimeout(function () { t.remove(); add(botHtml(a)); chips(); }, 700);
+    }
+    function open() {
+      root.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Cerrar el asistente');
+      btn.innerHTML = ICON_X + '<span>¿Dudas?</span>';
+      if (!started) { started = true; add(botHtml('Hola. Estás en <strong>' + CTX + '</strong>. ¿En qué te ayudo?')); chips(); }
+      inp.focus();
+    }
+    function close() {
+      root.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-label');
+      btn.innerHTML = ICON_CHAT + '<span>¿Dudas?</span>'; btn.focus();
+    }
+    btn.addEventListener('click', function () { root.classList.contains('is-open') ? close() : open(); });
+    document.getElementById('ayuda-x').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root.classList.contains('is-open')) close(); });
+    root.querySelector('a.uj-ayuda-icon').addEventListener('click', function (e) { e.preventDefault(); });
+    document.getElementById('ayuda-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = inp.value.trim(); if (!q) return; inp.value = '';
+      ask(q, 'Esto es una vista previa y acá no respondo preguntas libres. En la app te contesto con los datos de tu PC, y si no tengo un dato te lo digo.');
+    });
+    if (OPEN) open();
+  })();
+</script>
+</body>
+</html>

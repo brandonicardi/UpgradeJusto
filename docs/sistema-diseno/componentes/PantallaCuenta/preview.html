@@ -1,0 +1,232 @@
+<!-- @dsCard group="Pantallas" page height=1350 width=1280 subtitle="Mi cuenta: datos, contraseña, lo que guardaste y salir" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi cuenta — UpgradeJusto</title>
+<style>
+  .pg { max-width: 1280px; margin: 0 auto; }
+  .wrap { padding-inline: var(--space-7); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+  .nav { display: flex; align-items: center; gap: var(--space-2); }
+  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+  .nav a:hover { background: var(--papel-hundido); }
+  .nav a[aria-current] { background: var(--pino-suave); }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--lima); color: var(--sobre-lima); font: 700 16px/1 var(--font-display); }
+
+  .head { padding-top: var(--space-7); padding-bottom: var(--space-6); display: grid; gap: var(--space-2); }
+  .head h1 { margin: 0; font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
+  .head p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
+
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: var(--space-6); align-items: start; }
+  .main { display: grid; gap: var(--space-5); }
+  .sec { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); }
+  .sec h2 { margin: 0; font: 650 22px/28px var(--font-display); }
+  .sec > p { margin: 0; color: var(--tinta-suave); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .acts { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+  .saved { font-size: 14px; font-weight: 600; color: var(--encaja); }
+
+  .stuff { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  .s { display: grid; gap: 2px; padding: var(--space-4); border-radius: var(--radius-md); background: var(--papel); border: 1px solid var(--linea); text-decoration: none; color: inherit; }
+  .s:hover { border-color: var(--pino); }
+  .s b { font: 700 30px/34px var(--font-display); }
+  .s span { color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+
+  .danger { border-color: var(--no-encaja); border-style: dashed; background: transparent; }
+  .danger h2 { color: var(--no-encaja); }
+  .confirm { display: none; gap: var(--space-3); }
+  .confirm.on { display: grid; }
+  .btn-no { background: var(--no-encaja); border-color: var(--no-encaja); color: var(--papel); }
+  .btn-no:disabled { opacity: .45; cursor: not-allowed; }
+
+  .side { display: grid; gap: var(--space-4); position: sticky; top: var(--space-5); }
+  .card { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-3); }
+  .card h2 { margin: 0; font: 650 20px/26px var(--font-display); }
+  .card p { margin: 0; color: var(--tinta-suave); }
+  .rules { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); font-size: 15px; line-height: 22px; }
+  .rules li { display: flex; gap: var(--space-2); }
+  .rules .uj-icon { width: 18px; height: 18px; margin-top: 2px; color: var(--pino); flex: none; }
+
+  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-8); padding-block: var(--space-6); border-top: 1px solid var(--linea); color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+  .foot a { color: var(--pino); }
+
+  @media (max-width: 1050px) { .body { grid-template-columns: 1fr; } .side { position: static; } }
+  @media (max-width: 700px) {
+    .wrap { padding-inline: var(--space-4); }
+    .nav a { display: none; }
+    .head h1 { font-size: 36px; line-height: 40px; }
+    .two, .stuff { grid-template-columns: 1fr; }
+  }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<body>
+<div class="pg">
+  <header class="top wrap">
+    <a class="logo" href="#">UpgradeJusto</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#">Mi PC</a>
+      <a href="#">Lo que te conviene</a>
+      <a href="#">Mi plan</a>
+      <a href="#">Catálogo</a>
+      <span class="avatar" aria-label="Tu cuenta">L</span>
+    </nav>
+  </header>
+
+  <section class="head wrap">
+    <h1>Tu cuenta</h1>
+    <p>Tus datos y lo que guardaste. Nada de esto lo ve nadie más.</p>
+  </section>
+
+  <main class="body wrap">
+    <div class="main">
+      <section class="sec" aria-labelledby="h-datos">
+        <h2 id="h-datos">Tus datos</h2>
+        <div class="two">
+          <label class="uj-field"><span class="uj-label">Cómo te llamamos</span><input class="uj-input" id="name" value="Lu"><span class="uj-help">Opcional. Lo usamos para saludarte.</span></label>
+          <label class="uj-field"><span class="uj-label">Tu correo</span><input class="uj-input" value="lu@ejemplo.com" readonly><span class="uj-help">Con este entrás. Para cambiarlo, escribinos.</span></label>
+        </div>
+        <div class="acts"><button class="uj-btn uj-btn-principal uj-btn-chico" id="save-name">Guardar</button><span class="saved" id="saved" role="status"></span></div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-pass">
+        <h2 id="h-pass">Contraseña</h2>
+        <div class="two">
+          <label class="uj-field"><span class="uj-label">La que usás ahora</span><input class="uj-input" type="password" autocomplete="current-password"></label>
+          <label class="uj-field" id="f-new"><span class="uj-label">La nueva</span><input class="uj-input" id="new" type="password" autocomplete="new-password"><span class="uj-help" id="new-help">8 caracteres o más, con al menos un número.</span></label>
+        </div>
+        <div class="acts"><button class="uj-btn uj-btn-secundario uj-btn-chico" id="change">Cambiar contraseña</button><span class="saved" id="changed" role="status"></span></div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-cosas">
+        <h2 id="h-cosas">Lo que guardaste</h2>
+        <div class="stuff">
+          <a class="s" href="#"><b>2</b><span>PCs · La de casa, La de la oficina</span></a>
+          <a class="s" href="#"><b>1</b><span>Plan en marcha · 1 de 3 etapas</span></a>
+          <a class="s" href="#"><b>2</b><span>Enlaces activos para compartir</span></a>
+          <a class="s" href="#"><b>5</b><span>Charlas con el asistente</span></a>
+        </div>
+      </section>
+
+      <section class="sec danger" aria-labelledby="h-borrar">
+        <h2 id="h-borrar">Borrar tu cuenta</h2>
+        <p>Se borran tus PCs, planes y charlas, y se apagan todos tus enlaces. No se puede deshacer.</p>
+        <div><button class="uj-btn uj-btn-quieto uj-btn-chico" id="ask-del">Quiero borrar mi cuenta</button></div>
+        <div class="confirm" id="confirm">
+          <label class="uj-field"><span class="uj-label">Para confirmar, escribí BORRAR</span><input class="uj-input" id="del-word" autocomplete="off"></label>
+          <div class="acts"><button class="uj-btn uj-btn-chico btn-no" id="del" disabled>Borrar todo</button><button class="uj-btn uj-btn-quieto uj-btn-chico" id="cancel">Mejor no</button></div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Tu privacidad</h2>
+        <ul class="rules">
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Tus PCs, planes y charlas son solo tuyos.</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Un plan se ve solo si vos lo compartís, y lo podés apagar.</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Tu contraseña la guardamos cifrada: ni nosotros la vemos.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Salir</h2>
+        <p>Cerrá la sesión si usás una compu que no es tuya.</p>
+        <button class="uj-btn uj-btn-secundario">Cerrar sesión</button>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="foot wrap">
+    <span>¿Algo no anda? Escribinos y te respondemos.</span>
+    <span><a href="#">Volver al inicio</a></span>
+  </footer>
+</div>
+
+<script>
+  document.getElementById('save-name').addEventListener('click', function () {
+    var n = document.getElementById('name').value.trim();
+    document.querySelector('.avatar').textContent = (n[0] || 'L').toUpperCase();
+    document.getElementById('saved').textContent = 'Guardado';
+  });
+  document.getElementById('change').addEventListener('click', function () {
+    var v = document.getElementById('new').value, ok = v.length >= 8 && /\d/.test(v), f = document.getElementById('f-new');
+    f.classList.toggle('is-error', !ok);
+    document.getElementById('new-help').textContent = ok ? '8 caracteres o más, con al menos un número.' : 'Le falta: 8 caracteres o más, con al menos un número.';
+    document.getElementById('changed').textContent = ok ? 'Contraseña cambiada (vista previa)' : '';
+  });
+  var confirmBox = document.getElementById('confirm'), word = document.getElementById('del-word'), del = document.getElementById('del');
+  document.getElementById('ask-del').addEventListener('click', function () { confirmBox.classList.add('on'); word.focus(); });
+  document.getElementById('cancel').addEventListener('click', function () { confirmBox.classList.remove('on'); word.value = ''; del.disabled = true; });
+  word.addEventListener('input', function () { del.disabled = word.value.trim().toUpperCase() !== 'BORRAR'; });
+  del.addEventListener('click', function () { del.textContent = 'Vista previa: no se borra nada'; del.disabled = true; });
+</script>
+
+<div class="uj-ayuda" id="ayuda">
+  <section class="uj-ayuda-panel" id="ayuda-panel" role="dialog" aria-labelledby="ayuda-title">
+    <header class="uj-ayuda-head">
+      <div><b id="ayuda-title">Asistente</b><small>Sobre: Tu cuenta</small></div>
+      <a class="uj-ayuda-icon" href="#" aria-label="Abrir la charla en pantalla completa" title="Abrir en pantalla completa"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a>
+      <button class="uj-ayuda-icon" type="button" id="ayuda-x" aria-label="Cerrar el asistente"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="uj-ayuda-body" id="ayuda-body" aria-live="polite"></div>
+    <div class="uj-ayuda-foot">
+      <form class="uj-composer" id="ayuda-form"><input id="ayuda-in" placeholder="Escribí tu pregunta" aria-label="Tu pregunta" autocomplete="off"><button class="uj-btn uj-btn-principal uj-btn-chico" aria-label="Enviar"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></svg></button></form>
+      <span class="uj-help">Si algo encaja o no, lo revisamos con reglas fijas. El asistente te lo explica.</span>
+    </div>
+  </section>
+  <button class="uj-ayuda-btn" type="button" id="ayuda-btn" aria-expanded="false" aria-controls="ayuda-panel"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg><span>¿Dudas?</span></button>
+</div>
+<script>
+  // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
+  (function () {
+    var CTX = 'Tu cuenta', OPEN = false, QA = [["¿Cómo cambio mi correo?", "Por ahora no se cambia desde acá: escribinos y lo hacemos nosotros."], ["¿Qué se borra si borro la cuenta?", "Tus PCs, planes y charlas, y se apagan todos tus enlaces. No se puede deshacer."], ["¿Quién ve mis datos?", "Solo vos. Otra persona ve un plan únicamente si le pasás un enlace."]];
+    var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
+    var inp = document.getElementById('ayuda-in'), started = false, asked = [];
+    var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    var VERDICT = { encaja: '<div><span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></div>' };
+    function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function add(html) { var d = document.createElement('div'); d.innerHTML = html; var n = d.firstChild; body.appendChild(n); body.scrollTop = body.scrollHeight; return n; }
+    function botHtml(t) { return '<div class="uj-bubble uj-bubble-bot"><div class="uj-bubble-who"><i></i>Asistente</div>' + t + '</div>'; }
+    function chips() {
+      var left = QA.filter(function (x, i) { return asked.indexOf(i) < 0; });
+      if (!left.length) return;
+      var c = add('<div class="uj-chips"></div>');
+      QA.forEach(function (x, i) {
+        if (asked.indexOf(i) > -1) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'uj-chip'; b.textContent = x[0];
+        b.addEventListener('click', function () { asked.push(i); ask(x[0], x[1] + (x[2] ? VERDICT[x[2]] : '')); });
+        c.appendChild(b);
+      });
+    }
+    function ask(q, a) {
+      var old = body.querySelector('.uj-chips'); if (old) old.remove();
+      add('<div class="uj-bubble uj-bubble-user">' + esc(q) + '</div>');
+      var t = add('<div class="uj-typing" aria-label="Escribiendo"><span></span><span></span><span></span></div>');
+      setTimeout(function () { t.remove(); add(botHtml(a)); chips(); }, 700);
+    }
+    function open() {
+      root.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Cerrar el asistente');
+      btn.innerHTML = ICON_X + '<span>¿Dudas?</span>';
+      if (!started) { started = true; add(botHtml('Hola. Estás en <strong>' + CTX + '</strong>. ¿En qué te ayudo?')); chips(); }
+      inp.focus();
+    }
+    function close() {
+      root.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-label');
+      btn.innerHTML = ICON_CHAT + '<span>¿Dudas?</span>'; btn.focus();
+    }
+    btn.addEventListener('click', function () { root.classList.contains('is-open') ? close() : open(); });
+    document.getElementById('ayuda-x').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root.classList.contains('is-open')) close(); });
+    root.querySelector('a.uj-ayuda-icon').addEventListener('click', function (e) { e.preventDefault(); });
+    document.getElementById('ayuda-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = inp.value.trim(); if (!q) return; inp.value = '';
+      ask(q, 'Esto es una vista previa y acá no respondo preguntas libres. En la app te contesto con los datos de tu PC, y si no tengo un dato te lo digo.');
+    });
+    if (OPEN) open();
+  })();
+</script>
+</body>
+</html>
