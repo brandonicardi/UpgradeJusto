@@ -1,6 +1,188 @@
 @import "tailwindcss";
 @import "./v0-workbench.css";
 
+/* Variables del sistema de diseño. Los valores salen de docs/sistema-diseno/tokens.json
+   (si cambia uno, cambia el otro). Por ahora nada las usa: no hay efecto visual.
+   Pendiente para el cambio de tema: `color-scheme` (hoy lo fija el :root de más abajo). */
+:root {
+  --papel: #f6f2ea;
+  --papel-alto: #fffdf8;
+  --papel-hundido: #ece6da;
+  --tinta: #1d1b16;
+  --tinta-suave: #5e584d;
+  --linea: #ddd5c6;
+  --linea-fuerte: #8c8474;
+  --pino: #1f4d3a;
+  --pino-hover: #173b2c;
+  --sobre-pino: #fffdf8;
+  --pino-suave: #dcebe2;
+  --lima: #d6f25c;
+  --sobre-lima: #1d1b16;
+  --foco: #1d1b16;
+  --encaja: #1d56b0;
+  --encaja-fondo: #e3ecfb;
+  --revisar: #8a5300;
+  --revisar-fondo: #fbefd5;
+  --no-encaja: #b0281c;
+  --no-encaja-fondo: #fbe3df;
+  --sombra-1: 0 1px 2px rgba(29,27,22,0.06), 0 6px 16px rgba(29,27,22,0.06);
+  --sombra-2: 0 2px 4px rgba(29,27,22,0.08), 0 16px 40px rgba(29,27,22,0.10);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="claro"]) {
+    --papel: #16150f;
+    --papel-alto: #221f19;
+    --papel-hundido: #2c2922;
+    --tinta: #f2eee4;
+    --tinta-suave: #b4ac9c;
+    --linea: #38342b;
+    --linea-fuerte: #7d7666;
+    --pino: #8fd6b0;
+    --pino-hover: #a9e3c4;
+    --sobre-pino: #10261c;
+    --pino-suave: #1e3a2d;
+    --lima: #d6f25c;
+    --sobre-lima: #1d1b16;
+    --foco: #d6f25c;
+    --encaja: #8ab8ff;
+    --encaja-fondo: #1a2840;
+    --revisar: #f2c46b;
+    --revisar-fondo: #3a2c10;
+    --no-encaja: #ff9b8f;
+    --no-encaja-fondo: #3d1a17;
+    --sombra-1: 0 1px 2px rgba(0,0,0,0.5);
+    --sombra-2: 0 2px 6px rgba(0,0,0,0.6), 0 16px 40px rgba(0,0,0,0.4);
+  }
+}
+
+:root[data-theme="oscuro"] {
+  --papel: #16150f;
+  --papel-alto: #221f19;
+  --papel-hundido: #2c2922;
+  --tinta: #f2eee4;
+  --tinta-suave: #b4ac9c;
+  --linea: #38342b;
+  --linea-fuerte: #7d7666;
+  --pino: #8fd6b0;
+  --pino-hover: #a9e3c4;
+  --sobre-pino: #10261c;
+  --pino-suave: #1e3a2d;
+  --lima: #d6f25c;
+  --sobre-lima: #1d1b16;
+  --foco: #d6f25c;
+  --encaja: #8ab8ff;
+  --encaja-fondo: #1a2840;
+  --revisar: #f2c46b;
+  --revisar-fondo: #3a2c10;
+  --no-encaja: #ff9b8f;
+  --no-encaja-fondo: #3d1a17;
+  --sombra-1: 0 1px 2px rgba(0,0,0,0.5);
+  --sombra-2: 0 2px 6px rgba(0,0,0,0.6), 0 16px 40px rgba(0,0,0,0.4);
+}
+
+/* Utilidades de Tailwind a partir de los tokens de docs/sistema-diseno/tokens.json.
+   `inline` hace que lean las variables en tiempo de ejecución (así cambian con el tema).
+   Nada las usa todavía. `--font-bricolage` y `--font-figtree` las define next/font
+   (tarea 3.1); mientras tanto rigen las fuentes de respaldo. No se redefine `--font-sans`. */
+@theme inline {
+  --color-papel: var(--papel);
+  --color-papel-alto: var(--papel-alto);
+  --color-papel-hundido: var(--papel-hundido);
+  --color-tinta: var(--tinta);
+  --color-tinta-suave: var(--tinta-suave);
+  --color-linea: var(--linea);
+  --color-linea-fuerte: var(--linea-fuerte);
+  --color-pino: var(--pino);
+  --color-pino-hover: var(--pino-hover);
+  --color-sobre-pino: var(--sobre-pino);
+  --color-pino-suave: var(--pino-suave);
+  --color-lima: var(--lima);
+  --color-sobre-lima: var(--sobre-lima);
+  --color-foco: var(--foco);
+  --color-encaja: var(--encaja);
+  --color-encaja-fondo: var(--encaja-fondo);
+  --color-revisar: var(--revisar);
+  --color-revisar-fondo: var(--revisar-fondo);
+  --color-no-encaja: var(--no-encaja);
+  --color-no-encaja-fondo: var(--no-encaja-fondo);
+
+  --font-display: var(--font-bricolage), "Figtree", system-ui, sans-serif;
+  --font-sans-uj: var(--font-figtree), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --spacing-space-1: var(--space-1);
+  --spacing-space-2: var(--space-2);
+  --spacing-space-3: var(--space-3);
+  --spacing-space-4: var(--space-4);
+  --spacing-space-5: var(--space-5);
+  --spacing-space-6: var(--space-6);
+  --spacing-space-7: var(--space-7);
+  --spacing-space-8: var(--space-8);
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+
+  --shadow-sombra-1: var(--sombra-1);
+  --shadow-sombra-2: var(--sombra-2);
+}
+
+/* Estilos tipográficos con el mecanismo nativo de Tailwind 4 (`text-titular-xl`, etc.).
+   Valores de docs/sistema-diseno/tokens.json; nada los usa todavía. La familia no
+   viaja acá: los titulares suman `font-display` en el componente. */
+@theme {
+  --text-titular-xl: 48px;
+  --text-titular-xl--line-height: 52px;
+  --text-titular-xl--font-weight: 700;
+  --text-titular-xl--letter-spacing: -0.02em;
+
+  --text-titular-l: 34px;
+  --text-titular-l--line-height: 40px;
+  --text-titular-l--font-weight: 700;
+  --text-titular-l--letter-spacing: -0.015em;
+
+  --text-titular-m: 24px;
+  --text-titular-m--line-height: 30px;
+  --text-titular-m--font-weight: 650;
+  --text-titular-m--letter-spacing: -0.01em;
+
+  --text-cuerpo-l: 18px;
+  --text-cuerpo-l--line-height: 28px;
+  --text-cuerpo-l--font-weight: 400;
+
+  --text-cuerpo: 16px;
+  --text-cuerpo--line-height: 24px;
+  --text-cuerpo--font-weight: 400;
+
+  --text-cuerpo-fuerte: 16px;
+  --text-cuerpo-fuerte--line-height: 24px;
+  --text-cuerpo-fuerte--font-weight: 600;
+
+  --text-chico: 14px;
+  --text-chico--line-height: 20px;
+  --text-chico--font-weight: 500;
+
+  --text-etiqueta: 13px;
+  --text-etiqueta--line-height: 16px;
+  --text-etiqueta--font-weight: 700;
+  --text-etiqueta--letter-spacing: 0.02em;
+
+  --text-precio: 28px;
+  --text-precio--line-height: 32px;
+  --text-precio--font-weight: 700;
+  --text-precio--letter-spacing: -0.01em;
+}
+
 :root { color-scheme: dark; --bg:#0b1420; --card:#17293b; --raised:#20364b; --text:#e7eef7; --muted:#9aacc0; --accent:#4da3ff; --line:#304960; }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 "Segoe UI",Arial,Helvetica,sans-serif; }
