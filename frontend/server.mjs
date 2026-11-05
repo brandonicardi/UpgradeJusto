@@ -1,14 +1,17 @@
 import { createServer } from "node:http";
 import { stampSocketIP } from "./lib/gateway.ts";
+import { resolveWebHost } from "./lib/web-host.ts";
 import { createShareRequestListener, testShareServerControl, SHARE_SERVER_READY, SHARE_SERVER_STOP, SHARE_SERVER_CLOSED } from "./lib/share-server-boundary.ts";
 
 // Must reject invalid TEST control before importing Next or opening resources.
 const controlled = testShareServerControl(process.env);
+// Invalid UJ_WEB_HOST aborts startup (fail closed) before Next is imported.
+const webHost = resolveWebHost(process.env);
 
 const dev = process.argv.includes("--dev");
 process.env.NODE_ENV = dev ? "development" : "production";
 const { default: next } = await import("next");
-const hostname = "127.0.0.1";
+const hostname = webHost;
 const port = 3000;
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();

@@ -1,0 +1,5 @@
+# Los scripts corren dentro de contenedores Linux: siempre con LF, también al clonar en Windows.
+*.sh text eol=lf
+*.sql text eol=lf
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf

@@ -1,0 +1,91 @@
+# UpgradeJusto — arranque completo con: docker compose up --build
+# Copiá .env.example a .env (solo hace falta tu GROQ_API_KEY; puede estar vacía).
+name: upgradejusto
+
+services:
+  db:
+    # Tag fijo: PostgreSQL 18 con pgvector (elegido en design.md, verificado en Docker Hub).
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:-postgres}
+      # Sin default: compose se detiene si falta. Cualquier clave sirve para la demo local.
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Defini POSTGRES_ADMIN_PASSWORD en .env (cualquier clave)}
+      POSTGRES_DB: ${POSTGRES_DB:-upgradejusto}
+      UJ_DB_APP_USER: ${UJ_DB_APP_USER:-upgradejusto_app}
+      UJ_DB_APP_PASSWORD: ${UJ_DB_APP_PASSWORD:?Defini UJ_DB_APP_PASSWORD en .env (cualquier clave)}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Solo se ejecuta con el volumen vacío: crea la extensión y el usuario de la app.
+      - ./scripts/docker/db-init.sql:/docker-entrypoint-initdb.d/10-db-init.sql:ro
+    healthcheck:
+      # -h 127.0.0.1: el servidor temporal del initdb solo usa socket; así se espera el TCP real.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    # 5432 no se publica: la base solo es alcanzable desde la red interna de compose.
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # El usuario de la app se crea en db-init.sql; la URL se arma con los mismos pieces.
+      DATABASE_URL: postgresql+psycopg://${UJ_DB_APP_USER:-upgradejusto_app}:${UJ_DB_APP_PASSWORD:?Defini UJ_DB_APP_PASSWORD en .env (cualquier clave)}@db:5432/${POSTGRES_DB:-upgradejusto}
+      UJ_ENV: ${UJ_ENV:-dev}
+      UJ_ORIGIN: ${UJ_ORIGIN:-http://localhost:3000}
+      UJ_ALLOW_INSECURE_LOOPBACK: ${UJ_ALLOW_INSECURE_LOOPBACK:-1}
+      # Regla no negociable: solo se aceptan pares loopback firmados por el frontend.
+      UJ_TRUSTED_PROXY_PEERS: "127.0.0.1"
+      # UJ_PROXY_SECRET no se pone acá: lo crea el entrypoint en el volumen "secretos".
+      UJ_DEMO_DATA_DIR: ${UJ_DEMO_DATA_DIR:-/data/catalogo}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+      UJ_TLS_TRUST: ${UJ_TLS_TRUST:-certifi}
+      UJ_GOOGLE_CLIENT_ID: ${UJ_GOOGLE_CLIENT_ID:-}
+    volumes:
+      - secretos:/secretos
+      # El contexto de build es ./backend, así que el catálogo de demo se monta en runtime.
+      - ./data/catalogo:/data/catalogo:ro
+      - ./scripts/docker:/scripts:ro
+    # "sh" explícito: el bit de ejecución puede no venir del checkout de Windows.
+    entrypoint: ["sh", "/scripts/backend-entrypoint.sh"]
+    # Único puerto publicado del stack; el 8000 queda solo en loopback interno.
+    ports:
+      - "3000:3000"
+    healthcheck:
+      # python del venv: la imagen slim no trae curl; urlopen lanza ante no-2xx.
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      # El primer arranque aplica migraciones y publica los 11 lotes antes de responder.
+      start_period: 180s
+
+  frontend:
+    build:
+      context: ./frontend
+    # Comparte el loopback con el backend: el proxy interno sigue viendo pares 127.0.0.1.
+    network_mode: "service:backend"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      # server.mjs falla cerrado ante cualquier otro valor de UJ_WEB_HOST.
+      UJ_WEB_HOST: "${UJ_WEB_HOST:-0.0.0.0}"
+      CATALOG_API_URL: ${CATALOG_API_URL:-http://127.0.0.1:8000}
+    volumes:
+      - secretos:/secretos:ro
+      - ./scripts/docker:/scripts:ro
+    entrypoint: ["sh", "/scripts/frontend-entrypoint.sh"]
+
+volumes:
+  pgdata:
+  secretos:

@@ -1,0 +1,31 @@
+{
+  "store": "venex",
+  "source_version": "venex-f8111c9b03ed2553d55431f82792da9b082b08f50e608c7ac7ad5f5d6f35401c",
+  "raw_sha256": "32dd1e7b6f6773dfd56b4d2e68f5312871a9578160712dd1e8ec48df8b44faec",
+  "observed_at": "2026-10-26T14:34:03.735364+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "22575",
+      "category": "psu",
+      "name": "Fuente LNZ 550W SX550-TS",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/fuentes/fuente-lnz-550w-sx550-ts.html",
+      "mpn": null,
+      "gtin": "1",
+      "variant_key": "venex-22575-32191eef5cb3c8de65fcefec322c4a96640b7e6a69f7537e7a32757a8a948c5a",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": null,
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "29990.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}

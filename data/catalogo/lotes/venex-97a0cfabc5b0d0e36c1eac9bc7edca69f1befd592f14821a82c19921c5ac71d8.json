@@ -1,0 +1,40 @@
+{
+  "store": "venex",
+  "source_version": "venex-13662fc990e365d5f869ee20861eec2fd527638213fc0965ba20cd2c33fb9bf6",
+  "raw_sha256": "82167aa547f74081c4d07079ed950b274c8d1141a05f4f958470e4c3deac220a",
+  "observed_at": "2026-10-26T14:33:58.963484+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "14513",
+      "category": "motherboard",
+      "name": "Motherboard ASRock H510 Pro BTC+ Mining S1200 DDR4",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/motherboards/intel/motherboard-asrock-h510-pro-btc-s1200-ddr4.html",
+      "mpn": null,
+      "gtin": "4710483935220",
+      "variant_key": "venex-14513-198c395f7f335adca76bdf13a30ad94c9951b22212b856b8dd24413f5ac8b2e8",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": {
+        "url": "https://www.venex.com.ar/products_images/1638903340_sdfsdfawefwe.png",
+        "alt": "Motherboard ASRock H510 Pro BTC+ Mining S1200 DDR4",
+        "source_url": "https://www.venex.com.ar/componentes-de-pc/motherboards/intel/motherboard-asrock-h510-pro-btc-s1200-ddr4.html",
+        "retrieved_at": "2026-10-26T14:33:58.963484+00:00",
+        "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+        "exact_variant": true,
+        "status": "verified",
+        "photo_bytes_verified": false
+      },
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "89999.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}

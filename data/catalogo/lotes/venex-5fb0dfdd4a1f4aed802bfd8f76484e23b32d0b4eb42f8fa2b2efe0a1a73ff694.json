@@ -1,0 +1,31 @@
+{
+  "store": "venex",
+  "source_version": "venex-afc987243c4527aa32f050aaf1ff0662af1823108f413697e203bb4aaf20c422",
+  "raw_sha256": "a0695744f9420cc6310996f9207eb37fb4d9e6cd22cea2b838600288cfb76b14",
+  "observed_at": "2026-10-26T14:34:09.419133+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "18938",
+      "category": "storage",
+      "name": "Disco sólido SSD Kingston NV3 500GB M.2 NVMe PCIe 4.0 5000MB/s",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/discos-solidos-ssd/disco-de-estado-solido-ssd-500gb-kingston-m2-nvme-2280-nv3-5000mb-s.html",
+      "mpn": null,
+      "gtin": "740617344806",
+      "variant_key": "venex-18938-6bdeeb7991015676c14ca5ca5bd7e6f620098f45a89692196639da2062444197",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": null,
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "177990.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}

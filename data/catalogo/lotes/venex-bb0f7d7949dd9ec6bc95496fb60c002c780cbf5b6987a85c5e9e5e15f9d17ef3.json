@@ -1,0 +1,31 @@
+{
+  "store": "venex",
+  "source_version": "venex-ae4db922bdc6efbb42b6d07afd0acff99b3dce1cf41aa6de58e10c5ed942b4fa",
+  "raw_sha256": "c391d1511962d700b584dcdf8fa0a9762769731966ad4cb04f65b355f5110cb1",
+  "observed_at": "2026-10-26T14:34:12.245551+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "22600",
+      "category": "cooler",
+      "name": "Water Cooler Cooler Master Core Nex Digital 240 C/Pantalla ARGB Black",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/refrigeracion/water-coolers/water-cooler-cooler-master-core-next-digital-240-c-pantalla-argb-black.html",
+      "mpn": null,
+      "gtin": "4719512163993",
+      "variant_key": "venex-22600-696b839105ed3477b0d477012dcfd435a3ba9110c6bd4ac6a510e39bcf2429d6",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": null,
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "137990.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}

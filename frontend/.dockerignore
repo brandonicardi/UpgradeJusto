@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+coverage/
+tests/
+playwright*.config.ts
+eslint.config.mjs
+tsconfig.tsbuildinfo
+.env
+.env.*
+*.md
+.local/
+.tools/
+.venv/

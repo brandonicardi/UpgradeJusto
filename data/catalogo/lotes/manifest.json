@@ -1,0 +1,31 @@
+{
+  "files": [
+    "data/catalogo/lotes/compragamer-f179b2080722208a5535e0e4f9db096334fca6f1846821686746b0621e3e59c6.json",
+    "data/catalogo/lotes/venex-247e02119f97c250b58e20ed87977a46ab7eb8c6d3a1ad311b28d19b0d8cb9fc.json",
+    "data/catalogo/lotes/venex-6d4817b4d5b9f7fd91946b1a16d1345af0077c7e0d0cb00699dfe749b0e0defc.json",
+    "data/catalogo/lotes/venex-97a0cfabc5b0d0e36c1eac9bc7edca69f1befd592f14821a82c19921c5ac71d8.json",
+    "data/catalogo/lotes/venex-1982e539cc738651865775ba667a03122b19693a047962a82b9da6b35c175b31.json",
+    "data/catalogo/lotes/venex-1a30e4b50ce4bea1120d27389cc528b70c9965409eb28d435386bfc18e62390a.json",
+    "data/catalogo/lotes/venex-81ae1c9500faa88e941fbc9edf666218d45c5431f168b5cd4c4ad368b41e4e19.json",
+    "data/catalogo/lotes/venex-5fb0dfdd4a1f4aed802bfd8f76484e23b32d0b4eb42f8fa2b2efe0a1a73ff694.json",
+    "data/catalogo/lotes/venex-75e453beb4f8788dd64da9adde91d4020729ef967d6fe6def03f378577c53621.json",
+    "data/catalogo/lotes/venex-bb0f7d7949dd9ec6bc95496fb60c002c780cbf5b6987a85c5e9e5e15f9d17ef3.json",
+    "data/catalogo/lotes/venex-f9452e1e4676218617295a7ebeb006dc3944b081fe33440941294ec938faa39a.json"
+  ],
+  "excluded": [
+    {
+      "product_id": "14941",
+      "reason": "accessory_bundle_or_unclassified"
+    },
+    {
+      "product_id": "10859",
+      "reason": "accessory_bundle_or_unclassified"
+    },
+    {
+      "product_id": "15645",
+      "reason": "accessory_bundle_or_unclassified"
+    }
+  ],
+  "published": false,
+  "venex_price_condition_pending": false
+}

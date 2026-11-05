@@ -1,0 +1,31 @@
+{
+  "store": "venex",
+  "source_version": "venex-1807d9151bf0e5c383b00ad68b8575cfa1642070f63e6d96fafb201c54bc57e7",
+  "raw_sha256": "e403082ba7d3c3b71f55cbc394342c1871e865f9cd8a574901123814b380cfc0",
+  "observed_at": "2026-10-26T14:34:15.578109+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "22331",
+      "category": "case",
+      "name": "Gabinete Cooler Master Elite 681 C/Cooler x4 Black",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/pastas-termicas/gabinete-cooler-master-elite-681-c-cooler-x4.html",
+      "mpn": null,
+      "gtin": "4719512160855",
+      "variant_key": "venex-22331-183638caa23d138bafaa57e402d62b8edbc74ddcc08b0cb9cc482b6215e9e0f9",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": null,
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "104990.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}

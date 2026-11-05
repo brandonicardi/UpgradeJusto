@@ -1,0 +1,40 @@
+{
+  "store": "venex",
+  "source_version": "venex-49a007dc30e79f301ba8e1ff3af5d230be1fb18f7ecf98b027bb3197e925caa9",
+  "raw_sha256": "5bd3d31279db766c0d14f843437204fc0f1d67061b8179fc584a0cee15bbdd8d",
+  "observed_at": "2026-10-26T14:33:55.474188+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "17825",
+      "category": "cpu",
+      "name": "Procesador Intel Core i3 14100 4/8 4.7GHz LGA1700",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/microprocesadores/cpu-intel-core-i3-14100-raptorlake-4-8-4-70ghz-12mb-s1700.html",
+      "mpn": null,
+      "gtin": "5032037279079",
+      "variant_key": "venex-17825-e408e336255d455806292de6e2125de0a191350ea595b2cc9384125a309d5b5b",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": {
+        "url": "https://www.venex.com.ar/products_images/1754661021_7.jpg",
+        "alt": "Procesador Intel Core i3 14100 4/8 4.7GHz LGA1700",
+        "source_url": "https://www.venex.com.ar/componentes-de-pc/microprocesadores/cpu-intel-core-i3-14100-raptorlake-4-8-4-70ghz-12mb-s1700.html",
+        "retrieved_at": "2026-10-26T14:33:55.474188+00:00",
+        "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+        "exact_variant": true,
+        "status": "verified",
+        "photo_bytes_verified": false
+      },
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "254990.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}

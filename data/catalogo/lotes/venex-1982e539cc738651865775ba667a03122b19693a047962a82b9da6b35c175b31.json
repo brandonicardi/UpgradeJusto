@@ -1,0 +1,40 @@
+{
+  "store": "venex",
+  "source_version": "venex-df2024fbff6a6e3b426152a34a127355aba31139621a00af5340d44e3f344f2e",
+  "raw_sha256": "91828768dd9b20e5d8e8b2621425db6503aa47d2a3b945b48dd550412366acf2",
+  "observed_at": "2026-10-26T14:34:00.661451+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "15530",
+      "category": "ram",
+      "name": "Memoria RAM Corsair Vengance RS DDR4 8GB 3200MHz RGB CL16",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/memorias-ram/desktop/memoria-ram-corsair-vengance-rs-ddr4-8gb-3200mhz.html",
+      "mpn": null,
+      "gtin": "840006652199",
+      "variant_key": "venex-15530-f5c40164ed70f0db9ad9ccd33ac04712f7d06a8ee84434c01add2505d4df2974",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": {
+        "url": "https://www.venex.com.ar/products_images/1655140207_fere.png",
+        "alt": "Memoria RAM Corsair Vengance RS DDR4 8GB 3200MHz RGB CL16",
+        "source_url": "https://www.venex.com.ar/componentes-de-pc/memorias-ram/desktop/memoria-ram-corsair-vengance-rs-ddr4-8gb-3200mhz.html",
+        "retrieved_at": "2026-10-26T14:34:00.661451+00:00",
+        "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+        "exact_variant": true,
+        "status": "verified",
+        "photo_bytes_verified": false
+      },
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "150990.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}
