@@ -1,0 +1,95 @@
+import { ArrowRight, Check } from "lucide-react";
+import { Button } from "./button";
+import { leerDiferencia, type Diferencia } from "./monto";
+import { PriceTag, type PriceTagProps } from "./price-tag";
+import { Verdict } from "./verdict";
+
+export type UpgradeCardProps = {
+  /** Una acción: «Cambiá la placa de video». */
+  titulo: string;
+  actual: string;
+  nueva: string;
+  /** Dos o tres motivos en lenguaje simple. */
+  motivos: string[];
+  precio?: Omit<PriceTagProps, "compacto">;
+  /** Ya resuelta por la API: la tarjeta no calcula. Negativa = falta plata. */
+  diferencia?: Diferencia | null;
+  /** Estado que devuelve el motor. Sin estado dice «Falta un dato». */
+  veredicto?: string | null;
+  onSumar: () => void;
+  /** Si no viene, el botón «Ver otras opciones» no se muestra. */
+  onVerOpciones?: () => void;
+};
+
+function Presupuesto({ diferencia }: { diferencia: UpgradeCardProps["diferencia"] }) {
+  const leida = leerDiferencia(diferencia);
+  if (!leida) return null;
+  const clase = "text-chico text-tinta-suave";
+  if (leida.tipo === "sobra") {
+    return (
+      <span className={clase}>
+        Te sobran <span className="rounded-sm bg-lima px-space-1 font-bold text-sobre-lima">{leida.texto}</span> de tu presupuesto
+      </span>
+    );
+  }
+  if (leida.tipo === "falta") {
+    return (
+      <span className={clase}>
+        Te faltan <span className="font-bold text-tinta">{leida.texto}</span>
+      </span>
+    );
+  }
+  return <span className={clase}>Justo con tu presupuesto</span>;
+}
+
+export function UpgradeCard({ titulo, actual, nueva, motivos, precio, diferencia, veredicto, onSumar, onVerOpciones }: UpgradeCardProps) {
+  return (
+    <article className="grid w-full max-w-[620px] gap-space-4 rounded-lg bg-papel-alto p-space-5 font-sans-uj text-tinta shadow-sombra-2">
+      <div className="flex flex-wrap items-start justify-between gap-space-3">
+        <div className="min-w-0">
+          <div className="text-etiqueta text-tinta-suave">Lo que más te conviene</div>
+          <h3 className="m-0 mt-[2px] font-display text-titular-m">{titulo}</h3>
+        </div>
+        <Verdict estado={veredicto} />
+      </div>
+
+      <div className="grid grid-cols-1 items-center gap-space-3 min-[600px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <div className="min-w-0 rounded-md bg-papel px-space-4 py-space-3">
+          <div className="text-etiqueta text-tinta-suave">Hoy tenés</div>
+          <div className="text-cuerpo-fuerte">{actual}</div>
+        </div>
+        <ArrowRight aria-hidden="true" className="size-6 justify-self-center text-tinta-suave max-[599px]:rotate-90" />
+        <div className="min-w-0 rounded-md bg-pino-suave px-space-4 py-space-3">
+          <div className="text-etiqueta text-tinta-suave">Pasás a</div>
+          <div className="text-cuerpo-fuerte">{nueva}</div>
+        </div>
+      </div>
+
+      <ul className="m-0 grid list-none gap-space-2 p-0">
+        {motivos.map((motivo) => (
+          <li key={motivo} className="flex items-start gap-space-2 text-cuerpo">
+            <Check aria-hidden="true" className="mt-[2px] size-5 flex-none text-pino" strokeWidth={2.25} />
+            <span>{motivo}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="flex flex-wrap items-end justify-between gap-space-4 border-t border-solid border-linea pt-space-4">
+        <div className="grid gap-space-1">
+          <PriceTag {...precio} />
+          <Presupuesto diferencia={diferencia} />
+        </div>
+        <div className="flex flex-wrap gap-space-2">
+          {onVerOpciones && (
+            <Button peso="secundario" chico onClick={onVerOpciones}>
+              Ver otras opciones
+            </Button>
+          )}
+          <Button peso="principal" chico onClick={onSumar}>
+            Sumar a mi plan
+          </Button>
+        </div>
+      </div>
+    </article>
+  );
+}

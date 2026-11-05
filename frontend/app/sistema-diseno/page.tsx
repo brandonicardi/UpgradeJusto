@@ -10,9 +10,12 @@ import {
   Field,
   Notice,
   PartCard,
+  PcSlots,
+  PlanSteps,
   PriceTag,
   Verdict,
 } from "../../components/uj";
+import { Mejora, ObjetivoUnico, ObjetivoVarios, Presupuesto } from "./demos";
 
 export const metadata: Metadata = {
   title: "Sistema de diseño | UpgradeJusto",
@@ -34,6 +37,33 @@ const PRECIO_B = {
   fecha: "2026-10-27",
   tienda: "Tienda de ejemplo B",
   enlace: "https://example.com/tienda-b",
+};
+
+const PRECIO_C = {
+  monto: 74800,
+  moneda: "ARS",
+  fecha: "2026-10-26",
+  tienda: "Tienda de ejemplo A",
+  enlace: "https://example.com/tienda-a",
+};
+
+// Los totales y las diferencias son datos de ejemplo: la vitrina no suma ni resta precios.
+// Este total corresponde a las tres etapas con precio de «Con todos los precios».
+// Si a una etapa le falta el precio, la API no devuelve total y no se muestra ninguno.
+const TOTAL_DEL_PLAN = {
+  monto: 557200,
+  moneda: "ARS",
+  fecha: "2026-10-28",
+  tienda: "las tiendas de cada etapa",
+};
+
+const MEJORA_BASE = {
+  titulo: "Cambiá la placa de video",
+  actual: "GTX 1650 · 4 GB",
+  nueva: "RTX 4060 · 8 GB",
+  motivos: ["Es la pieza que más frena tus juegos hoy.", "Tu fuente de 550 W alcanza y entra en tu gabinete."],
+  precio: PRECIO_A,
+  veredicto: "compatible",
 };
 
 const GRILLA = "grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),1fr))] items-start gap-space-5";
@@ -236,6 +266,111 @@ export default function SistemaDisenoPage() {
                 etiqueta="Contanos qué piezas tiene tu PC"
                 placeholder="Pegá acá la lista que copiaste"
                 ayuda="Después de leerla, te pedimos que la revises antes de guardar."
+              />
+            </Estado>
+          </div>
+        </Seccion>
+
+        <Seccion
+          id="mi-pc"
+          titulo="Mi PC"
+          bajada="Las nueve piezas, siempre en el mismo orden. Lo que falta se puede agregar y lo que está en duda dice qué dato falta."
+        >
+          <PcSlots
+            hrefAgregar={() => "#mi-pc"}
+            piezas={{
+              cpu: { nombre: "Ryzen 5 5600" },
+              motherboard: { nombre: "Placa B450M" },
+              ram: { nombre: "16 GB", enDuda: true, falta: "la velocidad" },
+              gpu: { nombre: "GTX 1650 · 4 GB" },
+              psu: { nombre: "Fuente de 450 W" },
+              storage: { nombre: "SSD de 480 GB" },
+            }}
+          />
+        </Seccion>
+
+        <Seccion
+          id="objetivo"
+          titulo="Objetivo de uso"
+          bajada="Entre tres y cinco opciones con palabras de todos los días. Puede ser una sola elección o varias."
+        >
+          <div className="grid gap-space-6">
+            <Estado nombre="Una sola opción">
+              <ObjetivoUnico />
+            </Estado>
+            <Estado nombre="Varias opciones">
+              <ObjetivoVarios />
+            </Estado>
+          </div>
+        </Seccion>
+
+        <Seccion
+          id="presupuesto"
+          titulo="Presupuesto"
+          bajada="Se mueve con la barra, con los atajos o escribiendo el monto. Si el monto no sirve, decimos qué rango vale."
+        >
+          <Presupuesto />
+        </Seccion>
+
+        <Seccion
+          id="mejoras"
+          titulo="Mejora recomendada"
+          bajada="Una sola acción por tarjeta. «Ver otras opciones» aparece solo cuando hay otras opciones para mostrar."
+        >
+          <div className="grid gap-space-6">
+            <Estado nombre="Te sobra presupuesto">
+              <Mejora {...MEJORA_BASE} diferencia={{ monto: "10100", moneda: "ARS" }} conOpciones />
+            </Estado>
+            <Estado nombre="Te falta presupuesto">
+              <Mejora
+                {...MEJORA_BASE}
+                titulo="Sumá más memoria"
+                actual="16 GB · 2666 MHz"
+                nueva="32 GB · 3200 MHz"
+                motivos={["Podés tener muchas cosas abiertas sin que se trabe."]}
+                precio={PRECIO_B}
+                diferencia={{ monto: "-40000", moneda: "ARS" }}
+                conOpciones
+              />
+            </Estado>
+            <Estado nombre="Sin otras opciones">
+              <Mejora
+                {...MEJORA_BASE}
+                titulo="Cambiá el disco"
+                actual="HDD de 1 TB"
+                nueva="SSD de 1 TB"
+                motivos={["Tu PC prende y abre programas mucho más rápido."]}
+                precio={PRECIO_C}
+                diferencia={{ monto: "0", moneda: "ARS" }}
+              />
+            </Estado>
+          </div>
+        </Seccion>
+
+        <Seccion
+          id="plan"
+          titulo="Plan por etapas"
+          bajada="Cada etapa dice si ya está hecha, si es la de ahora o si falta. Sin dato, no inventamos precio ni respuesta."
+        >
+          <div className={GRILLA}>
+            <Estado nombre="Con todos los precios">
+              <PlanSteps
+                total={TOTAL_DEL_PLAN}
+                etapas={[
+                  { nombre: "Más memoria", costo: PRECIO_B, estado: "hecha", veredicto: "compatible" },
+                  { nombre: "Placa de video nueva", costo: PRECIO_A, estado: "actual", veredicto: "compatible" },
+                  { nombre: "Fuente más potente", costo: PRECIO_C, estado: "pendiente", veredicto: "compatible" },
+                ]}
+              />
+            </Estado>
+            <Estado nombre="Con una etapa sin precio">
+              <PlanSteps
+                etapas={[
+                  { nombre: "Más memoria", costo: PRECIO_B, estado: "hecha", veredicto: "compatible" },
+                  { nombre: "Placa de video nueva", costo: PRECIO_A, estado: "actual", veredicto: "compatible" },
+                  { nombre: "Fuente más potente", costo: PRECIO_C, estado: "pendiente" },
+                  { nombre: "Disco más grande", estado: "pendiente" },
+                ]}
               />
             </Estado>
           </div>

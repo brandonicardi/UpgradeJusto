@@ -15,10 +15,10 @@ const ICONOS: Record<string, LucideIcon> = {
   ventiladores: Wind,
 };
 
-function IconoDeCategoria({ categoria }: { categoria: string }) {
+export function IconoDeCategoria({ categoria, tamano = "size-[30px]" }: { categoria: string; tamano?: string }) {
   const clave = categoria.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim().replace(/\s+/g, " ");
   const Icono = Object.hasOwn(ICONOS, clave) ? ICONOS[clave] : Package;
-  return <Icono aria-hidden="true" className="size-[30px]" strokeWidth={1.5} />;
+  return <Icono aria-hidden="true" className={tamano} strokeWidth={1.5} />;
 }
 
 export type PartCardProps = {
