@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { emptyTower, towerInput, type TowerInput } from "../../lib/towers";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import TowerInventory, { focusTowerCategory, towerStatusId } from "../../components/tower-inventory";
+import PcsEmptyState from "../../components/pcs-empty-state";
+import { emptyTower, towerInput, towerKeys, type Tower, type TowerInput } from "../../lib/towers";
 import { signedProxyHeaders } from "../../lib/gateway";
 import { towersProxy } from "../../lib/towers-proxy";
 import { towerCatalogProxy } from "../../lib/tower-catalog-proxy";
@@ -81,5 +85,69 @@ describe("contrato cerrado torre38A", () => {
     expect((await towerCatalogProxy(new Request("http://localhost/api/catalog/components/saved-beyond50"), "saved-beyond50")).status).toBe(200);
     expect(String(fetcher.mock.calls[1][0])).toContain("/api/catalog/components/saved-beyond50");
     expect((await towerCatalogProxy(new Request("http://localhost/api/catalog/components?owner_id=other"))).status).toBe(422);
+  });
+});
+
+function heterogeneous(): Tower {
+  const pc: Tower = { ...emptyTower(), id: uuid, revision: 1, origin_schema: 2 };
+  pc.category_status.storage = "present"; pc.category_status.ram = "present"; pc.category_status.gpu = "absent";
+  pc.lines = [
+    { line_id: null, category: "storage", component_id: null, declared_model: "Disco rapido declarado A", quantity: 1 },
+    { line_id: null, category: "storage", component_id: null, declared_model: "Disco grande declarado B", quantity: 2 },
+    { line_id: null, category: "ram", component_id: null, declared_model: "Memoria declarada X", quantity: 2 },
+    { line_id: null, category: "ram", component_id: null, declared_model: "Memoria declarada Y", quantity: 1 },
+  ];
+  return pc;
+}
+const cards = (html: string) => Object.fromEntries(html.split("<article").slice(1).map(card => [/data-estado="(\w+)"/.exec(card)![1] + ":" + /aria-label="([^"]+)"/.exec(card)![1], card]));
+const cardOf = (html: string, category: (typeof towerKeys)[number]) => html.split("<article").slice(1).find(card => card.includes(`data-focus-target="${towerStatusId(category)}"`))!;
+
+describe("Mi PC en nueve tarjetas", () => {
+  it("conserva dos discos y dos grupos de memoria con cantidades, y distingue «No sé» de «No tengo»", () => {
+    const pc = heterogeneous(), before = JSON.stringify(pc);
+    const html = renderToStaticMarkup(createElement(TowerInventory, { pc, onEditCategory: () => {} }));
+    expect(html.split("<article").length - 1).toBe(9); expect(Object.keys(cards(html))).toHaveLength(9);
+    for (const text of ["Disco rapido declarado A", "Disco grande declarado B", "Memoria declarada X", "Memoria declarada Y"]) expect(html).toContain(text);
+    const storage = cardOf(html, "storage"), ram = cardOf(html, "ram");
+    expect(storage).toContain("Cantidad explícita: 1 unidad<"); expect(storage).toContain("Cantidad explícita: 2 unidades");
+    expect(ram).toContain("Cantidad explícita: 2 módulos; capacidad total no calculada"); expect(ram).toContain("Cantidad explícita: 1 módulo; capacidad total no calculada");
+    expect(html).not.toContain("GB");
+    const gpu = cardOf(html, "gpu"), cpu = cardOf(html, "cpu");
+    expect(gpu).toContain('data-estado="absent"'); expect(gpu).toContain("No tengo (declarado)"); expect(gpu).not.toContain("No sé"); expect(gpu).toContain("border-dashed");
+    expect(cpu).toContain('data-estado="unknown"'); expect(cpu).toContain("No sé / por confirmar"); expect(cpu).not.toContain("No tengo"); expect(cpu).not.toContain("Presente"); expect(cpu).not.toContain("Encaja");
+    expect(cpu).toContain("border-revisar"); expect(gpu).not.toContain("border-revisar");
+    expect(html.match(/No sé \/ por confirmar/g)).toHaveLength(6); expect(html.match(/No tengo \(declarado\)/g)).toHaveLength(1); expect(html.match(/Presente/g)).toHaveLength(2);
+    expect(cpu).toContain(">Completar<"); expect(gpu).toContain(">Cambiar<"); expect(storage).toContain(">Cambiar<");
+    expect(JSON.stringify(pc)).toBe(before);
+  });
+  it("sin acción de edición muestra la lectura sin botones", () => {
+    expect(renderToStaticMarkup(createElement(TowerInventory, { pc: heterogeneous() }))).not.toContain("<button");
+  });
+});
+
+describe("Mi PC sin PCs guardadas", () => {
+  it("ofrece crear a mano o pegar una lista, sin PC de ejemplo ni selección", () => {
+    const html = renderToStaticMarkup(createElement(PcsEmptyState, { onCreate: () => {} }));
+    expect(html).toContain("Crear a mano"); expect(html).toContain("Pegar una lista"); expect(html).toContain('href="/pcs/import"');
+    expect(html).not.toContain("aria-pressed"); expect(html).not.toContain("<article"); expect(html).not.toContain("data-estado");
+  });
+});
+
+describe("De la tarjeta al editor", () => {
+  it("cada acción apunta al control tower-status-<categoría> y el foco usa ese id", () => {
+    const html = renderToStaticMarkup(createElement(TowerInventory, { pc: heterogeneous(), onEditCategory: () => {} }));
+    for (const category of towerKeys) {
+      expect(towerStatusId(category)).toBe(`tower-status-${category}`);
+      expect(html).toContain(`data-focus-target="tower-status-${category}"`);
+      const control = { focus: vi.fn() }, doc = { getElementById: vi.fn((id: string) => (id === `tower-status-${category}` ? control : null)) };
+      expect(focusTowerCategory(category, doc as unknown as Document)).toBe(true);
+      expect(doc.getElementById).toHaveBeenCalledWith(`tower-status-${category}`); expect(control.focus).toHaveBeenCalledTimes(1);
+    }
+    const missing = { getElementById: vi.fn(() => null) };
+    expect(focusTowerCategory("storage", missing as unknown as Document)).toBe(false);
+  });
+  it("el contrato de escritura no tiene atributos de fabricante", () => {
+    expect(Object.keys(towerInput(declared()).context).sort()).toEqual(["bios_version", "notes"]);
+    expect(Object.keys(towerInput(declared()).lines[0]).sort()).toEqual(["category", "component_id", "declared_model", "line_id", "quantity"]);
   });
 });

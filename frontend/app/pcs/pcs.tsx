@@ -5,14 +5,19 @@ import HardwareGuide from "../../components/hardware-guide";
 import RemoteProductSelector from "../../components/remote-product-selector";
 import TowerCompatibility from "./tower-compatibility";
 import TowerRecommendations from "./tower-recommendations";
-import TowerInventory from "../../components/tower-inventory";
+import TowerInventory, { focusTowerCategory, towerStatusId } from "../../components/tower-inventory";
+import PcsEmptyState from "../../components/pcs-empty-state";
 import PathSelector from "../../components/path-selector";
 import { emptyTower, towerCategories, towerInput, towerKeys, towerRequest, type CategoryStatus, type Tower, type TowerCategory, type TowerInput, type TowerLine, type TowerPage } from "../../lib/towers";
 
 export default function PCs() {
   const [list, setList] = useState<TowerPage | null>(null), [selected, setSelected] = useState<Tower | null>(null), [draft, setDraft] = useState<TowerInput | null>(null);
   const [busy, setBusy] = useState(true), [error, setError] = useState(""), [notice, setNotice] = useState(""), [deleting, setDeleting] = useState(false);
-  const lock = useRef(false);
+  const lock = useRef(false), focusAfterOpen = useRef<TowerCategory | null>(null);
+  useEffect(() => {
+    if (!draft || !focusAfterOpen.current) return;
+    focusTowerCategory(focusAfterOpen.current); focusAfterOpen.current = null;
+  }, [draft]);
   async function load(page = 1) { setList(await (await towerRequest(`?page=${page}&page_size=20`)).json()); }
   useEffect(() => {
     let active = true;
@@ -26,6 +31,7 @@ export default function PCs() {
     finally { lock.current = false; setBusy(false); }
   }
   function edit(pc: Tower | null) { setSelected(pc); setDraft(pc ? towerInput(pc) : emptyTower()); setDeleting(false); setError(""); setNotice(""); }
+  function editCategory(category: TowerCategory) { if (!selected) return; focusAfterOpen.current = category; edit(selected); }
   function status(category: TowerCategory, value: CategoryStatus) {
     if (!draft) return;
     if (draft.lines.some(line => line.category === category) && value !== "present") {
@@ -49,7 +55,7 @@ export default function PCs() {
     {list && <section aria-label="Lista de PCs" className="pc-picker"><h2>Elegí tu PC</h2>{list.items.map(pc => <button key={pc.id} disabled={busy} aria-pressed={selected?.id === pc.id} onClick={() => operation(async () => { setSelected(await (await towerRequest(`/${pc.id}`)).json()); setDraft(null); setDeleting(false); })}>{pc.name}</button>)}{!list.total && <p>No hay PCs guardadas.</p>}<nav aria-label="Páginas de PCs"><button disabled={busy || list.page <= 1} onClick={() => operation(() => load(list.page - 1))}>Anterior</button><button disabled={busy || list.page * list.page_size >= list.total} onClick={() => operation(() => load(list.page + 1))}>Siguiente</button></nav></section>}
     </details>
     {selected && !draft && <section className="surface stack saved-pc-reading" aria-label="Detalle de PC"><header className="saved-pc-identity"><div><h2>{selected.name}</h2><p>Revisión {selected.revision} · {selected.origin_schema === 1 ? "Configuración histórica" : "Configuración guardada"}</p></div><button className="secondary" disabled={busy} onClick={() => edit(selected)}>Editar PC</button></header>
-      <TowerRecommendations key={`proposals-${selected.id}-${selected.revision}`} pc={selected} disabled={busy} configuration={<div className="central-decision-layout"><div className="central-configuration"><TowerInventory pc={selected} /><details><summary>BIOS y contexto declarado</summary><p>BIOS declarada: {selected.context.bios_version ?? "Por confirmar"}</p><p>{selected.context.notes}</p></details></div><aside className="central-context"><h3>Comprobar antes de comprar</h3><TowerCompatibility key={`${selected.id}-${selected.revision}`} pc={selected} disabled={busy} /></aside></div>} />
+      <TowerRecommendations key={`proposals-${selected.id}-${selected.revision}`} pc={selected} disabled={busy} configuration={<div className="central-decision-layout"><div className="central-configuration"><TowerInventory pc={selected} onEditCategory={busy ? undefined : editCategory} /><details><summary>BIOS y contexto declarado</summary><p>BIOS declarada: {selected.context.bios_version ?? "Por confirmar"}</p><p>{selected.context.notes}</p></details></div><aside className="central-context"><h3>Comprobar antes de comprar</h3><TowerCompatibility key={`${selected.id}-${selected.revision}`} pc={selected} disabled={busy} /></aside></div>} />
       <details><summary>Más opciones de esta PC</summary><p>Guardar sólo registra tu configuración; no comprueba compatibilidad. En notebooks y equipos prearmados, confirmá si las piezas se pueden cambiar.</p><button disabled={busy} className="secondary" onClick={() => setDeleting(true)}>Preparar borrado</button><p>Formato técnico: {selected.origin_schema === 1 ? "Histórico, adaptado para lectura" : "Torre schema2"}.</p></details>
       {deleting && <form aria-label="Confirmar borrado" onSubmit={event => { event.preventDefault(); void operation(async () => { await towerRequest(`/${selected.id}`, "DELETE"); setSelected(null); setDeleting(false); setNotice("PC eliminada del servidor."); await load(); }); }}><label><input type="checkbox" required disabled={busy} />Confirmo eliminar esta PC</label><button disabled={busy}>Eliminar definitivamente</button><button type="button" disabled={busy} onClick={() => setDeleting(false)}>Cancelar borrado</button></form>}
     </section>}
@@ -60,8 +66,8 @@ export default function PCs() {
         <details><summary>Cómo encontrar los datos de mi PC</summary><HardwareGuide id="tower-hardware-guide" /></details>
         <p>No sé no significa no tengo. Declarar ausencia no elimina los requisitos del hardware. Los modelos escritos no se convierten en especificaciones.</p>
         {towerKeys.map(category => <fieldset key={category} className="surface stack-sm"><legend>{towerCategories[category]}</legend>
-          <label htmlFor={`tower-status-${category}`}>Estado de {towerCategories[category]}</label>
-          <select id={`tower-status-${category}`} value={draft.category_status[category]} onChange={event => status(category, event.target.value as CategoryStatus)}><option value="unknown">No sé / por confirmar</option><option value="absent">No tengo (declarado)</option><option value="present">Tengo esta pieza</option></select>
+          <label htmlFor={towerStatusId(category)}>Estado de {towerCategories[category]}</label>
+          <select id={towerStatusId(category)} value={draft.category_status[category]} onChange={event => status(category, event.target.value as CategoryStatus)}><option value="unknown">No sé / por confirmar</option><option value="absent">No tengo (declarado)</option><option value="present">Tengo esta pieza</option></select>
           {category === "ram" && <p>Cantidad = módulos, no GB. Hasta 4 grupos y 16 módulos. No deduzcas cantidad ni capacidad desde el nombre.</p>}
           {draft.lines.map((line, index) => line.category !== category ? null : <section key={`${category}-${index}`} className="stack-sm" aria-label={`${towerCategories[category]} línea ${index + 1}`}>
             <label>Identificación de la pieza<select value={line.declared_model !== null ? "declared" : "catalog"} onChange={event => updateLine(index, event.target.value === "declared" ? { component_id: null, declared_model: "" } : { component_id: null, declared_model: null })}><option value="catalog">Elegir en catálogo</option><option value="declared">Escribir modelo declarado</option></select></label>
@@ -76,6 +82,7 @@ export default function PCs() {
         <button>Guardar PC</button><button type="button" className="secondary" onClick={() => { setDraft(null); setError(""); }}>Cancelar edición</button>
       </fieldset>
     </form>}
-    {!selected && !draft && <section className="surface"><h2>De tu PC a una propuesta</h2><p>Seleccioná una PC guardada para indicar objetivo y presupuesto. Envío, financiación y mano de obra quedan fuera del presupuesto de componentes.</p></section>}
+    {!selected && !draft && list && !list.total && <PcsEmptyState disabled={busy} onCreate={() => edit(null)} />}
+    {!selected && !draft && !!list?.total && <p className="compact-help">Elegí una de tus PCs para ver sus piezas.</p>}
   </section>;
 }

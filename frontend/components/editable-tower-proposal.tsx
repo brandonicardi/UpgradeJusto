@@ -4,7 +4,7 @@ import RemoteProductSelector from "./remote-product-selector";
 import { towerCategories, towerKeys, type CategoryStatus, type TowerCategory } from "../lib/towers";
 import type { TowerProposalDraft } from "../lib/tower-extraction";
 
-export default function EditableTowerProposal({ value, onChange, disabled }: { value: TowerProposalDraft; onChange: (draft: TowerProposalDraft) => void; disabled: boolean }) {
+export default function EditableTowerProposal({ value, onChange, disabled, showName = true }: { value: TowerProposalDraft; onChange: (draft: TowerProposalDraft) => void; disabled: boolean; showName?: boolean }) {
   const uid = useId();
   function update(index: number, patch: Partial<TowerProposalDraft["lines"][number]>) {
     const previous = value.lines[index], next = { ...previous, ...patch };
@@ -14,7 +14,7 @@ export default function EditableTowerProposal({ value, onChange, disabled }: { v
   function status(category: TowerCategory, next: CategoryStatus) { onChange({ ...value, category_status: { ...value.category_status, [category]: next } }); }
   return <fieldset disabled={disabled} className="stack"><legend>Corregir mi propuesta de torre</legend>
     <p>No sé no significa no tengo. Los modelos declarados no prueban especificaciones. Las cantidades vacías siguen desconocidas: completalas explícitamente, sin deducir módulos desde GB.</p>
-    <label>Nombre de PC<input required maxLength={100} value={value.name} onChange={event => onChange({ ...value, name: event.target.value })} /></label>
+    {showName && <label>Nombre de PC<input required maxLength={100} value={value.name} onChange={event => onChange({ ...value, name: event.target.value })} /></label>}
     {towerKeys.map(category => {
       const lines = value.lines.filter(line => line.category === category), limit = category === "ram" ? 4 : category === "storage" ? 16 : category === "fan" ? 8 : 1;
       return <fieldset key={category} className="surface stack-sm"><legend>{towerCategories[category]}</legend>

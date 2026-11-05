@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { readFileSync } from "node:fs";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { LegacySaveControls } from "../../app/pcs/import/legacy-proposal";
+import { canSaveLegacyProposal } from "../../lib/import-steps";
+import { createTowerExtraction, extractionDraft, type ExtractionState, type TowerExtraction } from "../../lib/tower-extraction";
+import { emptyTower, towerKeys, type Tower } from "../../lib/towers";
 import { adminGatewayPath, signedProxyHeaders } from "../../lib/gateway";
 import { curationProxy } from "../../lib/curation-proxy";
 import { CurationError, curationError, curationRequest, parseAdminData } from "../../lib/curation";
@@ -94,11 +99,67 @@ describe("CU02/CU10 contrato cerrado", () => {
     await expect(curationRequest("/api/pcs/extract/confirm", "POST", { confirmed: true })).rejects.toBeInstanceOf(CurationError);
     expect(upstream).toHaveBeenCalledTimes(2);
   });
-  it("cancelar descarta estado sin POST; envío protegido por lock y checkbox", () => {
-    const source = readFileSync(new URL("../../app/pcs/import/proposal.tsx", import.meta.url), "utf8");
-    expect(source).toContain('onClick={() => { setPreview(null); setError(""); setConfirmed(false); setBlocked(false); }}');
-    expect(source).toContain("if (lock.current || !preview || !confirmed || blocked) return");
-    expect(source).toContain("confirmed: true, pc, metadata:");
-    expect(source).not.toContain("localStorage");
+});
+
+const towerId = "12345678-1234-1234-1234-123456789abc";
+const confirmPath = "/api/towers/extract/confirm";
+function extractionHarness(confirmStatuses: number[] = [201]) {
+  const extraction: TowerExtraction = { proposal: { ...emptyTower(), name: "Torre de prueba" }, evidence: towerKeys.map(category => ({ category, status: "unknown" as const, absence_excerpt: null, lines: [] })), missing_fields: [], warnings: [], catalog_revision: "synthetic-revision", requires_confirmation: true };
+  const saved: Tower = { ...extraction.proposal, id: towerId, revision: 1, origin_schema: 2 };
+  const statuses = [...confirmStatuses];
+  const request = vi.fn<typeof fetch>().mockImplementation(async path => {
+    if (path === "/api/auth/csrf") return Response.json({ csrf_token: "synthetic" });
+    if (path === "/api/towers/extract") return Response.json(extraction);
+    const status = statuses.length > 1 ? statuses.shift()! : statuses[0];
+    return status === 201 ? Response.json(saved, { status }) : Response.json({ detail: "private" }, { status });
+  });
+  const onState = vi.fn<(state: ExtractionState) => void>(), onPreview = vi.fn(), onSaved = vi.fn();
+  const controller = createTowerExtraction({ request, onState, onPreview, onSaved });
+  const confirms = () => request.mock.calls.filter(call => call[0] === confirmPath).length;
+  return { controller, extraction, request, onState, onPreview, onSaved, confirms, draft: () => extractionDraft(extraction) };
+}
+
+describe("CU02 confirmación explícita, probada por comportamiento", () => {
+  it("confirmar sin la confirmación explícita no hace ningún POST de confirmación", async () => {
+    const h = extractionHarness(); await h.controller.extract("Hardware de prueba");
+    await h.controller.confirm(h.draft(), h.extraction.catalog_revision, false);
+    expect(h.confirms()).toBe(0); expect(h.onSaved).not.toHaveBeenCalled();
+    expect(h.request.mock.calls.map(call => call[0])).toEqual(["/api/auth/csrf", "/api/towers/extract"]);
+    h.controller.dispose();
+  });
+  it("cancelar descarta la propuesta sin ningún POST", async () => {
+    const h = extractionHarness(); await h.controller.extract("Hardware de prueba");
+    const before = h.request.mock.calls.length; h.controller.cancel();
+    expect(h.onPreview.mock.calls.at(-1)?.[0]).toBeNull(); expect(h.request.mock.calls.length).toBe(before); expect(h.confirms()).toBe(0);
+    expect(h.onState.mock.calls.at(-1)?.[0]).toMatchObject({ phase: "idle", blocked: null });
+    await h.controller.confirm(h.draft(), h.extraction.catalog_revision, true); expect(h.confirms()).toBe(0);
+    h.controller.dispose();
+  });
+  it("dos confirmaciones concurrentes producen un solo POST", async () => {
+    const h = extractionHarness(); await h.controller.extract("Hardware de prueba"); const draft = h.draft();
+    await Promise.all([h.controller.confirm(draft, h.extraction.catalog_revision, true), h.controller.confirm(draft, h.extraction.catalog_revision, true)]);
+    expect(h.confirms()).toBe(1); expect(h.onSaved).toHaveBeenCalledTimes(1);
+    h.controller.dispose();
+  });
+  it("tras un resultado incierto queda bloqueado hasta autorizar un nuevo envío", async () => {
+    const h = extractionHarness([500, 201]); await h.controller.extract("Hardware de prueba"); const draft = h.draft();
+    await h.controller.confirm(draft, h.extraction.catalog_revision, true);
+    expect(h.confirms()).toBe(1); expect(h.onState.mock.calls.at(-1)?.[0].blocked).toBe("uncertain"); expect(h.onSaved).not.toHaveBeenCalled();
+    await h.controller.confirm(draft, h.extraction.catalog_revision, true); expect(h.confirms()).toBe(1);
+    h.controller.allowExplicitRetry(); expect(h.onState.mock.calls.at(-1)?.[0].blocked).toBeNull(); expect(h.confirms()).toBe(1);
+    await h.controller.confirm(draft, h.extraction.catalog_revision, true); expect(h.confirms()).toBe(2); expect(h.onSaved).toHaveBeenCalledTimes(1);
+    h.controller.dispose();
+  });
+  it("la pantalla histórica no permite guardar sin confirmación, sin propuesta o bloqueada", () => {
+    const ready = { locked: false, hasPreview: true, confirmed: true, blocked: false };
+    expect(canSaveLegacyProposal(ready)).toBe(true);
+    for (const patch of [{ confirmed: false }, { hasPreview: false }, { blocked: true }, { locked: true }]) expect(canSaveLegacyProposal({ ...ready, ...patch })).toBe(false);
+    const noop = () => {};
+    const without = renderToStaticMarkup(createElement(LegacySaveControls, { busy: false, blocked: false, confirmed: false, onConfirmedChange: noop, onCancel: noop }));
+    expect(without).toMatch(/<button disabled=""[^>]*>Confirmar y guardar<\/button>/);
+    const withConfirmation = renderToStaticMarkup(createElement(LegacySaveControls, { busy: false, blocked: false, confirmed: true, onConfirmedChange: noop, onCancel: noop }));
+    expect(withConfirmation).not.toMatch(/<button disabled=""[^>]*>Confirmar y guardar<\/button>/);
+    const blocked = renderToStaticMarkup(createElement(LegacySaveControls, { busy: false, blocked: true, confirmed: true, onConfirmedChange: noop, onCancel: noop }));
+    expect(blocked).toMatch(/<button disabled=""[^>]*>Confirmar y guardar<\/button>/);
   });
 });

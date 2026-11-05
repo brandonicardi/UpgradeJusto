@@ -6,6 +6,16 @@ import { pcCategories, pcFormInput, type PC } from "../../../lib/pcs";
 import { CurationError, curationRequest, type Extraction } from "../../../lib/curation";
 import { extractionWarnings } from "../../../lib/extraction-presentation";
 import HardwareGuide, { HardwareExample } from "../../../components/hardware-guide";
+import { canSaveLegacyProposal } from "../../../lib/import-steps";
+
+export function LegacySaveControls({ busy, blocked, confirmed, onConfirmedChange, onCancel }: { busy: boolean; blocked: boolean; confirmed: boolean; onConfirmedChange: (value: boolean) => void; onCancel: () => void }) {
+  return <>
+    <label className="flex gap-3 items-center"><input className="w-auto" type="checkbox" checked={confirmed} disabled={busy || blocked} onChange={event => { event.stopPropagation(); onConfirmedChange(event.target.checked); }} />Confirmo explícitamente guardar esta propuesta corregida</label>
+    <button disabled={busy || blocked || !canSaveLegacyProposal({ locked: false, hasPreview: true, confirmed, blocked })}>Confirmar y guardar</button>{" "}
+    <button type="button" disabled={busy} onClick={onCancel}>Cancelar propuesta</button>
+    {blocked && <p>Envío bloqueado. Revisá Mis PCs antes de una nueva extracción; ante 409 revisá también la revisión del catálogo. No se garantiza idempotencia.</p>}
+  </>;
+}
 
 export default function LegacyImportPC({ catalog }: { catalog: CatalogPage | null }) {
   const [preview, setPreview] = useState<Extraction | null>(null);
@@ -27,7 +37,7 @@ export default function LegacyImportPC({ catalog }: { catalog: CatalogPage | nul
     finally { lock.current = false; setBusy(false); }
   }
   async function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (lock.current || !preview || !confirmed || blocked) return;
+    event.preventDefault(); if (!canSaveLegacyProposal({ locked: lock.current, hasPreview: !!preview, confirmed, blocked }) || !preview) return;
     let pc;
     try { pc = pcFormInput(new FormData(event.currentTarget)); }
     catch (failure) { setError(failure instanceof Error ? failure.message : "Revisá los campos."); return; }
@@ -80,10 +90,7 @@ export default function LegacyImportPC({ catalog }: { catalog: CatalogPage | nul
           <label className="block">BIOS declarada<input name="bios_version" maxLength={100} defaultValue={preview.proposal.context.bios_version ?? ""} /></label>
           <label className="block">Notas declaradas<textarea name="notes" maxLength={1000} defaultValue={preview.proposal.context.notes ?? ""} /></label>
         </fieldset>
-        <label className="flex gap-3 items-center"><input className="w-auto" type="checkbox" checked={confirmed} disabled={busy || blocked} onChange={event => { event.stopPropagation(); setConfirmed(event.target.checked); }} />Confirmo explícitamente guardar esta propuesta corregida</label>
-        <button disabled={busy || blocked || !confirmed}>Confirmar y guardar</button>{" "}
-        <button type="button" disabled={busy} onClick={() => { setPreview(null); setError(""); setConfirmed(false); setBlocked(false); }}>Cancelar propuesta</button>
-        {blocked && <p>Envío bloqueado. Revisá Mis PCs antes de una nueva extracción; ante 409 revisá también la revisión del catálogo. No se garantiza idempotencia.</p>}
+        <LegacySaveControls busy={busy} blocked={blocked} confirmed={confirmed} onConfirmedChange={setConfirmed} onCancel={() => { setPreview(null); setError(""); setConfirmed(false); setBlocked(false); }} />
       </form>
     </div>}
   </section>;
