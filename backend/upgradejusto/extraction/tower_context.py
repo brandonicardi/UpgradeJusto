@@ -20,6 +20,20 @@ NEGATIVE_NAMES = {
     "cooler": ("cooler", "disipador"),
     "fan": ("fan", "fans", "ventiladores"),
 }
+# Natural category words that may introduce a literal label. Separate from
+# NEGATIVE_NAMES: these never assert presence/absence, only framing.
+LABEL_PREFIXES = {
+    "cpu": ("procesador", "cpu"),
+    "motherboard": ("placa madre", "motherboard", "mother"),
+    "ram": ("memoria ram", "memoria", "ram"),
+    "gpu": ("placa de video", "tarjeta gráfica", "gráfica", "gpu"),
+    "psu": ("fuente", "psu"),
+    "case": ("gabinete", "case"),
+    "storage": ("almacenamiento", "discos", "disco", "ssd", "storage"),
+    "cooler": ("cooler", "disipador"),
+    "fan": ("ventiladores", "ventilador", "fans", "fan"),
+}
+SEGMENT_SEPARATORS = (";", "\n", ",", " y ")
 INSTRUCTIONS = re.compile(
     r"https?://|\b(?:ignore|ignora|ejecuta|execute|delete|select|insert|update|"
     r"system|assistant|password|contraseña|owner_id|user_id)\b|[<>\r\n\x00]",
@@ -51,13 +65,21 @@ No BIOS, notes, name, owner_id, compatibility, save requests or extra keys.
 def whole_label(text, label_span, proof_start, category):
     """Shared accepted grammar; recognizes framing, not variant names or aliases."""
     start, end = label_span
-    left = max(text.rfind(";", 0, start), text.rfind("\n", 0, start)) + 1
-    ends = (text.find(separator, end) for separator in (";", "\n"))
+    left = 0
+    for separator in SEGMENT_SEPARATORS:
+        position = text.rfind(separator, 0, start)
+        if position >= 0:
+            left = max(left, position + len(separator))
+    ends = (text.find(separator, end) for separator in SEGMENT_SEPARATORS)
     right = min((position for position in ends if position >= 0), default=len(text))
-    names = "|".join(re.escape(name) for name in NEGATIVE_NAMES[category.value])
+    names = "|".join(
+        re.escape(name)
+        for name in sorted(LABEL_PREFIXES[category.value], key=len, reverse=True)
+    )
     framing = (
         rf"\s*(?:[-*•]\s*)?(?:(?:tengo|mi pc tiene)\s+)?"
-        rf"(?:(?:{names})\s*:\s*)?"
+        rf"(?:(?:un|una|el|la|los|las)\s+)?"
+        rf"(?:(?:{names})\s*(?::\s*|de\s+)?)?"
     )
     return bool(
         re.fullmatch(framing, text[left:proof_start], re.IGNORECASE)

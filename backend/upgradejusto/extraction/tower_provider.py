@@ -10,6 +10,10 @@ from upgradejusto.extraction.tower_context import prepare_context
 from upgradejusto.extraction.tower_models import TowerProviderProposal
 from upgradejusto.pcs.service import PCError
 
+# gpt-oss-20b rejects json_schema (strict and non-strict) with HTTP 400
+# json_validate_failed; keep the supported JSON mode without retries.
+TOWER_RESPONSE_FORMAT = {"type": "json_object"}
+
 
 def _unique_object(pairs):
     output = {}
@@ -29,12 +33,19 @@ class TowerGroqExtractor:
             async with asyncio.timeout(30):
                 async with http_client() as client:
                     with tracing_context(enabled=False):
-                        response = await model(client).ainvoke(
-                            [
-                                ("system", prepared.system_message),
-                                ("human", prepared.human_message),
-                            ],
-                            config={"callbacks": [], "tags": ["cu02-tower-stateless"]},
+                        response = (
+                            await model(client)
+                            .bind(response_format=TOWER_RESPONSE_FORMAT)
+                            .ainvoke(
+                                [
+                                    ("system", prepared.system_message),
+                                    ("human", prepared.human_message),
+                                ],
+                                config={
+                                    "callbacks": [],
+                                    "tags": ["cu02-tower-stateless"],
+                                },
+                            )
                         )
             if type(response.content) is not str or len(response.content) > 30000:
                 raise ValueError("Invalid bounded extraction response")

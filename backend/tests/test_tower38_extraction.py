@@ -15,7 +15,10 @@ from upgradejusto.extraction.tower_models import (
     TowerExtractInput,
     TowerProviderProposal,
 )
-from upgradejusto.extraction.tower_provider import TowerGroqExtractor
+from upgradejusto.extraction.tower_provider import (
+    TOWER_RESPONSE_FORMAT,
+    TowerGroqExtractor,
+)
 from upgradejusto.extraction.tower_service import (
     TowerExtractionService,
     normalize_proposal,
@@ -306,8 +309,9 @@ def test_two_real_identical_occurrences_can_back_two_distinct_module_groups():
     assert sum(line.quantity for line in result.proposal.lines) == 4
 
 
+# A comma now starts a new segment, so it is no longer an attached variant suffix.
 @pytest.mark.parametrize(
-    "suffix", [" PLUS", "+", "/PLUS", "-OC", ".PLUS", " (OC)", " OC", ", PLUS"]
+    "suffix", [" PLUS", "+", "/PLUS", "-OC", ".PLUS", " (OC)", " OC"]
 )
 @pytest.mark.parametrize("cropped", [True, False])
 def test_uncatalogued_variant_suffix_is_not_a_known_base_model(suffix, cropped):
@@ -414,6 +418,48 @@ def test_literal_declared_hardware_and_absence_distinct_from_unknown():
     assert "ignora" not in result.model_dump_json()
 
 
+def test_unknown_category_keeps_observations_for_review_but_no_confirmed_line():
+    raw = output()
+    text = "Memoria: módulos DDR4, cantidad por confirmar."
+    populate(raw, "ram", observed(label="módulos DDR4", excerpt=text))
+    result = normalize(raw, text)
+    assert result.proposal.category_status["ram"] == "unknown"
+    assert result.proposal.lines == []
+    entry = next(item for item in result.evidence if item.category == "ram")
+    assert entry.status == "unknown"
+    assert len(entry.lines) == 1
+    assert entry.lines[0].declared_model == "módulos DDR4"
+    assert entry.lines[0].proposal_line_index is None
+    assert "ram.review_identity_presence_quantity" in result.missing_fields
+
+
+def test_unsupported_absence_degrades_to_unknown_for_review():
+    raw = output()
+    cpu = next(item for item in raw["categories"] if item["category"] == "cpu")
+    cpu.update(status="absent", absence_excerpt="No CPU")
+    gpu = next(item for item in raw["categories"] if item["category"] == "gpu")
+    gpu.update(status="absent", absence_excerpt="No conozco el resto de las piezas.")
+    text = "No conozco el resto de las piezas."
+    result = normalize(raw, text)
+    assert result.proposal.category_status["cpu"] == "unknown"
+    assert result.proposal.category_status["gpu"] == "unknown"
+    assert result.proposal.category_status["ram"] == "unknown"
+    assert result.proposal.lines == []
+    assert all(entry.absence_excerpt is None for entry in result.evidence)
+    assert "cpu.review_identity_presence_quantity" in result.missing_fields
+    assert "gpu.review_identity_presence_quantity" in result.missing_fields
+
+
+def test_unknown_status_never_keeps_an_absence_fragment_as_evidence():
+    raw = output()
+    cpu = next(item for item in raw["categories"] if item["category"] == "cpu")
+    cpu.update(status="unknown", absence_excerpt="sin cpu")
+    result = normalize(raw, "sin cpu")
+    assert result.proposal.category_status["cpu"] == "unknown"
+    evidence = next(entry for entry in result.evidence if entry.category == "cpu")
+    assert evidence.absence_excerpt is None
+
+
 @pytest.mark.parametrize(
     "change",
     [
@@ -424,7 +470,6 @@ def test_literal_declared_hardware_and_absence_distinct_from_unknown():
         "quantity_for_other_model",
         "duplicate_category",
         "instructions",
-        "absence_guess",
     ],
 )
 def test_untrusted_output_fails_closed(change):
@@ -463,8 +508,6 @@ def test_untrusted_output_fails_closed(change):
             excerpt=text,
             quantity=None,
         )
-    elif change == "absence_guess":
-        raw["categories"][0].update(status="absent", absence_excerpt="sin cpu")
     with pytest.raises(PCError) as raised:
         normalize(raw, text)
     assert raised.value.status == 502
@@ -493,6 +536,169 @@ def test_closed_provider_and_confirmation_dtos(extra):
                 **extra,
             }
         )
+
+
+def test_comma_segments_with_natural_category_prefixes_keep_quantity_one():
+    raw = output()
+    cases = (
+        ("cpu", "Procesador Ryzen 5 5600X", "Ryzen 5 5600X"),
+        ("motherboard", "placa madre B550M", "B550M"),
+        ("gpu", "placa de video RTX 3060", "RTX 3060"),
+        ("psu", "fuente 650W", "650W"),
+        ("case", "gabinete Corsair 4000D", "Corsair 4000D"),
+        ("cooler", "cooler Hyper 212", "Hyper 212"),
+    )
+    text = ", ".join(segment for _, segment, _ in cases)
+    for category, segment, label in cases:
+        populate(raw, category, observed(label=label, quantity=1, excerpt=segment))
+    result = normalize(raw, text)
+    for category, _, _ in cases:
+        assert result.proposal.category_status[category] == "present"
+    by_category = {line.category.value: line for line in result.proposal.lines}
+    for category, _, label in cases:
+        line = by_category[category]
+        assert line.declared_model == label
+        assert line.quantity == 1
+        assert line.component_id is None
+    evidence = {entry.category.value: entry for entry in result.evidence}
+    assert all(
+        evidence[category].lines[0].resolution == "declared" for category, _, _ in cases
+    )
+
+
+@pytest.mark.parametrize(
+    "text,category,label,quantity",
+    [
+        ("quiero comprar una RTX 3060", "gpu", "RTX 3060", 1),
+        ("sin RTX 3060", "gpu", "RTX 3060", 1),
+        ("OC 2x SYNTHETIC RAM 60", "ram", "SYNTHETIC RAM 60", 2),
+        ("2x PLUS SYNTHETIC RAM 60", "ram", "SYNTHETIC RAM 60", 2),
+    ],
+)
+def test_unframed_or_variant_prefixed_text_requires_review(
+    text, category, label, quantity
+):
+    raw = output()
+    populate(
+        raw,
+        category,
+        observed(
+            label=label,
+            quantity=quantity,
+            excerpt=text,
+            quantity_excerpt=None if category == "gpu" else text,
+        ),
+    )
+    result = normalize(raw, text)
+    assert result.proposal.category_status[category] == "unknown"
+    assert result.proposal.lines == []
+    evidence = next(entry for entry in result.evidence if entry.category == category)
+    assert evidence.lines[0].resolution == "needs_review"
+    assert evidence.lines[0].quantity is None
+
+
+def test_comma_declarations_never_invent_ram_disk_or_fan_counts():
+    raw = output()
+    text = "memoria DDR4, disco SSD 1TB, ventilador Arctic P12"
+    populate(raw, "ram", observed(label="DDR4", excerpt="memoria DDR4"))
+    populate(raw, "storage", observed(label="SSD 1TB", excerpt="disco SSD 1TB"))
+    populate(raw, "fan", observed(label="Arctic P12", excerpt="ventilador Arctic P12"))
+    result = normalize(raw, text)
+    assert result.proposal.lines == []
+    for category in ("ram", "storage", "fan"):
+        assert result.proposal.category_status[category] == "unknown"
+    evidence = {entry.category.value: entry for entry in result.evidence}
+    for category in ("ram", "storage", "fan"):
+        line = evidence[category].lines[0]
+        assert line.quantity is None
+        assert line.quantity_excerpt is None
+        assert line.resolution == "needs_review"
+
+
+def test_single_category_without_quantity_is_one_but_ram_stays_unknown():
+    raw = output()
+    text = "Procesador Ryzen 5 5600X, memoria DDR4 Fury"
+    populate(
+        raw,
+        "cpu",
+        observed(
+            label="Ryzen 5 5600X", quantity=None, excerpt="Procesador Ryzen 5 5600X"
+        ),
+    )
+    populate(
+        raw,
+        "ram",
+        observed(label="DDR4 Fury", quantity=None, excerpt="memoria DDR4 Fury"),
+    )
+    result = normalize(raw, text)
+    assert [(line.category.value, line.quantity) for line in result.proposal.lines] == [
+        ("cpu", 1)
+    ]
+    assert result.proposal.category_status["ram"] == "unknown"
+
+
+def test_conjunction_and_de_framing_accepts_natural_tower_list():
+    raw = output()
+    text = "Tengo una placa madre B550M, un Ryzen 7 5700X y una fuente de 650W"
+    populate(
+        raw,
+        "motherboard",
+        observed(label="B550M", quantity=1, excerpt="una placa madre B550M"),
+    )
+    populate(
+        raw,
+        "cpu",
+        observed(label="Ryzen 7 5700X", quantity=1, excerpt="un Ryzen 7 5700X"),
+    )
+    populate(
+        raw,
+        "psu",
+        observed(label="650W", quantity=1, excerpt="una fuente de 650W"),
+    )
+    result = normalize(raw, text)
+    lines = {line.category.value: line for line in result.proposal.lines}
+    assert set(lines) == {"motherboard", "cpu", "psu"}
+    assert lines["motherboard"].declared_model == "B550M"
+    assert lines["cpu"].declared_model == "Ryzen 7 5700X"
+    assert lines["psu"].declared_model == "650W"
+    assert all(
+        line.quantity == 1 and line.component_id is None for line in lines.values()
+    )
+
+
+def test_de_after_prefix_does_not_turn_capacity_into_a_quantity():
+    raw = output()
+    text = "memoria de 16 GB"
+    populate(raw, "ram", observed(label="16 GB", excerpt=text))
+    result = normalize(raw, text)
+    assert result.proposal.category_status["ram"] == "unknown"
+    assert result.proposal.lines == []
+    line = next(entry for entry in result.evidence if entry.category == "ram").lines[0]
+    assert line.declared_model == "16 GB"
+    assert line.quantity is None
+    assert line.quantity_excerpt is None
+    assert line.resolution == "needs_review"
+
+
+def test_purchase_phrase_and_bare_article_segment_add_no_lines():
+    raw = output()
+    text = "quiero comprar una RTX 3060 y un SSD"
+    populate(raw, "gpu", observed(label="RTX 3060", quantity=1, excerpt=text))
+    populate(raw, "storage", observed(label="SSD", excerpt="un SSD"))
+    result = normalize(raw, text)
+    assert result.proposal.lines == []
+    assert result.proposal.category_status["gpu"] == "unknown"
+    assert result.proposal.category_status["storage"] == "unknown"
+    for category in ("gpu", "storage"):
+        evidence = next(
+            entry for entry in result.evidence if entry.category == category
+        )
+        assert evidence.lines[0].resolution == "needs_review"
+        assert evidence.lines[0].quantity is None
+
+
+def test_provider_keeps_json_mode_when_schema_generation_is_rejected():
+    assert TOWER_RESPONSE_FORMAT == {"type": "json_object"}
 
 
 class Budget:
@@ -561,6 +767,10 @@ def test_provider_sanitizes_errors_and_uses_existing_client(monkeypatch, kind, s
             return False
 
     class Model:
+        def bind(self, **kwargs):
+            assert kwargs == {"response_format": TOWER_RESPONSE_FORMAT}
+            return self
+
         async def ainvoke(self, messages, config):
             assert config["callbacks"] == []
             payload = json.loads(messages[1][1])

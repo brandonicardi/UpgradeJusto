@@ -19,7 +19,10 @@ from upgradejusto.extraction.tower_models import (
     TowerExtractInput,
     TowerProviderProposal,
 )
-from upgradejusto.extraction.tower_provider import TowerGroqExtractor
+from upgradejusto.extraction.tower_provider import (
+    TOWER_RESPONSE_FORMAT,
+    TowerGroqExtractor,
+)
 from upgradejusto.extraction.tower_service import TowerExtractionService
 from upgradejusto.pcs.service import PCError
 
@@ -103,6 +106,17 @@ def test_full_known_variant_does_not_send_its_base_model():
         update={"id": "variant", "name": parts[0].name + " PLUS"}
     )
     assert relevant_components("2x " + variant.name, parts + (variant,)) == (variant,)
+
+
+def test_catalog_name_with_conjunction_is_not_split_in_relevance():
+    part = Component(
+        id="kit",
+        category=Category.RAM,
+        name="SYNTHETIC KIT y COMBO",
+        attributes={},
+        sources=(),
+    )
+    assert relevant_components("2x SYNTHETIC KIT y COMBO", (part,)) == (part,)
 
 
 def test_utf8_exact_boundary_is_inclusive_and_input_is_not_truncated():
@@ -231,6 +245,10 @@ def test_sdk_sends_the_exact_prepared_strings_and_no_metadata(monkeypatch):
             return False
 
     class Model:
+        def bind(self, **kwargs):
+            assert kwargs == {"response_format": TOWER_RESPONSE_FORMAT}
+            return self
+
         async def ainvoke(self, messages, config):
             assert messages == [
                 ("system", prepared.system_message),

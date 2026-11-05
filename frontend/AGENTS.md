@@ -23,7 +23,12 @@ Complementa el `AGENTS.md` de la raíz. Leé la spec del cambio activo en
 
 ## Diseño y textos
 - Sistema de diseño: `docs/sistema-diseno/` (leer su `README.md` y `tokens.json`).
-  Las `preview.html` son maquetas con datos de ejemplo: guían composición, no se copian.
+- Las `preview.html` de `componentes/Pantalla*` son la especificación visual: cada pantalla debe
+  verse igual, con la misma estructura, orden, componentes, textos fijos y espaciado. Solo cambian
+  los datos de ejemplo, que salen de la API. Una pantalla se arma desde su maqueta, no retocando la
+  vieja. Si la maqueta muestra algo que no existe, se construye; si no se puede, se avisa.
+- Una pantalla no se cierra sin comparar su captura real con la maqueta, a 1440 y 390.
+- Las pantallas sin maqueta siguen el mismo estilo.
 - Colores, tipografía, espacios y radios solo desde los tokens de `globals.css`.
 - Textos en español rioplatense con voseo, para gente común. Usar el vocabulario del
   sistema de diseño («Encaja», «Falta un dato», «No encaja», «Placa de video»).

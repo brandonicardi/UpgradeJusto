@@ -178,6 +178,9 @@ def normalize_line(observation, category, text, parts):
             source_windows = _windows(source, text)
     elif category in SINGLE_CATEGORIES and quantity not in (None, 1):
         invalid()
+    elif category in SINGLE_CATEGORIES:
+        # A tower holds exactly one of these, so one is structural, not inferred.
+        quantity = 1
     if quantity is None:
         resolution = "needs_review"
     spans = tuple(
@@ -224,12 +227,16 @@ def normalize_proposal(raw, text, parts, revision):
     states, lines, evidence, missing, records = {}, [], [], [], []
     for category in Category:
         observed = categories[category]
-        if observed.status != "present" and observed.lines:
+        if observed.status == "absent" and observed.lines:
             invalid()
         if observed.status == "present" and not observed.lines:
             invalid()
         absence = observed.absence_excerpt
-        if observed.status == "absent":
+        status = observed.status
+        # An absence is evidence only with a literal negative phrase. Invented or
+        # vague "no conozco/no CPU" claims degrade to unknown for review; the
+        # whole preview must not fail because the model overreached.
+        if status == "absent":
             names = "|".join(re.escape(name) for name in NEGATIVE_NAMES[category.value])
             if (
                 absence is None
@@ -238,18 +245,15 @@ def normalize_proposal(raw, text, parts, revision):
                     rf"(?:sin|no tengo) (?:{names})", absence, re.IGNORECASE
                 )
             ):
-                invalid()
+                status, absence = "unknown", None
         elif absence is not None:
-            invalid()
+            absence = None
         normalized_pairs = [
             normalize_line(item, category, text, parts) for item in observed.lines
         ]
         normalized = [item for item, _ in normalized_pairs if item is not None]
-        status = (
-            "unknown"
-            if any(item is None for item, _ in normalized_pairs)
-            else observed.status
-        )
+        if any(item is None for item, _ in normalized_pairs):
+            status = "unknown"
         entry = TowerCategoryEvidence(
             category=category,
             status=status,
