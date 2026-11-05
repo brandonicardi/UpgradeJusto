@@ -14,7 +14,7 @@ services:
       UJ_DB_APP_USER: ${UJ_DB_APP_USER:-upgradejusto_app}
       UJ_DB_APP_PASSWORD: ${UJ_DB_APP_PASSWORD:?Defini UJ_DB_APP_PASSWORD en .env (cualquier clave)}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
       # Solo se ejecuta con el volumen vacío: crea la extensión y el usuario de la app.
       - ./scripts/docker/db-init.sql:/docker-entrypoint-initdb.d/10-db-init.sql:ro
     healthcheck:

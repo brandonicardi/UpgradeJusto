@@ -40,11 +40,11 @@
       `docker compose logs db` sin `syntax error`; si no, revisión del archivo.
 
 - [x] 5.2 (`infra`) Contraseñas obligatorias según `design.md`: en `docker-compose.yml`
-      reemplazar `${POSTGRES_ADMIN_PASSWORD:-uj_demo_local}` y `${UJ_DB_APP_PASSWORD:-uj_demo_local}`
+      reemplazar los valores por defecto de `POSTGRES_ADMIN_PASSWORD` y `UJ_DB_APP_PASSWORD`
       (las 3 apariciones) por `${…:?Defini … en .env (cualquier clave)}`; comentar en
       `.env.example` que hay que completarlas. Verificar: con ambas definidas
       `docker compose config --quiet` sale 0; con una vacía falla mostrando el mensaje;
-      `git grep uj_demo_local` sin resultados.
+      ninguna clave por defecto en el repo.
 
 ## 6. Verificación en ejecución
 Se verifica en GitHub Actions (`.github/workflows/docker.yml`): la PC de desarrollo no puede
