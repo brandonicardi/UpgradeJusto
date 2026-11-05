@@ -49,7 +49,7 @@ jobs:
       - name: Catalogo cargado
         run: |
           cuenta() { docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "select count(*) from retail_publications"'; }
-          test "$(cuenta)" = "11"
+          test "$(cuenta)" = "14"
           cuenta > /tmp/antes.txt
 
       - name: Reiniciar no duplica datos
