@@ -33,7 +33,14 @@ LABEL_PREFIXES = {
     "cooler": ("cooler", "disipador"),
     "fan": ("ventiladores", "ventilador", "fans", "fan"),
 }
-SEGMENT_SEPARATORS = (";", "\n", ",", " y ")
+SEGMENT_SEPARATORS = (";", "\n", ",", " y ", ". ")
+SENTENCE_ENDS = (". ", ";", "\n")
+# A purchase wish or negation earlier in the sentence covers the later segments.
+NOT_OWNED = re.compile(
+    r"\b(?:quiero|quisiera|comprar|comprarme|busco|buscando|necesito|voy a|pienso|"
+    r"planeo|me gustar[ií]a|reemplazar|cambiar|sin|no tengo)\b",
+    re.IGNORECASE,
+)
 INSTRUCTIONS = re.compile(
     r"https?://|\b(?:ignore|ignora|ejecuta|execute|delete|select|insert|update|"
     r"system|assistant|password|contraseña|owner_id|user_id)\b|[<>\r\n\x00]",
@@ -70,6 +77,16 @@ def whole_label(text, label_span, proof_start, category):
         position = text.rfind(separator, 0, start)
         if position >= 0:
             left = max(left, position + len(separator))
+    sentence = max(
+        (
+            text.rfind(mark, 0, left) + len(mark)
+            for mark in SENTENCE_ENDS
+            if text.rfind(mark, 0, left) >= 0
+        ),
+        default=0,
+    )
+    if NOT_OWNED.search(text[sentence:left]):
+        return False
     ends = (text.find(separator, end) for separator in SEGMENT_SEPARATORS)
     right = min((position for position in ends if position >= 0), default=len(text))
     names = "|".join(

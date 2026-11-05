@@ -615,6 +615,40 @@ def test_comma_declarations_never_invent_ram_disk_or_fan_counts():
         assert line.resolution == "needs_review"
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "quiero comprar una RTX 3060, un procesador Ryzen 7 5700X",
+        "Busco una RTX 3060 y un procesador Ryzen 7 5700X",
+        "sin placa de video, procesador Ryzen 7 5700X",
+    ],
+)
+def test_wish_or_negation_covers_later_segments_of_the_sentence(text):
+    raw = output()
+    populate(
+        raw,
+        "cpu",
+        observed(label="Ryzen 7 5700X", quantity=1, excerpt="procesador Ryzen 7 5700X"),
+    )
+    result = normalize(raw, text)
+    assert result.proposal.lines == []
+    assert result.proposal.category_status["cpu"] == "unknown"
+
+
+def test_wish_in_previous_sentence_does_not_cover_the_next_one():
+    raw = output()
+    text = "Quiero comprar una RTX 3060. Tengo un procesador Ryzen 7 5700X"
+    populate(
+        raw,
+        "cpu",
+        observed(
+            label="Ryzen 7 5700X", quantity=1, excerpt="un procesador Ryzen 7 5700X"
+        ),
+    )
+    result = normalize(raw, text)
+    assert [line.declared_model for line in result.proposal.lines] == ["Ryzen 7 5700X"]
+
+
 def test_single_category_without_quantity_is_one_but_ram_stays_unknown():
     raw = output()
     text = "Procesador Ryzen 5 5600X, memoria DDR4 Fury"
