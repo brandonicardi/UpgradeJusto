@@ -48,7 +48,7 @@ export function PartCard({ categoria, beneficio, modelo, foto, precio, veredicto
             <a
               href={href}
               data-cubre=""
-              className="text-tinta! no-underline outline-none after:absolute after:inset-0 after:content-['']"
+              className="text-tinta no-underline outline-none after:absolute after:inset-0 after:content-['']"
             >
               {beneficio}
             </a>

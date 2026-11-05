@@ -50,14 +50,6 @@ pesos de `tokens.json`.
 - **WHEN** la persona abre cualquier página
 - **THEN** el navegador no pide fuentes a `fonts.googleapis.com`
 
-### Requirement: Sin cambios visibles al adoptar los tokens
-El sistema SHALL mantener idéntica la apariencia de todas las pantallas existentes al
-incorporar los tokens.
-
-#### Scenario: Pantalla existente
-- **WHEN** se abre el catálogo después de aplicar este cambio
-- **THEN** se ve igual que antes (mismos colores de fondo, texto y fuente)
-
 ### Requirement: Veredicto con color, ícono y palabra
 El sistema SHALL mostrar el resultado del motor con el componente `Verdict`, que combina color,
 ícono y palabra, sin decidir compatibilidad en la interfaz.
@@ -114,3 +106,27 @@ producción.
 #### Scenario: Producción
 - **WHEN** `NODE_ENV` es `production`
 - **THEN** `/sistema-diseno` responde «no encontrado»
+
+### Requirement: Tema claro en toda la app
+El sistema SHALL mostrar todas las pantallas sobre `papel`, con texto `tinta` y contraste AA,
+incluidas las que todavía no se rediseñaron.
+
+#### Scenario: Pantalla sin rediseñar
+- **WHEN** se abre una pantalla que todavía usa clases viejas
+- **THEN** su fondo y sus textos salen de los tokens y su texto cumple contraste AA
+
+#### Scenario: Sin colores oscuros fijos
+- **WHEN** se revisan `globals.css` y `v0-workbench.css`
+- **THEN** no quedan colores hexadecimales ni `rgba` fuera de las definiciones de tokens
+
+### Requirement: Navegación del sistema de diseño
+El sistema SHALL ofrecer Mi PC, Mi plan, Asistente, Catálogo y el acceso a la cuenta, con salto
+al contenido, menú usable en 390 px y foco visible.
+
+#### Scenario: Persona administradora
+- **WHEN** el servidor confirma el rol de administración
+- **THEN** aparece el enlace de Administración; en otro caso no aparece
+
+#### Scenario: Plan compartido
+- **WHEN** se abre `/shared-tower-plans/...`
+- **THEN** se muestra sin la navegación de la app

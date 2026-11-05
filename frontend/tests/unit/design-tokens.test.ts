@@ -104,6 +104,40 @@ function expectEntry(failures: string[], name: string, what: string) {
   if (!theme.has(name)) failures.push(`falta la entrada de ${what} en @theme: ${name}`);
 }
 
+const stripComments = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, "");
+const workbenchCss = stripComments(readFileSync(new URL("../../app/v0-workbench.css", import.meta.url), "utf8"));
+
+// Los colores fijos solo pueden vivir donde se definen los tokens.
+function isTokenDefinition(block: Block): boolean {
+  if (block.selector === ":root" && block.parents.length === 0) return true;
+  if (block.selector.startsWith(":root") && block.parents.some(isDarkMedia)) return true;
+  if (block.parents.length === 0 && /^:root\[data-theme\s*=\s*["']?oscuro["']?\]$/.test(block.selector)) return true;
+  return /^@theme(\s+\w+)*$/.test(block.selector);
+}
+
+function hardcodedColors(text: string): string[] {
+  const found: string[] = [];
+  for (const block of flatten(text)) {
+    if (isTokenDefinition(block)) continue;
+    const where = [...block.parents, block.selector].join(" { ");
+    for (const decl of block.own.split(";")) {
+      const matches = decl.match(/#[0-9a-f]{3,8}\b|\brgba?\([^)]*\)/gi);
+      if (matches) found.push(...matches.map((value) => `${where}: ${value} (en "${normalize(decl)}")`));
+    }
+  }
+  return found;
+}
+
+describe("colores fijos fuera de los tokens", () => {
+  it.each([
+    ["app/globals.css", css],
+    ["app/v0-workbench.css", workbenchCss],
+  ])("%s no usa hexadecimales ni rgb()/rgba() fuera de la definición de tokens", (file, text) => {
+    const found = hardcodedColors(text);
+    expect(found, `${file}: ${found.length} colores fijos; usá var(--token) en lugar del valor`).toEqual([]);
+  });
+});
+
 describe("tokens de diseño en app/globals.css", () => {
   it("encuentra los bloques que usa el resto de la prueba", () => {
     const failures: string[] = [];

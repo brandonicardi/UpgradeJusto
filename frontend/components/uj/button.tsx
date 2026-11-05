@@ -11,27 +11,26 @@ export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "classNa
   icono?: ReactNode;
 };
 
-// El `button` de globals.css no está en ninguna capa de Tailwind, así que le gana a las utilidades
-// comunes. Por eso las propiedades que pisa (fondo, color, borde, radio, relleno, alto, tipografía,
-// hover, foco y deshabilitado) van con `!`. No se toca ese CSS global.
+// El `button` de globals.css vive en `@layer base`, así que las utilidades de Tailwind le ganan
+// sin necesitar `!`.
 const BASE =
-  "inline-flex items-center justify-center gap-space-2 rounded-pill! border-[1.5px]! border-solid! no-underline cursor-pointer! font-sans-uj transition-colors " +
-  "hover:filter-none! disabled:cursor-not-allowed! disabled:opacity-100! disabled:bg-papel-hundido! disabled:text-tinta-suave! disabled:border-transparent! " +
-  "focus-visible:outline-2! focus-visible:outline-offset-2! focus-visible:outline-foco!";
+  "inline-flex items-center justify-center gap-space-2 rounded-pill border-[1.5px] border-solid no-underline cursor-pointer font-sans-uj transition-colors " +
+  "hover:filter-none disabled:cursor-not-allowed disabled:opacity-100 disabled:bg-papel-hundido disabled:text-tinta-suave disabled:border-transparent " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
 
 const PESOS: Record<ButtonPeso, string> = {
-  principal: "bg-pino! text-sobre-pino! border-transparent! enabled:hover:bg-pino-hover! enabled:hover:border-transparent!",
-  secundario: "bg-papel-alto! text-tinta! border-linea-fuerte! enabled:hover:border-tinta!",
+  principal: "bg-pino text-sobre-pino border-transparent enabled:hover:bg-pino-hover enabled:hover:border-transparent",
+  secundario: "bg-papel-alto text-tinta border-linea-fuerte enabled:hover:border-tinta",
   quieto:
-    "bg-transparent! text-pino! border-transparent! underline underline-offset-4 enabled:hover:border-transparent!",
+    "bg-transparent text-pino border-transparent underline underline-offset-4 enabled:hover:border-transparent",
 };
 
-const NORMAL = "min-h-12! py-space-3! text-cuerpo-fuerte!";
-const CHICO = "min-h-10! py-space-2! text-[14px]! leading-5! font-semibold!";
+const NORMAL = "min-h-12 py-space-3 text-cuerpo-fuerte";
+const CHICO = "min-h-10 py-space-2 text-[14px] leading-5 font-semibold";
 
 function relleno(peso: ButtonPeso, chico: boolean) {
-  if (peso === "quieto") return "px-space-3!";
-  return chico ? "px-space-4!" : "px-space-5!";
+  if (peso === "quieto") return "px-space-3";
+  return chico ? "px-space-4" : "px-space-5";
 }
 
 export function Button({ peso, chico = false, motivo, icono, disabled, type = "button", children, ...resto }: ButtonProps) {

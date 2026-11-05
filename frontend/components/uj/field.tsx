@@ -16,12 +16,11 @@ export type FieldProps = Comunes &
     | ({ multilinea: true } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, keyof Comunes | "className">)
   );
 
-// Los selectores globales de `input` y `textarea` en globals.css no están en una capa de Tailwind:
-// por eso lo que pisan (alto, borde, radio, relleno, fondo, color, ancho, foco) va con `!`.
+// Los selectores globales de `input` y `textarea` viven en `@layer base`: las utilidades les ganan sin `!`.
 const CAMPO =
-  "block w-full! min-h-12! rounded-sm! border-[1.5px]! border-solid! bg-papel-alto! px-space-4! py-space-3! text-tinta! " +
-  "text-cuerpo! font-sans-uj placeholder:text-tinta-suave " +
-  "focus-visible:outline-2! focus-visible:outline-offset-2! focus-visible:outline-foco!";
+  "block w-full min-h-12 rounded-sm border-[1.5px] border-solid bg-papel-alto px-space-4 py-space-3 text-tinta " +
+  "text-cuerpo font-sans-uj placeholder:text-tinta-suave " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
 
 export function Field(props: FieldProps) {
   const { etiqueta, ayuda, error, multilinea, id: idPropio, ...resto } = props;
@@ -36,7 +35,7 @@ export function Field(props: FieldProps) {
     id,
     "aria-describedby": describedby,
     "aria-invalid": error ? true : undefined,
-    className: `${CAMPO} ${error ? "border-no-encaja!" : "border-linea-fuerte!"}`,
+    className: `${CAMPO} ${error ? "border-no-encaja" : "border-linea-fuerte"}`,
   };
 
   return (

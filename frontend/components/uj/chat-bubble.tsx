@@ -55,7 +55,7 @@ export function ChatSuggestions({ sugerencias, onElegir }: ChatSuggestionsProps)
           key={frase}
           type="button"
           onClick={onElegir ? () => onElegir(frase) : undefined}
-          className="min-h-9! cursor-pointer! rounded-pill! border-[1.5px]! border-solid! border-linea-fuerte! bg-transparent! px-space-3! py-space-1! text-left text-[14px]! leading-5! font-semibold! text-tinta! enabled:hover:border-tinta! hover:filter-none! focus-visible:outline-2! focus-visible:outline-offset-2! focus-visible:outline-foco!"
+          className="min-h-9 cursor-pointer rounded-pill border-[1.5px] border-solid border-linea-fuerte bg-transparent px-space-3 py-space-1 text-left text-[14px] leading-5 font-semibold text-tinta enabled:hover:border-tinta hover:filter-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco"
         >
           {frase}
         </button>
@@ -82,7 +82,7 @@ export function ChatComposer({ placeholder = "Preguntá lo que quieras sobre tu 
         aria-label="Mensaje"
         placeholder={placeholder}
         disabled={disabled}
-        className="min-h-0! w-auto! min-w-0 flex-1 rounded-none! border-0! bg-transparent! p-0! text-cuerpo! text-tinta! outline-none! placeholder:text-tinta-suave"
+        className="min-h-0 w-auto min-w-0 flex-1 rounded-none border-0 bg-transparent p-0 text-cuerpo text-tinta outline-none placeholder:text-tinta-suave"
       />
       <Button peso="principal" chico type="submit" disabled={disabled} aria-label="Enviar" icono={<SendHorizontal className="size-4" strokeWidth={2.25} />} />
     </form>

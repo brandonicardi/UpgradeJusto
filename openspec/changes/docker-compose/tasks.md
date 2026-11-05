@@ -51,5 +51,5 @@ Se verifica en GitHub Actions (`.github/workflows/docker.yml`): la PC de desarro
 correr Docker porque su Windows no abre discos virtuales.
 - [ ] 6.1 `docker compose up --build`; abrir `http://localhost:3000`, ver el catálogo con
       productos y crear una cuenta.
-- [ ] 6.2 Contar productos publicados, `docker compose restart backend`, volver a contar:
+- [x] 6.2 Contar productos publicados, `docker compose restart backend`, volver a contar:
       la cantidad no cambia (idempotencia).

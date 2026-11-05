@@ -15,35 +15,36 @@ describe("Button", () => {
     const principal = clasesDe(html(<Button peso="principal">Ver qué me conviene</Button>));
     const secundario = clasesDe(html(<Button peso="secundario">Guardar mi PC</Button>));
     const quieto = clasesDe(html(<Button peso="quieto">Prefiero mirar el catálogo</Button>));
-    expect(principal).toContain("bg-pino!");
-    expect(principal).toContain("text-sobre-pino!");
-    expect(secundario).toContain("bg-papel-alto!");
-    expect(secundario).toContain("border-linea-fuerte!");
-    expect(quieto).toContain("bg-transparent!");
-    expect(quieto).toContain("text-pino!");
+    expect(principal).toContain("bg-pino");
+    expect(principal).toContain("text-sobre-pino");
+    expect(secundario).toContain("bg-papel-alto");
+    expect(secundario).toContain("border-linea-fuerte");
+    expect(quieto).toContain("bg-transparent");
+    expect(quieto).toContain("text-pino");
     expect(quieto).toContain("underline");
   });
 
   it("mide 48px y es una píldora; chico mide 40px", () => {
     const normal = clasesDe(html(<Button peso="principal">Seguir</Button>));
     const chico = clasesDe(html(<Button peso="principal" chico>Seguir</Button>));
-    expect(normal).toContain("min-h-12!");
-    expect(normal).toContain("rounded-pill!");
-    expect(chico).toContain("min-h-10!");
-    expect(chico).not.toContain("min-h-12!");
+    expect(normal).toContain("min-h-12");
+    expect(normal).toContain("rounded-pill");
+    expect(chico).toContain("min-h-10");
+    expect(chico).not.toContain("min-h-12");
   });
 
   it("fija sus propios mínimos y relleno en las tres variantes y en chico, sin depender del botón global", () => {
     for (const peso of ["principal", "secundario", "quieto"] as const) {
       for (const chico of [false, true]) {
         const c = clasesDe(html(<Button peso={peso} chico={chico}>Ok</Button>)).split(" ");
-        expect(c.some((x) => /^min-h-\d+!$/.test(x))).toBe(true);
-        expect(c.some((x) => /^px-/.test(x) && x.endsWith("!"))).toBe(true);
-        expect(c.some((x) => /^py-/.test(x) && x.endsWith("!"))).toBe(true);
-        expect(c.some((x) => /^bg-.+!$/.test(x))).toBe(true);
-        expect(c.some((x) => /^text-(sobre-pino|tinta|pino)!$/.test(x))).toBe(true);
-        expect(c.some((x) => /^border.*!$/.test(x))).toBe(true);
-        expect(c).toContain("rounded-pill!");
+        expect(c.some((x) => /^min-h-\d+$/.test(x))).toBe(true);
+        expect(c.some((x) => /^px-/.test(x))).toBe(true);
+        expect(c.some((x) => /^py-/.test(x))).toBe(true);
+        expect(c.some((x) => /^bg-/.test(x))).toBe(true);
+        expect(c.some((x) => /^text-(sobre-pino|tinta|pino)$/.test(x))).toBe(true);
+        expect(c.some((x) => /^border/.test(x))).toBe(true);
+        expect(c).toContain("rounded-pill");
+        expect(c.some((x) => x.endsWith("!"))).toBe(false);
       }
     }
   });
@@ -242,7 +243,7 @@ describe("ChatSuggestions", () => {
     expect(h.match(/<button/g)).toHaveLength(3);
     expect(h).toContain("Quiero jugar");
     expect(h).toContain("rounded-pill");
-    expect(h).toContain("min-h-9!");
+    expect(h).toContain("min-h-9");
   });
 
   it("no muestra más de cuatro", () => {

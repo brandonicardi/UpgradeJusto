@@ -71,7 +71,7 @@ export function PriceTag({ monto, moneda, condicion, fecha, tienda, enlace, comp
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative z-10 text-pino! underline underline-offset-4"
+            className="relative z-10 text-pino underline underline-offset-4"
           >
             {lugar}
           </a>
