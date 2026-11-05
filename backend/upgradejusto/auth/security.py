@@ -51,6 +51,58 @@ def normalize_email(value: str) -> str:
     return value.lower()
 
 
+class AccountUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    display_name: str
+
+    @field_validator("display_name")
+    @classmethod
+    def display_name_policy(cls, value: str) -> str:
+        value = value.strip()
+        if not value or len(value) > 200 or "\0" in value:
+            raise ValueError("Invalid display name")
+        return value
+
+
+def password_policy(raw: str) -> None:
+    try:
+        valid = 12 <= len(raw) <= 128 and len(raw.encode("utf-8")) <= 512
+    except UnicodeEncodeError:
+        valid = False
+    if not valid or "\0" in raw:
+        raise ValueError("Invalid password")
+
+
+class PasswordChange(BaseModel):
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    current_password: SecretStr
+    new_password: SecretStr
+
+    @field_validator("current_password")
+    @classmethod
+    def current_password_present(cls, value: SecretStr) -> SecretStr:
+        # Sin política de longitud: una actual corta o larga igual llega al
+        # servicio y recibe el error general, nunca un 422 que la delate.
+        raw = value.get_secret_value()
+        if not raw or "\0" in raw:
+            raise ValueError("Invalid password")
+        return value
+
+    @field_validator("new_password")
+    @classmethod
+    def new_password_policy(cls, value: SecretStr) -> SecretStr:
+        password_policy(value.get_secret_value())
+        return value
+
+
+class AccountDeletion(BaseModel):
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    # Campo con default para que la ausencia de la palabra sea un 400 del
+    # servicio, nunca un 422 que revele nada sobre la cuenta.
+    confirmation: str = ""
+    password: SecretStr | None = None
+
+
 class Credentials(BaseModel):
     model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
     email: str
@@ -64,13 +116,7 @@ class Credentials(BaseModel):
     @field_validator("password")
     @classmethod
     def password_policy(cls, value: SecretStr) -> SecretStr:
-        raw = value.get_secret_value()
-        try:
-            valid = 12 <= len(raw) <= 128 and len(raw.encode("utf-8")) <= 512
-        except UnicodeEncodeError:
-            valid = False
-        if not valid or "\0" in raw:
-            raise ValueError("Invalid password")
+        password_policy(value.get_secret_value())
         return value
 
 

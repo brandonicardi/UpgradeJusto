@@ -142,6 +142,19 @@ class AuthRepository:
                 )
             return True
 
+    def update_display_name(self, identity, value):
+        with self.engine.begin() as conn:
+            return (
+                conn.execute(
+                    users.update()
+                    .where(users.c.id == identity)
+                    .values(display_name=value)
+                    .returning(*users.c)
+                )
+                .mappings()
+                .first()
+            )
+
     def revoke(self, session_digest):
         with self.engine.begin() as conn:
             conn.execute(
@@ -151,6 +164,87 @@ class AuthRepository:
                 )
                 .values(revoked_at=sa.func.now())
             )
+
+    def change_password(self, identity, current_digest, encoded):
+        """Una sola transacción: hash nuevo y baja del resto de sesiones."""
+        with self.engine.begin() as conn:
+            now = conn.scalar(sa.select(sa.func.clock_timestamp()))
+            updated = conn.scalar(
+                users.update()
+                .where(
+                    users.c.id == identity,
+                    users.c.email.is_not(None),
+                    users.c.password_hash.is_not(None),
+                )
+                .values(password_hash=encoded)
+                .returning(users.c.id)
+            )
+            if not updated:
+                return False
+            conn.execute(
+                sessions.update()
+                .where(
+                    sessions.c.user_id == identity,
+                    sessions.c.digest != current_digest,
+                    sessions.c.revoked_at.is_(None),
+                )
+                .values(revoked_at=now)
+            )
+            return True
+
+    def delete_account(self, identity, email):
+        """Baja completa en UNA transacción; cada módulo purga lo suyo.
+
+        Orden: bloqueo de la identidad, guarda de último admin, tablas de auth
+        con FK restrictiva (leases, identidades, intentos Google antes de las
+        sesiones), historia de otros módulos y, al final, la fila de usuario.
+        """
+        from upgradejusto.administration.repository import AdministrationRepository
+        from upgradejusto.assistant.repository import Repository as AssistantRepository
+        from upgradejusto.auth.google_tables import attempts as google_attempts
+        from upgradejusto.auth.google_tables import identities
+        from upgradejusto.auth.provider_budget import leases
+        from upgradejusto.auth.service import AuthError
+        from upgradejusto.pcs.repository import PCRepository
+        from upgradejusto.plans.repository import PlanRepository
+        from upgradejusto.plans.tower_repository import TowerPlanRepository
+        from upgradejusto.shares.repository import ShareRepository
+        from upgradejusto.shares.tower_repository import TowerShareRepository
+
+        with self.engine.begin() as conn:
+            existing = conn.scalar(
+                sa.select(users.c.id).where(users.c.id == identity).with_for_update()
+            )
+            if existing is None:
+                return False
+            administration = AdministrationRepository(self.engine)
+            if administration.last_admin(conn, identity):
+                raise AuthError(409, "Last administrator cannot be deleted")
+            conn.execute(leases.delete().where(leases.c.owner_id == identity))
+            conn.execute(identities.delete().where(identities.c.user_id == identity))
+            conn.execute(
+                google_attempts.delete().where(
+                    google_attempts.c.session_digest.in_(
+                        sa.select(sessions.c.digest).where(
+                            sessions.c.user_id == identity
+                        )
+                    )
+                )
+            )
+            conn.execute(sessions.delete().where(sessions.c.user_id == identity))
+            if email is not None:
+                conn.execute(
+                    attempts.delete().where(attempts.c.key == digest("email:" + email))
+                )
+            AssistantRepository(self.engine).purge(conn, identity)
+            ShareRepository(self.engine).purge(conn, identity)
+            TowerShareRepository(self.engine).purge(conn, identity)
+            PlanRepository(self.engine).purge(conn, identity)
+            TowerPlanRepository(self.engine).purge(conn, identity)
+            PCRepository(self.engine).purge(conn, identity)
+            administration.purge(conn, identity)
+            conn.execute(users.delete().where(users.c.id == identity))
+            return True
 
     def consume_attempt(self, email, ip):
         """UPSERT locks serialize each shared counter; commit even on denial."""

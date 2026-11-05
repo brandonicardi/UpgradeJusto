@@ -117,6 +117,10 @@ class ShareRepository:
             if found is None:
                 raise PCError(404, "Share not found")
 
+    def purge(self, conn, owner):
+        """Baja de cuenta: publicaciones del dueño; los enlaces dejan de existir."""
+        conn.execute(sa.delete(shares).where(shares.c.owner_id == owner))
+
     def public(self, digest):
         with self.engine.connect() as conn:
             row = (

@@ -125,6 +125,10 @@ class PlanRepository:
             row = conn.execute(statement.returning(plans)).mappings().one()
             return self.public(row)
 
+    def purge(self, conn, owner):
+        """Baja de cuenta: los planes y sus enlaces caen en cascada."""
+        conn.execute(plans.delete().where(plans.c.owner_id == owner))
+
     def delete(self, owner, identity):
         with self.engine.begin() as conn:
             return (

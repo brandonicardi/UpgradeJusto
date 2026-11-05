@@ -19,7 +19,10 @@ class AuthError(Exception):
 
 def public_user(row):
     if row["email"] is not None:
-        return {"id": str(row["id"]), "email": row["email"]}
+        user = {"id": str(row["id"]), "email": row["email"]}
+        if row["display_name"] is not None:
+            user["display_name"] = row["display_name"]
+        return user
     return {
         "id": str(row["id"]),
         "email": row["profile_email"],
@@ -52,6 +55,15 @@ class AuthService:
             raise AuthError(403, "Forbidden")
         return session
 
+    def account(self, data, session):
+        identity = session["user_id"]
+        if not identity:
+            raise AuthError(401, "Not authenticated")
+        user = self.repository.update_display_name(identity, data.display_name)
+        if not user:
+            raise AuthError(401, "Not authenticated")
+        return public_user(user)
+
     def current(self, raw):
         session = self.repository.session(raw)
         if not session or not session["user_id"]:
@@ -60,6 +72,54 @@ class AuthService:
         if not user:
             raise AuthError(401, "Not authenticated")
         return public_user(user)
+
+    def change_password(self, data, session, ip):
+        identity = session["user_id"]
+        if not identity:
+            raise AuthError(401, "Not authenticated")
+        user = self.repository.user_by_id(identity)
+        if not user:
+            raise AuthError(401, "Not authenticated")
+        if not user["password_hash"]:
+            # Cuenta de Google: no hay contraseña local que cambiar.
+            raise AuthError(409, "Account has no password")
+        retry = self.repository.consume_attempt(user["email"], ip)
+        if retry:
+            raise AuthError(429, "Too many requests", retry)
+        with hash_slot():
+            valid = verify_password(
+                user["password_hash"], data.current_password.get_secret_value()
+            )
+            if not valid:
+                raise AuthError(401, "Invalid credentials")
+            encoded = HASHER.hash(data.new_password.get_secret_value())
+        if not self.repository.change_password(identity, session["digest"], encoded):
+            raise AuthError(401, "Not authenticated")
+
+    def delete_account(self, data, session, ip):
+        identity = session["user_id"]
+        if not identity:
+            raise AuthError(401, "Not authenticated")
+        if data.confirmation != "BORRAR":
+            raise AuthError(400, "Confirmation required")
+        user = self.repository.user_by_id(identity)
+        if not user:
+            raise AuthError(401, "Not authenticated")
+        if user["password_hash"]:
+            # Misma política que el ingreso: contador compartido y un turno de
+            # hash. La contraseña ausente se verifica como cadena vacía.
+            retry = self.repository.consume_attempt(user["email"], ip)
+            if retry:
+                raise AuthError(429, "Too many requests", retry)
+            candidate = (
+                data.password.get_secret_value() if data.password is not None else ""
+            )
+            with hash_slot():
+                if not verify_password(user["password_hash"], candidate):
+                    raise AuthError(401, "Invalid credentials")
+        # Una cuenta Google no tiene contraseña local: la confirmación alcanza.
+        if not self.repository.delete_account(identity, user["email"]):
+            raise AuthError(401, "Not authenticated")
 
     def credentials(self, data, ip, session, *, register):
         retry = self.repository.consume_attempt(data.email, ip)

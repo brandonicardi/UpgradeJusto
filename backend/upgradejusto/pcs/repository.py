@@ -170,6 +170,10 @@ class PCRepository:
             self._groups(conn, row["id"], data.components)
             return self._public(conn, row), True
 
+    def purge(self, conn, owner):
+        """Baja de cuenta: la PC y sus grupos/torre caen en cascada."""
+        conn.execute(pcs.delete().where(pcs.c.owner_id == owner))
+
     def delete(self, owner, identity):
         with self.engine.begin() as conn:
             own = conn.scalar(

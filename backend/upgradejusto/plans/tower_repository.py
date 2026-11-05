@@ -295,6 +295,10 @@ class TowerPlanRepository:
             )
             return result, False
 
+    def purge(self, conn, owner):
+        """Baja de cuenta: revisiones/progreso/enlaces caen desde el encabezado."""
+        conn.execute(headers.delete().where(headers.c.owner_id == owner))
+
     def delete(self, owner, identity, expected_revision):
         with self.engine.begin() as conn:
             self.bounds(conn)

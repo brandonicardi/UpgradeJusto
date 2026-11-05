@@ -18,6 +18,22 @@ class AdministrationRepository:
     def __init__(self, engine):
         self.engine = engine
 
+    @staticmethod
+    def last_admin(conn, owner):
+        """Bloquea las filas admin: True solo si ``owner`` es el último."""
+        admins = list(
+            conn.scalars(
+                sa.select(roles.c.user_id)
+                .where(roles.c.role == "admin")
+                .with_for_update()
+            )
+        )
+        return len(admins) == 1 and owner in admins
+
+    def purge(self, conn, owner):
+        """Baja de cuenta: el rol admin propio (la FK también cascadearía)."""
+        conn.execute(roles.delete().where(roles.c.user_id == owner))
+
     def _authorize(self, conn, owner):
         if not conn.scalar(
             sa.select(roles.c.user_id)

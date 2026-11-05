@@ -168,6 +168,14 @@ class Repository:
             self.idle(conn, identity)
             conn.execute(c.delete().where(c.c.id == identity))
 
+    def purge(self, conn, owner):
+        """Borrado de cuenta: este módulo solo borra sus conversaciones.
+
+        Los mensajes caen por la FK ON DELETE CASCADE; no se tocan a mano.
+        Participa de la transacción que abre el llamador (auth).
+        """
+        conn.execute(c.delete().where(c.c.owner_id == owner))
+
     def interrupt_pending(self, owner, identity, message_id, content, citations):
         """Owner-scoped, bounded, idempotent cleanup; never overwrite a terminal row.
 

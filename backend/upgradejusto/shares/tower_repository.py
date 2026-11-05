@@ -200,6 +200,11 @@ class TowerShareRepository:
             result = (count <= 60, retry)
         return result
 
+    def purge(self, conn, owner):
+        """Baja de cuenta: enlaces de torre de los planes del dueño."""
+        owned = sa.select(headers.c.id).where(headers.c.owner_id == owner)
+        conn.execute(shares.delete().where(shares.c.plan_id.in_(owned)))
+
     def public(self, digest):
         with self.engine.begin() as conn:
             TowerPlanRepository.bounds(conn)

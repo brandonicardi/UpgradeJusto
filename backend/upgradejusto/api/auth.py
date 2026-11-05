@@ -4,7 +4,12 @@ from fastapi import APIRouter, Depends, Request, Response
 
 from upgradejusto.api.proxy_ip import client_ip
 from upgradejusto.auth.repository import AuthRepository
-from upgradejusto.auth.security import Credentials
+from upgradejusto.auth.security import (
+    AccountDeletion,
+    AccountUpdate,
+    Credentials,
+    PasswordChange,
+)
 from upgradejusto.auth.service import AuthError, AuthService
 from upgradejusto.persistence.runtime import auth_settings, runtime_engine
 
@@ -91,6 +96,39 @@ def login(
 def current(request: Request, svc=Depends(service)):
     auth_settings()
     return svc.current(request.cookies.get(COOKIE))
+
+
+@router.patch("/account")
+def account(
+    data: AccountUpdate,
+    session=Depends(post_session),
+    svc=Depends(service),
+):
+    return svc.account(data, session)
+
+
+@router.post("/password", status_code=204)
+def password(
+    data: PasswordChange,
+    session=Depends(post_session),
+    svc=Depends(service),
+    ip=Depends(client_ip),
+):
+    svc.change_password(data, session, ip)
+
+
+@router.delete("/account", status_code=204)
+def delete_account(
+    data: AccountDeletion,
+    response: Response,
+    session=Depends(post_session),
+    svc=Depends(service),
+    ip=Depends(client_ip),
+):
+    svc.delete_account(data, session, ip)
+    response.delete_cookie(
+        COOKIE, path="/api", secure=auth_settings()[1], httponly=True, samesite="lax"
+    )
 
 
 @router.post("/logout", status_code=204)
