@@ -91,7 +91,9 @@ describe("GIS frontend: mocked SDK only, never proof of Google login", () => {
     expect(html).toContain("Google"); expect(html).not.toMatch(/<input|<button|disabled/);
     expect(renderToStaticMarkup(<AccountProfile user={publicUser({ id, email: "synthetic@example.test" })} />)).not.toContain("Google");
     expect(user).not.toHaveProperty("roles"); expect(user).not.toHaveProperty("credential");
-    expect(publicUser({ id, email: "synthetic@example.test", display_name: "ignored" })).toEqual({ id, email: "synthetic@example.test" });
+    // Cuentas locales: el nombre ahora es editable, así que se conserva; lo demás sigue sin pasar.
+    expect(publicUser({ id, email: "synthetic@example.test", display_name: "Lu", roles: ["admin"] })).toEqual({ id, email: "synthetic@example.test", display_name: "Lu" });
+    expect(publicUser({ id, email: "synthetic@example.test" })).toEqual({ id, email: "synthetic@example.test" });
     expect(googleError(429, "12")).toContain("12 segundos"); expect(googleError(429, "private arbitrary text")).not.toContain("private arbitrary text");
   });
 });

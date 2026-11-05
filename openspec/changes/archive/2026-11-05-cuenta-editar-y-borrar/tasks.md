@@ -13,11 +13,11 @@ esté libre. Prueba primero.
       no pierde nada; último admin no se borra.
 
 ## 2. Frontend
-- [ ] 2.1 Proxy con lista exacta y CSRF. Prueba: nunca envía `user_id`.
-- [ ] 2.2 Secciones de `PantallaCuenta`: nombre, contraseña y borrar, con confirmación de `BORRAR`.
+- [x] 2.1 Proxy con lista exacta y CSRF. Prueba: nunca envía `user_id`.
+- [x] 2.2 Secciones de `PantallaCuenta`: nombre, contraseña y borrar, con confirmación de `BORRAR`.
       Prueba: `tests/unit/`, botón bloqueado hasta escribir la palabra; error visible.
 
 ## 3. Verificación
-- [ ] 3.1 `pytest`, `ruff`, `npm test`, `npm run typecheck`, `npm run lint`.
-- [ ] 3.2 Recorrido real a 1440 y 390: cambiar nombre, cambiar contraseña, borrar una cuenta de prueba.
+- [x] 3.1 `pytest`, `ruff`, `npm test`, `npm run typecheck`, `npm run lint`.
+- [x] 3.2 Recorrido real a 1440 y 390: cambiar nombre, cambiar contraseña, borrar una cuenta de prueba.
 - [x] 3.3 Revisor: identidad en el servidor, borrado completo y sin fugas entre personas.

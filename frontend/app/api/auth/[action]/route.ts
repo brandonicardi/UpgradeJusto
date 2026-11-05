@@ -1,15 +1,16 @@
 import { signedProxyHeaders } from "../../../../lib/gateway";
+import { allowedMethods, isAllowedBody } from "../../../../lib/auth-proxy-policy";
 import { readRequestBody, RequestBodyError, REQUEST_BODY_LIMITS } from "../../../../lib/request-body";
 import { retryAfterHeaders } from "../../../../lib/retry-after";
 import { publicUser } from "../../../../lib/public-user";
 
 export const runtime = "nodejs";
-const methods: Record<string, string> = { csrf: "GET", session: "GET", register: "POST", login: "POST", logout: "POST" };
 
 async function proxy(request: Request, context: { params: Promise<{ action: string }> }) {
   const { action } = await context.params;
-  if (!Object.hasOwn(methods, action)) return new Response(null, { status: 404 });
-  if (methods[action] !== request.method) return new Response(null, { status: 405, headers: { Allow: methods[action] } });
+  const methods = allowedMethods(action);
+  if (!methods) return new Response(null, { status: 404 });
+  if (!methods.includes(request.method)) return new Response(null, { status: 405, headers: { Allow: methods.join(", ") } });
   if (new URL(request.url).search) return Response.json({ detail: "Forbidden" }, { status: 403, headers: { "Cache-Control": "no-store" } });
   const pathname = `/api/auth/${action}`;
   const signed = signedProxyHeaders(request.headers.get("X-UJ-Socket-IP"), request.method, pathname, process.env.UJ_PROXY_SECRET);
@@ -22,7 +23,9 @@ async function proxy(request: Request, context: { params: Promise<{ action: stri
     if (value !== null) headers.set(name, value);
   }
   try {
-    const body = request.method === "POST" ? await readRequestBody(request, REQUEST_BODY_LIMITS.auth) : undefined;
+    const body = request.method === "GET" ? undefined : await readRequestBody(request, REQUEST_BODY_LIMITS.auth);
+    // Account mutations accept a closed set of fields: identity is resolved by the server session.
+    if (body !== undefined && !isAllowedBody(action, request.method, body)) return Response.json({ detail: "Request failed" }, { status: 400, headers: { "Cache-Control": "no-store" } });
     const upstream = await fetch(new URL(pathname, process.env.CATALOG_API_URL || "http://127.0.0.1:8000"), {
       method: request.method, headers,
       body,
@@ -44,3 +47,5 @@ async function proxy(request: Request, context: { params: Promise<{ action: stri
 
 export const GET = proxy;
 export const POST = proxy;
+export const PATCH = proxy;
+export const DELETE = proxy;

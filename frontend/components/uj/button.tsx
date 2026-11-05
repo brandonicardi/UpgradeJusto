@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-export type ButtonPeso = "principal" | "secundario" | "quieto";
+export type ButtonPeso = "principal" | "secundario" | "quieto" | "peligro";
 
 export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className"> & {
   peso: ButtonPeso;
@@ -21,6 +21,7 @@ const BASE =
 const PESOS: Record<ButtonPeso, string> = {
   principal: "bg-pino text-sobre-pino border-transparent enabled:hover:bg-pino-hover enabled:hover:border-transparent",
   secundario: "bg-papel-alto text-tinta border-linea-fuerte enabled:hover:border-tinta",
+  peligro: "bg-no-encaja text-papel border-transparent enabled:hover:border-transparent enabled:hover:opacity-90",
   quieto:
     "bg-transparent text-pino border-transparent underline underline-offset-4 enabled:hover:border-transparent",
 };

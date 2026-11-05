@@ -2,15 +2,18 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { Button, Notice } from "../../components/uj";
 import AccountAccess from "../../components/account-access";
 import type { AccessTab } from "../../lib/account-access";
 import { authError, authRequest, type PublicUser } from "../../lib/auth";
 import GoogleSignIn from "../../components/google-signin";
-import AccountProfile from "../../components/account-profile";
+import { DeleteSection, NameSection, PasswordSection } from "../../components/account-settings";
+import { sessionChangedEvent } from "../../lib/session-role";
 
 export default function Account() {
+  const router = useRouter();
   const [user, setUser] = useState<PublicUser | null>(null);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
@@ -70,6 +73,13 @@ export default function Account() {
     finally { setBusy(false); }
   }
 
+  // La cuenta ya no existe: se limpia lo que se ve, se avisa a la barra y se vuelve a la portada.
+  function deleted() {
+    setUser(null);
+    window.dispatchEvent(new Event(sessionChangedEvent));
+    router.replace("/");
+  }
+
   const privacy = <details className="accordion"><summary>Privacidad y condiciones de acceso</summary><p className="muted">El servidor valida la sesión y los permisos. Sin recuperación de contraseña ni verificación de titularidad del email en esta versión. El registro no inicia sesión automáticamente.</p><p className="muted">Usá un email con letras, números y símbolos comunes, sin acentos ni caracteres especiales; lo guardamos en minúsculas. La contraseña puede llevar espacios, que cuentan como parte de ella, y no puede ser demasiado larga. Crear la cuenta no te abre la sesión: después entrás con tu email y tu contraseña.</p></details>;
   const noscript = <noscript>Para gestionar tu sesión necesitás habilitar JavaScript. El catálogo sigue disponible.</noscript>;
 
@@ -103,10 +113,8 @@ export default function Account() {
     {error && <Notice tono="no" titulo="No pudimos continuar">{error}</Notice>}
     <div className="grid min-w-0 gap-space-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-space-6">
       <div className="grid min-w-0 gap-space-5">
-        <section className={card} aria-labelledby="cuenta-datos">
-          <h2 id="cuenta-datos" className="m-0 text-titular-m">Tus datos</h2>
-          <AccountProfile user={user} />
-        </section>
+        <NameSection key={user.id} user={user} onUser={setUser} />
+        <PasswordSection user={user} />
         <section className={card} aria-labelledby="cuenta-seguir">
           <h2 id="cuenta-seguir" className="m-0 text-titular-m">Seguí por acá</h2>
           <div className="flex flex-wrap gap-space-3">
@@ -116,6 +124,7 @@ export default function Account() {
             <Link className={link} href="/catalog">Catálogo</Link>
           </div>
         </section>
+        <DeleteSection user={user} onDeleted={deleted} />
       </div>
       <aside className="grid min-w-0 gap-space-4">
         <div className={card}>
