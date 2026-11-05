@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { emptyTower, type Tower } from "../../lib/towers";
 import { createTowerPlanWriter, emptyManualPlan, planActions, planDraftFromRead, planMoney, positiveRevision, towerPlanInput, towerPlanRequest, type CanonicalPlanAction, type PlanWriteState, type TowerPlanDraft, type TowerPlanRead } from "../../lib/tower-plans";
@@ -7,6 +8,10 @@ import TowerPlanActionEditor from "../../components/tower-plan-action-editor";
 import TowerPlanView from "../../components/tower-plan-view";
 import TowerPlanEditor from "../../components/tower-plan-editor";
 import TowerRecommendations from "../../app/pcs/tower-recommendations";
+import TowerPlans from "../../app/tower-plans/workspace";
+import { button, byLabel, click, mount, settle, type, unmountAll } from "./support/dom";
+
+afterEach(async () => { await unmountAll(); vi.unstubAllGlobals(); });
 
 const id = "12345678-1234-1234-1234-123456789abc", other = "12345678-1234-1234-1234-123456789abd";
 function pc(): Tower { return { ...emptyTower(), id, name: "Synthetic PC", revision: 1, origin_schema: 2 }; }
@@ -24,16 +29,55 @@ function writer(statuses: number[]) {
   return { controller: createTowerPlanWriter({ onState, onSaved, request, uuid }), request, onState, onSaved, uuid };
 }
 describe("CU07 private tower plans: structural requests and operation identity", () => {
-  it("keeps purchases, unknown cost and incomplete coverage ahead of collapsed per-stage technical evidence", () => {
-    const plan = saved(), before = JSON.stringify(plan), html = renderToStaticMarkup(<TowerPlanView plan={plan} now={0} />);
-    const brief = html.split('class="stage-technical-evaluation"')[0];
-    expect(brief).toContain("Cantidad explícita: 1"); expect(brief).toContain("Coste por confirmar"); expect(brief).toContain("Cobertura incompleta: no confirma compatibilidad completa");
+  it("el workspace conserva edición, recálculo y baja, y permite consultar y dejar una versión anterior sin escrituras", async () => {
+    const plan = saved();
+    const request = vi.fn<typeof fetch>().mockImplementation(async input => {
+      const path = String(input);
+      if (path === "/api/tower-plans?page=1&page_size=20") return Response.json({ items: [plan], total: 1, page: 1, page_size: 20 });
+      if (path === `/api/tower-plans/${other}` || path === `/api/tower-plans/${other}/revisions/1`) return Response.json(plan);
+      if (path === `/api/towers/${id}`) return Response.json(pc());
+      if (path.startsWith("/api/catalog/components?")) return Response.json({ dataset_version: "synthetic-catalog", items: [], total: 0, page: 1, page_size: 1 });
+      throw new Error(`Solicitud inesperada: ${path}`);
+    });
+    vi.stubGlobal("fetch", request);
+    const host = await mount(<TowerPlans initialId={other} />); await settle();
+    await click(button(host, "Preparar un NUEVO borrador con PC y catálogo actuales (reemplaza borrador sin guardar)"));
+    expect(host.querySelector('[aria-label="Editor de plan de torre"]')).not.toBeNull();
+    expect(button(host, "Confirmar recálculo y guardar nueva revisión")?.disabled).toBe(true);
+    await click(button(host, "Preparar baja del plan"));
+    const deactivation = host.querySelector('[aria-label="Confirmar baja de plan de torre"]');
+    expect(deactivation).not.toBeNull(); expect(deactivation?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(false);
+    expect(button(host, "Dar de baja el plan")).not.toBeNull();
+    await click(button(host, "Cancelar baja del plan"));
+    await type(byLabel(host, "Número de versión"), "1");
+    await click(button(host, "Ver la versión anterior"));
+    expect(host.textContent).toContain("Versión anterior del plan");
+    expect(button(host, "Preparar baja del plan")).toBeNull(); expect(host.querySelector('[aria-label="Editor de plan de torre"]')).toBeNull();
+    await click(button(host, "Volver a la versión actual"));
+    expect(host.textContent).not.toContain("Versión anterior del plan"); expect(button(host, "Preparar baja del plan")).not.toBeNull();
+    expect(request.mock.calls.some(([path]) => String(path).endsWith("/revisions/1"))).toBe(true);
+    expect(request.mock.calls.every(([, options]) => !options?.method || options.method === "GET")).toBe(true);
+  });
+  it("muestra tres estados reales como propuestas, con costes informados y sin progreso de compra", () => {
+    const plan = saved();
+    plan.snapshot.stages = ["ready", "blocked", "requires_verification"].map((status, index) => ({ ...plan.snapshot.stages[0], position: index + 1, name: `Cambio ${index + 1}`, status: status as "ready" | "blocked" | "requires_verification", evaluation: { ...plan.snapshot.stages[0].evaluation, verdict: (["compatible", "incompatible", "requiere_verificacion"] as const)[index] }, cost: { ...plan.snapshot.cost, total_ars: index === 2 ? null : "900719925474099300.19" }, cumulative_cost: { ...plan.snapshot.cost, total_ars: index === 2 ? null : "900719925474099301.21" } }));
+    plan.snapshot.cost = { ...plan.snapshot.cost, total_ars: "900719925474099302.23", within_budget: false };
+    const before = JSON.stringify(plan), html = renderToStaticMarkup(<TowerPlanView plan={plan} now={0} />);
+    const root = document.createElement("div"); root.innerHTML = html;
+    expect(root.querySelectorAll(".plan-reading-stage")).toHaveLength(3);
+    expect(root.querySelectorAll("details[open]")).toHaveLength(0);
+    const visible = root.cloneNode(true) as HTMLElement;
+    visible.querySelectorAll("details").forEach(detail => detail.remove());
+    const brief = visible.textContent!;
+    for (const text of ["Cantidad explícita: 1", "Coste por confirmar", "Cobertura incompleta: no confirma compatibilidad completa", "Encaja", "No encaja", "Falta un dato", "Plan bloqueado", "Plan pendiente de verificación", "Listo según el servidor", "2 con precio completo", "1 con coste por confirmar", "Así quedaría tu plan", "Tu PC con todo el plan", "Para el uso de todos los días", "Supera el presupuesto guardado"]) expect(brief).toContain(text);
     expect(brief).not.toContain("Antes de esta etapa");
+    expect(brief).not.toMatch(/Hecha|Comprada|Ya compraste|Paso actual|etapas compradas|snapshot|coverage|schema|PASS/);
+    expect(root.querySelector("progress,[role=progressbar],[aria-current=step]")).toBeNull();
+    expect(root.querySelectorAll(".plan-stage-number")).toHaveLength(3);
+    expect(root.querySelectorAll(".accordion.plan-stage")).toHaveLength(3);
     expect(html).toContain('<details class="stage-technical-evaluation">'); expect(html).toContain('<details class="plan-comparison">');
-    const stages = html.match(/<details[^>]*class="accordion plan-stage"[^>]*>/g) ?? [];
-    expect(stages).toHaveLength(2); expect(stages.every(tag => !/\bopen(?:=|\s|>)/.test(tag))).toBe(true);
-    expect(html).toContain('class="stage-summary-parts">Almacenamiento · 1 unidades');
-    expect(html).toContain("Antes de esta etapa"); expect(html).toContain("Coste acumulado hasta etapa 2"); expect(html).toContain("Versiones, cobertura completa y copia evaluada"); expect(JSON.stringify(plan)).toBe(before);
+    expect(brief).toContain("900.719.925.474.099.300,19"); expect(brief).toContain("900.719.925.474.099.301,21"); expect(brief).toContain("900.719.925.474.099.302,23");
+    expect(html).toContain("Antes de esta etapa"); expect(html).toContain("Coste acumulado hasta etapa 3"); expect(html).toContain("Versiones, cobertura completa y copia evaluada"); expect(JSON.stringify(plan)).toBe(before);
   });
   it("places saved inventory before secondary material confirmation while preserving the unchecked control", () => {
     const html = renderToStaticMarkup(<TowerRecommendations pc={pc()} disabled={false} configuration={<div>saved-inventory-sentinel</div>} />);
@@ -113,7 +157,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const plan = saved(); plan.snapshot.stages[0].materials = [{ kind: "thermal_compound", state: "available_confirmed", confirmed: true }];
     plan.snapshot.stages[0].offers = [{ offer_id: "synthetic", store: "venex", product_id: "synthetic", component_id: "synthetic", variant_key: "synthetic", amount: "123.45", currency: "ARS", condition: "cash", availability: "unknown", stock_quantity: null, source_url: "https://example.com/synthetic", observed_at: "2026-10-24T10:00:00Z", expires_at: "2026-10-25T10:00:00Z", status: "fresh" }];
     const before = JSON.stringify(plan), html = renderToStaticMarkup(<TowerPlanView plan={plan} historical now={Date.parse("2026-10-26T10:00:00Z")} />);
-    expect(html).toContain("Revisión anterior"); expect(html).toContain("Coste acumulado hasta etapa 2"); expect(html).toContain("Total desconocido / incompleto"); expect(html).toContain("Consultar no actualiza precios ni reserva stock"); expect(JSON.stringify(plan)).toBe(before);
+    expect(html).toContain("Versión anterior del plan"); expect(html).toContain("Versión del plan 1 · Versión de tu PC 1"); expect(html).not.toMatch(/revisión \d|snapshot/i); expect(html).toContain("Cotizaciones conservadas de esta versión"); expect(html).toContain("123,45"); expect(html).toContain("https://example.com/synthetic"); expect(html).toContain("Coste acumulado hasta etapa 2"); expect(html).toContain("Total desconocido / incompleto"); expect(html).toContain("Consultar no actualiza precios ni reserva stock"); expect(JSON.stringify(plan)).toBe(before);
     expect(html).toContain("Estado original del precio"); expect(html).toContain("fresh"); expect(html).toContain("El precio guardado venció"); expect(plan.snapshot.stages[0].offers[0].status).toBe("fresh");
     expect(html).toContain('class="saved-plan-layout"'); expect(html).toContain('aria-label="Decisión sobre el plan"'); expect(html).toContain("Sólo se cobran las acciones de compra, no las piezas conservadas"); expect(html).toContain("Cantidad explícita: 1");
     expect(html).toContain('aria-label="Comparación del plan"'); expect(html).toContain("Base del plan"); expect(html).toContain("Resultado propuesto");

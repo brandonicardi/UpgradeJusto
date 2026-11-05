@@ -16,6 +16,56 @@ function preview(): TowerRecommendationPreview {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("CU06 torre: criterio explícito, precisión y preview efímero", () => {
+  it("resume la primera acción con Hoy/Pasás a y deja todas las piezas, cantidades y faltantes en desplegables", () => {
+    const result = preview(), tower = pc();
+    tower.lines = [{ line_id: null, category: "ram", component_id: null, declared_model: "Memoria actual declarada", quantity: 1 }];
+    result.items[0].actions = [
+      { category: "ram", action: "replace_category", line_id: null, candidates: [{ component_id: null, declared_model: "Memoria propuesta", quantity: 2 }, { component_id: null, declared_model: "Otra memoria propuesta", quantity: 1 }] },
+      { category: "storage", action: "add_line", line_id: null, candidates: [{ component_id: null, declared_model: "Disco adicional", quantity: 3 }] },
+    ];
+    const html = renderToStaticMarkup(<TowerRecommendationView result={result} pc={tower} now={0} onPreparePlan={() => {}} />);
+    const article = html.slice(html.indexOf("<article"), html.indexOf("</article>"));
+    const visible = article.slice(0, article.indexOf("<details"));
+    expect(visible).toContain("Cambiá la memoria y más"); expect(visible).toContain("Hoy tenés"); expect(visible).toContain("Pasás a");
+    expect(visible).toContain("Memoria actual declarada"); expect(visible).toContain("Memoria propuesta");
+    expect(visible).not.toContain("Otra memoria propuesta"); expect(visible).not.toContain("Disco adicional");
+    expect(visible).not.toContain("datos o condiciones pendientes"); expect(visible).not.toContain("Disponibilidad sin confirmar");
+    expect(visible).not.toContain("Pieza del catálogo"); expect(visible).not.toContain("Reemplazar conjunto completo");
+    expect(article).toContain("Todos los cambios y piezas propuestas"); expect(article).toContain("Otra memoria propuesta");
+    expect(article).toContain("Disco adicional"); expect(article).toContain("3 unidades"); expect(article).toContain("2 módulos");
+    expect(article).toContain("Datos pendientes y dependencias"); expect(article).toContain("Disponibilidad sin confirmar");
+    expect(article).toContain("datos o condiciones pendientes");
+  });
+  it.each(["rejected", "requires_verification"] as const)("primera %s conserva su lugar y no se presenta como lo más conveniente", status => {
+    const result = preview();
+    result.items = [{ ...result.items[0], key: "primera", status }, { ...result.items[0], key: "segunda", status: "recommended", evaluation: { ...result.items[0].evaluation, verdict: "compatible" } }];
+    const html = renderToStaticMarkup(<TowerRecommendationView result={result} pc={pc()} now={0} onPreparePlan={() => {}} />);
+    expect(html).not.toContain("Lo que más te conviene");
+    expect(html).toContain("Propuesta para tu PC"); expect(html).toContain("Otras opciones");
+    const articles = [...html.matchAll(/<article\b[^>]*>([\s\S]*?)<\/article>/g)];
+    expect(articles).toHaveLength(2);
+    expect(articles[0][0]).toContain('aria-label="Propuesta 1"'); expect(articles[0][1]).toContain(`Estado técnico de propuesta: ${status}`);
+    expect(articles[1][0]).toContain('aria-label="Propuesta 2"'); expect(articles[1][1]).toContain("Estado técnico de propuesta: recommended");
+    expect(articles[0][1]).toContain("datos o condiciones pendientes");
+  });
+  it("sólo destaca como conveniente una primera propuesta recomendada y compatible", () => {
+    const result = preview(); result.items[0].status = "recommended";
+    expect(renderToStaticMarkup(<TowerRecommendationView result={result} now={0} />)).not.toContain("Lo que más te conviene");
+    result.items[0].evaluation.verdict = "compatible";
+    expect(renderToStaticMarkup(<TowerRecommendationView result={result} now={0} />)).toContain("Lo que más te conviene");
+  });
+  it("coste desconocido y presupuesto excedido quedan junto a preparar, antes del detalle, con fuentes accesibles", () => {
+    const result = preview(); result.items[0].cost.within_budget = false;
+    result.items[0].actions = [{ category: "storage", action: "add_line", line_id: null, candidates: [{ component_id: null, declared_model: "Disco propuesto", quantity: 1 }] }];
+    result.items[0].dependencies[0].source_refs = ["https://example.com/dependency"];
+    const html = renderToStaticMarkup(<TowerRecommendationView result={result} now={0} onPreparePlan={() => {}} />);
+    const article = html.slice(html.indexOf("<article"), html.indexOf("</article>"));
+    const beforeDetails = article.slice(0, article.indexOf("<details"));
+    for (const text of ["Disco propuesto", "Antes:", "Después:", "Beneficio sin evidencia suficiente", recommendationStatus(result.items[0]), "Total incompleto / desconocido", "Subtotal conocido:", "supera el presupuesto", "Preparar plan"]) expect(beforeDetails).toContain(text);
+    const footer = article.slice(article.indexOf('aria-label="Coste de la propuesta"'), article.indexOf("<details"));
+    expect(footer).toContain("Total incompleto / desconocido"); expect(footer).toContain("supera el presupuesto"); expect(footer).toContain("Preparar plan");
+    expect(article).toContain('href="https://example.com/dependency"'); expect(article).toContain("Cotizaciones utilizadas y partidas"); expect(article).toContain("Importe no disponible");
+  });
   it("envía sólo contrato automático, decimal string intacto y materiales no confirmados por defecto", () => {
     const payload = recommendationInput(pc(), draft());
     expect(payload.budget_ars).toBe("900719925474099300.19"); expect(payload.materials).toEqual([]); expect(payload.alternatives).toEqual([]); expect(payload.mode).toBe("automatic");

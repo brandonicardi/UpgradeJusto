@@ -6,7 +6,7 @@ export default function TowerEvaluationView({ result }: { result: TowerEvaluatio
   const fail = result.rule_results.filter(rule => rule.state === "fail");
   return <section aria-label="Resultado de torre del servidor" className="stack central-evaluation">
     <h3>{towerResultLabel(result)}</h3><p>{result.scope.label} · Stock, sin overclock. Estado técnico: {result.verdict}.</p>
-    <p>Se evaluó la revisión {result.pc_revision}. Consultar o simular no guardó cambios en tu PC.</p>
+    <p>Se evaluó la versión {result.pc_revision} de tu PC. Consultar o simular no guardó cambios en tu PC.</p>
     <section aria-label="Cobertura de torre"><h4>Qué se pudo comprobar</h4><p>{result.coverage.complete ? "Cobertura informada como completa dentro del alcance declarado." : "Cobertura incompleta: no equivale a compatibilidad completa."}</p><dl><dt>Comprobaciones necesarias</dt><dd><EvidenceValue value={result.coverage.required} /></dd><dt>Evaluadas</dt><dd><EvidenceValue value={result.coverage.evaluated} /></dd><dt>Con datos pendientes</dt><dd><EvidenceValue value={result.coverage.unknown} /></dd><dt>Sin implementación</dt><dd><EvidenceValue value={result.coverage.not_implemented} /></dd></dl></section>
     {fail.length > 0 && <section aria-label="Incompatibilidades conocidas"><h4>Incompatibilidades conocidas</h4><ul>{fail.map(rule => <li key={rule.rule_id}>{towerRuleLabels[rule.rule_id] ?? rule.family} · {rule.rule_id}</li>)}</ul><p>Los fallos conocidos no desaparecen aunque también falten datos.</p></section>}
     <section aria-label="Datos faltantes de torre"><h4>Qué falta confirmar</h4>{result.missing_fields.length ? <PendingFields fields={result.missing_fields} /> : <p>Sin faltantes informados; revisá el veredicto y la cobertura.</p>}</section>

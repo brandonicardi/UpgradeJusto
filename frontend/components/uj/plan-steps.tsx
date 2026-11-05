@@ -2,12 +2,14 @@ import { Check } from "lucide-react";
 import { PriceTag, type PriceTagProps } from "./price-tag";
 import { Verdict } from "./verdict";
 
-export type EstadoDeEtapa = "hecha" | "actual" | "pendiente";
+export type EstadoDeEtapa = "hecha" | "actual" | "pendiente" | "propuesta";
 
 export type EtapaDelPlan = {
   nombre: string;
   /** Costo de la etapa tal como lo devuelve la API. Sin costo dice «Sin precio». */
   costo?: Omit<PriceTagProps, "compacto">;
+  /** Importe informado, ya formateado sin convertir decimales a Number. */
+  costoInformado?: string;
   estado: EstadoDeEtapa;
   /** Veredicto de la PC con todos los cambios hasta esta etapa. Sin veredicto dice «Falta un dato». */
   veredicto?: string | null;
@@ -16,6 +18,7 @@ export type EtapaDelPlan = {
 export type PlanStepsProps = {
   /** Ya sumado por la API: la lista no calcula. Sin total no se muestra ninguno. */
   total?: Omit<PriceTagProps, "compacto">;
+  totalInformado?: string;
   etapas: EtapaDelPlan[];
 };
 
@@ -23,21 +26,23 @@ const PUNTO: Record<EstadoDeEtapa, string> = {
   hecha: "bg-pino text-sobre-pino",
   actual: "bg-lima text-sobre-lima",
   pendiente: "bg-papel-hundido text-tinta-suave",
+  propuesta: "bg-papel-hundido text-tinta-suave",
 };
 
 const PALABRA: Record<EstadoDeEtapa, string> = {
   hecha: "Hecha",
   actual: "Paso actual",
   pendiente: "Pendiente",
+  propuesta: "Cambio propuesto",
 };
 
-export function PlanSteps({ total, etapas }: PlanStepsProps) {
+export function PlanSteps({ total, totalInformado, etapas }: PlanStepsProps) {
   return (
     <div className="grid max-w-[560px] gap-space-4 font-sans-uj text-tinta">
-      {total && (
+      {(totalInformado !== undefined || total) && (
         <div className="grid gap-space-1">
           <div className="text-etiqueta text-tinta-suave">Total del plan</div>
-          <PriceTag {...total} />
+          {totalInformado !== undefined ? <strong className="break-words font-display text-precio tabular-nums">{totalInformado}</strong> : <PriceTag {...total} />}
         </div>
       )}
       <ol className="m-0 grid list-none gap-0 p-0">
@@ -65,7 +70,7 @@ export function PlanSteps({ total, etapas }: PlanStepsProps) {
                 <div className="text-cuerpo-fuerte">{etapa.nombre}</div>
                 <div className="text-chico text-tinta-suave">{PALABRA[etapa.estado]}</div>
               </div>
-              <PriceTag {...etapa.costo} compacto />
+              {etapa.costoInformado !== undefined ? <span className="break-words text-cuerpo-fuerte tabular-nums">{etapa.costoInformado}</span> : <PriceTag {...etapa.costo} compacto />}
               <Verdict estado={etapa.veredicto} />
             </div>
           </li>

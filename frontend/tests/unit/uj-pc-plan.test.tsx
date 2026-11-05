@@ -442,6 +442,14 @@ describe("UpgradeCard", () => {
 });
 
 describe("PlanSteps", () => {
+  it("propuesta muestra orden y veredicto sin check de compra ni paso actual", () => {
+    const html = renderToStaticMarkup(<PlanSteps totalInformado="ARS $ 900.719.925.474.099.302,23" etapas={[{ nombre: "Disco", estado: "propuesta", costoInformado: "ARS $ 900.719.925.474.099.300,19", veredicto: "incompatible" }]} />);
+    expect(html).toContain("Cambio propuesto"); expect(html).toContain("No encaja");
+    expect(html).toContain("900.719.925.474.099.302,23"); expect(html).toContain("900.719.925.474.099.300,19");
+    expect(html).not.toMatch(/Hecha|Paso actual|aria-current|lucide-check|bg-lima/);
+    const real = renderToStaticMarkup(<PlanSteps etapas={[{ nombre: "Memoria", estado: "hecha", veredicto: "compatible" }]} />);
+    expect(real).toContain("Hecha"); expect(real).toContain("lucide-check"); expect(real).not.toContain("Cambio propuesto");
+  });
   const costo = (monto: number) => ({ monto, moneda: "ARS", fecha: "2026-10-28", tienda: "Tienda de ejemplo A" });
   const etapas = [
     { nombre: "Más memoria", costo: costo(92500), estado: "hecha" as const, veredicto: "compatible" },

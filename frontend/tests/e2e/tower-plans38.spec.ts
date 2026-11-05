@@ -52,7 +52,7 @@ test("@tower07 propuesta real→borrador→etapas→save explícito→revisión/
     await criteria.getByRole("button", { name: "Buscar propuestas para mi torre", exact: true }).click(); const response = await recommendation; expect(response.status()).toBe(200); const preview = await response.json() as TowerRecommendationPreview;
     expect(preview.items.length, "Prerequisite: an actual published proposal, not a fabricated positive plan").toBeGreaterThan(0);
     test.info().annotations.push({ type: "canonical-action-shape", description: JSON.stringify(preview.items[0].actions.map(action => ({ action: action.action, category: action.category, line_id_present: Object.hasOwn(action, "line_id"), candidate_context_present: Object.hasOwn(action, "candidate_context") }))) });
-    await page.getByRole("region", { name: "Propuestas de torre del servidor", exact: true }).getByRole("button", { name: "Preparar plan por etapas (no guardar)", exact: true }).first().click();
+    await page.getByRole("region", { name: "Propuestas de torre del servidor", exact: true }).getByRole("button", { name: "Preparar plan", exact: true }).first().click();
     const editor = page.getByRole("form", { name: "Editor de plan de torre", exact: true }); await expect(editor).toBeVisible(); expect(planPosts).toBe(0);
     await editor.getByLabel("Nombre del plan", { exact: true }).fill("Mi plan propio CU07");
     await editor.getByRole("button", { name: "Agregar etapa", exact: true }).click();
@@ -77,12 +77,12 @@ test("@tower07 propuesta real→borrador→etapas→save explícito→revisión/
     await recalculation.getByLabel("Revisé etapas, cantidades y contexto; confirmo guardar sin modificar mi PC", { exact: true }).check();
     const updated = await submitPlanWithDiagnostic(page, recalculation, "Confirmar recálculo y guardar nueva revisión", `/api/tower-plans/${saved.id}/recalculate`, () => planPosts, 2); expect(updated.ok()).toBe(true); const current = await updated.json() as TowerPlanRead;
     expect(current.revision).toBe(saved.revision + 1); saved = current; expect(planPosts).toBe(2); expect(pcWrites).toBe(0);
-    await page.getByLabel("Revisión histórica", { exact: true }).fill("1");
+    await page.getByLabel("Número de versión", { exact: true }).fill("1");
     const history = page.waitForResponse(item => item.url().endsWith(`/api/tower-plans/${saved!.id}/revisions/1`) && item.request().method() === "GET");
-    await page.getByRole("button", { name: "Consultar revisión histórica", exact: true }).click(); const historical = await history; expect(historical.status()).toBe(200); const revision1 = await historical.json() as TowerPlanRead;
-    expect(revision1.snapshot).toEqual(firstSnapshot); await expect(page.getByRole("region", { name: "Revisión histórica de plan", exact: true })).toContainText("Historial inmutable");
+    await page.getByRole("button", { name: "Ver la versión anterior", exact: true }).click(); const historical = await history; expect(historical.status()).toBe(200); const revision1 = await historical.json() as TowerPlanRead;
+    expect(revision1.snapshot).toEqual(firstSnapshot); await expect(page.getByRole("region", { name: "Detalle de plan de torre", exact: true })).toContainText("Versión anterior del plan");
     expect((await api(page, `/api/towers/${own.id}`)).data).toEqual(own); expect(planPosts).toBe(2); expect(pcWrites).toBe(0);
-    await page.getByRole("button", { name: "Volver a revisión actual", exact: true }).click();
+    await page.getByRole("button", { name: "Volver a la versión actual", exact: true }).click();
     await page.getByRole("button", { name: "Preparar baja del plan", exact: true }).click();
     const deactivation = page.getByRole("form", { name: "Confirmar baja de plan de torre", exact: true });
     await expect(deactivation).toContainText("El historial se conserva; no es borrado físico");

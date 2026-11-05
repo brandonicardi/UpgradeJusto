@@ -3,6 +3,7 @@ import { Button } from "./button";
 import { leerDiferencia, type Diferencia } from "./monto";
 import { PriceTag, type PriceTagProps } from "./price-tag";
 import { Verdict } from "./verdict";
+import type { ReactNode } from "react";
 
 export type UpgradeCardProps = {
   /** Una acción: «Cambiá la placa de video». */
@@ -16,7 +17,16 @@ export type UpgradeCardProps = {
   diferencia?: Diferencia | null;
   /** Estado que devuelve el motor. Sin estado dice «Falta un dato». */
   veredicto?: string | null;
-  onSumar: () => void;
+  onSumar?: () => void;
+  ariaLabel?: string;
+  etiqueta?: string;
+  accionPrincipal?: string;
+  accionDeshabilitada?: boolean;
+  className?: string;
+  precioAlternativo?: ReactNode;
+  cambio?: ReactNode;
+  resumen?: ReactNode;
+  children?: ReactNode;
   /** Si no viene, el botón «Ver otras opciones» no se muestra. */
   onVerOpciones?: () => void;
 };
@@ -42,18 +52,18 @@ function Presupuesto({ diferencia }: { diferencia: UpgradeCardProps["diferencia"
   return <span className={clase}>Justo con tu presupuesto</span>;
 }
 
-export function UpgradeCard({ titulo, actual, nueva, motivos, precio, diferencia, veredicto, onSumar, onVerOpciones }: UpgradeCardProps) {
+export function UpgradeCard({ titulo, actual, nueva, motivos, precio, diferencia, veredicto, onSumar, onVerOpciones, ariaLabel, etiqueta = "Lo que más te conviene", accionPrincipal = "Sumar a mi plan", accionDeshabilitada = false, className, precioAlternativo, cambio, resumen, children }: UpgradeCardProps) {
   return (
-    <article className="grid w-full max-w-[620px] gap-space-4 rounded-lg bg-papel-alto p-space-5 font-sans-uj text-tinta shadow-sombra-2">
+    <article aria-label={ariaLabel} className={`grid min-w-0 w-full ${className ?? "max-w-[620px] shadow-sombra-2"} gap-space-4 rounded-lg bg-papel-alto p-space-5 font-sans-uj text-tinta [overflow-wrap:anywhere]`}>
       <div className="flex flex-wrap items-start justify-between gap-space-3">
         <div className="min-w-0">
-          <div className="text-etiqueta text-tinta-suave">Lo que más te conviene</div>
+          <div className="text-etiqueta text-tinta-suave">{etiqueta}</div>
           <h3 className="m-0 mt-[2px] font-display text-titular-m">{titulo}</h3>
         </div>
         <Verdict estado={veredicto} />
       </div>
 
-      <div className="grid grid-cols-1 items-center gap-space-3 min-[600px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+      {cambio ?? <div aria-label="Cambio propuesto" className="grid grid-cols-1 items-center gap-space-3 min-[600px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <div className="min-w-0 rounded-md bg-papel px-space-4 py-space-3">
           <div className="text-etiqueta text-tinta-suave">Hoy tenés</div>
           <div className="text-cuerpo-fuerte">{actual}</div>
@@ -63,20 +73,21 @@ export function UpgradeCard({ titulo, actual, nueva, motivos, precio, diferencia
           <div className="text-etiqueta text-tinta-suave">Pasás a</div>
           <div className="text-cuerpo-fuerte">{nueva}</div>
         </div>
-      </div>
+      </div>}
 
-      <ul className="m-0 grid list-none gap-space-2 p-0">
+      {motivos.length > 0 && <ul className="m-0 grid list-none gap-space-2 p-0">
         {motivos.map((motivo) => (
           <li key={motivo} className="flex items-start gap-space-2 text-cuerpo">
             <Check aria-hidden="true" className="mt-[2px] size-5 flex-none text-pino" strokeWidth={2.25} />
             <span>{motivo}</span>
           </li>
         ))}
-      </ul>
+      </ul>}
+      {resumen}
 
       <div className="flex flex-wrap items-end justify-between gap-space-4 border-t border-solid border-linea pt-space-4">
-        <div className="grid gap-space-1">
-          <PriceTag {...precio} />
+        <div className="grid min-w-0 gap-space-1">
+          {precioAlternativo ?? <PriceTag {...precio} />}
           <Presupuesto diferencia={diferencia} />
         </div>
         <div className="flex flex-wrap gap-space-2">
@@ -85,11 +96,12 @@ export function UpgradeCard({ titulo, actual, nueva, motivos, precio, diferencia
               Ver otras opciones
             </Button>
           )}
-          <Button peso="principal" chico onClick={onSumar}>
-            Sumar a mi plan
-          </Button>
+          {onSumar && <Button peso="principal" chico disabled={accionDeshabilitada} onClick={onSumar}>
+            {accionPrincipal}
+          </Button>}
         </div>
       </div>
+      {children}
     </article>
   );
 }
