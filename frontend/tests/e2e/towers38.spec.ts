@@ -13,7 +13,7 @@ async function openBiosSimulation(page: Page, own: Tower) {
   const form = page.getByRole("form", { name: "Simulación manual de torre", exact: true });
   await form.getByLabel("Categoría de la acción", { exact: true }).selectOption("motherboard");
   const catalog = await page.evaluate(async () => {
-    const response = await fetch("/api/catalog/components?category=motherboard&page=1&page_size=12", { cache: "no-store" });
+    const response = await fetch("/api/catalog/components?category=motherboard&page=1&page_size=12&sort=retail_first", { cache: "no-store" });
     const data = await response.json() as TowerCatalogPage;
     return { status: response.status, items: data.items?.map(item => ({ id: item.id, name: item.name })) ?? [] };
   });

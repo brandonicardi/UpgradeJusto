@@ -43,7 +43,9 @@ test("CU03 CRUD real, revisión, contexto null y aislamiento de dos propietarios
   let failed = false;
   try {
     await authenticate(a); await authenticate(b);
-    await a.goto("/pcs"); await b.goto("/pcs");
+    // Este recorrido protege el flujo histórico de seis categorías (/pcs/legacy);
+    // /pcs es el editor de torre y lo cubre towers38.spec.ts.
+    await a.goto("/pcs/legacy"); await b.goto("/pcs/legacy");
     await expect(a.getByRole("region", { name: "Lista de PCs", exact: true })).toContainText("No hay PCs guardadas");
     await expect(b.getByRole("region", { name: "Lista de PCs", exact: true })).toContainText("No hay PCs guardadas");
     // Public catalog reference fetch is Node-side, not a browser proxy escape.

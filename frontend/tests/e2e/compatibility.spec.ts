@@ -54,7 +54,8 @@ test("CU05 delta plataforma: evidencia RAM parcial, exceso de slots, no mutació
     ], context: { bios_version: "P2.30", notes: null } };
     const created = await api(a, "", "POST", input); expect(created.status).toBe(201);
     let pc = created.data as PC; id = pc.id;
-    await a.goto("/pcs"); await a.getByRole("button", { name: input.name, exact: true }).click();
+    // Flujo histórico de seis categorías: el editor de torre vive en /pcs.
+    await a.goto("/pcs/legacy"); await a.getByRole("button", { name: input.name, exact: true }).click();
     const panel = a.getByRole("region", { name: "Compatibilidad parcial", exact: true });
     const resultPanel = a.getByRole("region", { name: "Resultado parcial del servidor", exact: true });
     await expect(panel).toContainText("No modifica tu PC");
@@ -105,7 +106,7 @@ test("CU05 delta plataforma: evidencia RAM parcial, exceso de slots, no mutació
     for (const [bios, state, verdict] of [["P1.20", "fail", "incompatible"], [null, "unknown", "requiere_verificacion"], ["P2.31", "unknown", "requiere_verificacion"]] as const) {
       const updated = await api(a, `/${id}`, "PUT", { ...input, context: { bios_version: bios, notes: null }, revision: pc.revision });
       expect(updated.status).toBe(200); pc = updated.data as PC;
-      await a.goto("/pcs"); await a.getByRole("button", { name: input.name, exact: true }).click();
+      await a.goto("/pcs/legacy"); await a.getByRole("button", { name: input.name, exact: true }).click();
       await a.getByText("Más opciones", { exact: true }).click();
       await expect(a.getByRole("region", { name: "Detalle de PC", exact: true }).getByText(`Revisión ${pc.revision}`, { exact: true })).toBeVisible();
       evaluated = await evaluate(); expect(r01(evaluated)).toBe(state); expect(evaluated.verdict).toBe(verdict);
@@ -113,7 +114,7 @@ test("CU05 delta plataforma: evidencia RAM parcial, exceso de slots, no mutació
     }
     const restored = await api(a, `/${id}`, "PUT", { ...input, revision: pc.revision });
     expect(restored.status).toBe(200); pc = restored.data as PC;
-    await a.goto("/pcs"); await a.getByRole("button", { name: input.name, exact: true }).click();
+    await a.goto("/pcs/legacy"); await a.getByRole("button", { name: input.name, exact: true }).click();
     await a.getByText("Más opciones", { exact: true }).click();
     await expect(a.getByRole("region", { name: "Detalle de PC", exact: true }).getByText(`Revisión ${pc.revision}`, { exact: true })).toBeVisible();
     async function simulate() {

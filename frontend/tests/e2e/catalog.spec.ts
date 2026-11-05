@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import type { CatalogPage } from "../../lib/catalog";
-import { productName } from "../../lib/presentation";
 
 const api = "http://127.0.0.1:8000/api/catalog/components";
 test.use({ trace: "off", screenshot: "off", video: "off" });
@@ -34,7 +33,9 @@ test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ pa
   await expect(page.locator("article[data-component-id]")).toHaveCount(expected.items.length);
   await expect(page).not.toHaveURL(/page=2/);
   await page.locator("article[data-component-id]").getByRole("link", { name: piece.name, exact: true }).first().click();
-  await expect(page.getByRole("heading", { level: 1, name: piece.name })).toHaveText(productName(piece.name).title);
+  // La ficha muestra el nombre completo (con la variante), no el título recortado.
+  await expect(page.getByRole("heading", { level: 1, name: piece.name, exact: true })).toHaveText(piece.name);
+  await expect(page.getByRole("region", { name: "Resumen del componente", exact: true })).toHaveAttribute("data-component-id", piece.id);
   await page.getByText("Identificación y versión del catálogo", { exact: true }).click();
   await expect(page.getByText(`Versión técnica del dataset: ${data.dataset_version}`, { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: /^Ilustración de categoría:/ })).toBeVisible();
@@ -55,7 +56,8 @@ test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ pa
   const unpriced = data.items.find(item => !item.prices.length);
   expect(unpriced).toBeTruthy();
   await page.goto(`/catalog/${unpriced!.id}`);
-  await expect(page.getByRole("region", { name: "Resumen del componente", exact: true }).getByText("Precio desconocido: sin precio documentado.", { exact: true })).toBeVisible();
+  await page.getByText("Precios históricos y procedencia", { exact: true }).click();
+  await expect(page.getByText("Precio desconocido: sin precio documentado.", { exact: true })).toBeVisible();
 });
 
 test("vacío, página fuera de rango y errores accesibles sin mocks", async ({ page }) => {
