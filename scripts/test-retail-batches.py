@@ -45,25 +45,50 @@ def main():
         assert all(item["availability"] == "unknown" for item in excluded["offers"])
     unknown = module.cg_record({**row, "stock": None}, "gpu", "same")
     assert unknown["offers"][1]["availability"] == "unknown"
-    venex = module.venex_record(
-        {
-            "product_id": "999",
-            "category": "gpu",
-            "name": "SYNTHETIC",
-            "source_url": "https://www.venex.com.ar/componentes-de-pc/placas-de-video/synthetic.html",
-            "observed_at": "2026-10-26T00:00:00Z",
-            "rights_note": "Synthetic only",
-            "gtin": "123456789000",
-            "mpn": None,
-            "availability": "in_stock",
-            "amount": "123.50",
-            "condition": "cash",
-            "image_source_url": None,
-        }
-    )
+    venex_base = {
+        "product_id": "999",
+        "category": "gpu",
+        "name": "SYNTHETIC",
+        "source_url": "https://www.venex.com.ar/componentes-de-pc/placas-de-video/synthetic.html",
+        "observed_at": "2026-10-26T00:00:00Z",
+        "rights_note": "Synthetic only",
+        "gtin": "123456789000",
+        "mpn": None,
+        "availability": "in_stock",
+        "amount": "123.50",
+        "condition": "cash",
+        "image_source_url": None,
+    }
+    venex = module.venex_record(venex_base)
     assert venex["offers"][0]["amount"] is None
     assert venex["offers"][0]["condition_verified"] is False
     assert venex["mpn"] is None and venex["gtin"] == "123456789000"
+    # Vendor junk like the observed gtin "1" stays unknown (null), never
+    # published and never "corrected"; only plausible GTINs are kept.
+    other_fields = {
+        key: value for key, value in venex.items() if key not in ("gtin", "variant_key")
+    }
+    for value, expected in (
+        ("1", None),
+        ("00000000", None),
+        ("00000000000000", None),
+        ("1234567", None),
+        ("12345678901", None),
+        ("123456789012345", None),
+        ("12345678901a", None),
+        (None, None),
+        ("12345678", "12345678"),
+        ("123456789012", "123456789012"),
+        ("5032037279079", "5032037279079"),
+        ("12345678901234", "12345678901234"),
+    ):
+        record = module.venex_record({**venex_base, "gtin": value})
+        assert record["gtin"] == expected
+        assert {
+            key: item
+            for key, item in record.items()
+            if key not in ("gtin", "variant_key")
+        } == other_fields
     row = {
         "product_id": "999",
         "source_url": "https://www.venex.com.ar/test.html",

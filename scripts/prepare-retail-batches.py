@@ -144,6 +144,21 @@ def verified_venex_amount(row, proof):
     return row["amount"] if amount > 0 and amount == Decimal(row["amount"]) else None
 
 
+GTIN_LENGTHS = (8, 12, 13, 14)
+
+
+def plausible_gtin(value):
+    """Publish a vendor GTIN only when it looks like one: never invented.
+
+    8, 12, 13 or 14 plain digits with at least one non-zero. Anything else
+    (like the vendor junk value "1") stays unknown as null, never corrected.
+    """
+    if isinstance(value, str) and len(value) in GTIN_LENGTHS:
+        if re.fullmatch(r"[0-9]+", value) and any(digit != "0" for digit in value):
+            return value
+    return None
+
+
 def venex_record(row, proof=None):
     image = None
     photo = row.get("image_source_url")
@@ -170,7 +185,7 @@ def venex_record(row, proof=None):
         "name": row["name"],
         "source_url": row["source_url"],
         "mpn": row.get("mpn"),
-        "gtin": row.get("gtin"),
+        "gtin": plausible_gtin(row.get("gtin")),
         "variant_key": "venex-"
         + row["product_id"]
         + "-"
