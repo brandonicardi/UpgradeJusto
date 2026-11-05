@@ -7,7 +7,7 @@ steps: 100
 permissions:
   - action: "*"
     resource: "*"
-    effect: ask
+    effect: allow
   - action: read
     resource: "*"
     effect: allow
@@ -52,7 +52,7 @@ permissions:
     effect: allow
   - action: shell
     resource: "*"
-    effect: ask
+    effect: allow
   - action: shell
     resource: "git status*"
     effect: allow
@@ -230,6 +230,9 @@ permissions:
     effect: deny
   - action: shell
     resource: "git rebase *"
+    effect: deny
+  - action: shell
+    resource: "openspec archive *"
     effect: deny
   - action: shell
     resource: "winget *"

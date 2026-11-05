@@ -37,7 +37,7 @@ permissions:
     effect: allow
   - action: shell
     resource: "npm install*"
-    effect: ask
+    effect: allow
   - action: shell
     resource: "git status*"
     effect: allow
