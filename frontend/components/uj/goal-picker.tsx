@@ -8,6 +8,8 @@ export type OpcionDeObjetivo = { valor: string; texto: string };
 type ComunesGoalPicker = {
   pregunta: string;
   opciones: OpcionDeObjetivo[];
+  /** Nombre accesible del grupo si debe ser distinto de la pregunta visible. */
+  nombre?: string;
 };
 
 export type GoalPickerProps = ComunesGoalPicker &
@@ -30,7 +32,7 @@ const OPCION =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
 
 export function GoalPicker(props: GoalPickerProps) {
-  const { pregunta, opciones } = props;
+  const { pregunta, opciones, nombre } = props;
   const idPregunta = useId();
   const elegidas = props.multiple ? props.valor : props.valor === null ? [] : [props.valor];
 
@@ -44,7 +46,7 @@ export function GoalPicker(props: GoalPickerProps) {
       <div id={idPregunta} className="font-display text-titular-m">
         {pregunta}
       </div>
-      <div role="group" aria-labelledby={idPregunta} className="m-0 flex flex-wrap gap-space-3 border-0 p-0">
+      <div role="group" aria-label={nombre} aria-labelledby={nombre ? undefined : idPregunta} className="m-0 flex flex-wrap gap-space-3 border-0 p-0">
         {opciones.map(({ valor, texto }) => {
           const marcada = elegidas.includes(valor);
           return (

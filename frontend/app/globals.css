@@ -195,10 +195,11 @@
   input,select,textarea { color:var(--text); background:var(--papel-alto); border:1px solid var(--linea-fuerte); border-radius:8px; padding:10px 12px; width:100%; min-height:44px; }
   input[type=checkbox] { width:20px; min-height:20px; accent-color:var(--accent); }
 }
-fieldset { min-width:0; } label { font-weight:600; } legend { padding:0 4px; }
+@layer base { fieldset { min-width:0; } label { font-weight:600; } legend { padding:0 4px; } }
 @layer base { :focus-visible { outline:3px solid var(--foco); outline-offset:4px; } }
-h1,h2,h3,h4,h5,h6,p { margin:0; } h1 { font-size:32px; line-height:1.2; font-weight:700; letter-spacing:-.7px; } h2 { font-size:22px; font-weight:700; } h3 { font-size:20px; font-weight:700; }
-small,.muted { color:var(--muted); } .eyebrow { color:var(--tinta-suave); font-size:12px; font-weight:700; letter-spacing:1.6px; margin-bottom:8px; }
+@layer base { h1,h2,h3,h4,h5,h6,p { margin:0; } h1 { font-size:32px; line-height:1.2; font-weight:700; letter-spacing:-.7px; } h2 { font-size:22px; font-weight:700; } h3 { font-size:20px; font-weight:700; } }
+@layer base { small { color:var(--muted); } }
+.muted { color:var(--muted); } .eyebrow { color:var(--tinta-suave); font-size:12px; font-weight:700; letter-spacing:1.6px; margin-bottom:8px; }
 .app-shell { display:grid; grid-template-columns:220px minmax(0,1fr); min-height:100dvh; }
 .sidebar { position:sticky; top:0; height:100dvh; padding:32px 16px; border-right:1px solid var(--line); display:flex; flex-direction:column; gap:40px; background:var(--bg); }
 .brand { display:flex; align-items:center; gap:8px; color:var(--text); font-size:19px; font-weight:700; text-decoration:none; }
@@ -260,8 +261,10 @@ details.accordion { border-top:1px solid var(--line); padding-top:12px; margin-t
 /* The long public guide keeps navigation at document start, not mid-capture.
    Product workspaces retain their established sticky sidebar. */
 .entry-shell .sidebar { position:static; align-self:start; }
-.tower-product-photo { width:72px; height:72px; flex:0 0 72px; display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; background:var(--bg); overflow:hidden; }
-.tower-product-photo img { width:72px; height:72px; object-fit:contain; }
+/* Solo el tamaño por defecto vive en la capa base: así una utilidad puede agrandar la foto sin `!`. */
+@layer base { .tower-product-photo { width:72px; height:72px; flex:0 0 72px; } .tower-product-photo img { width:72px; height:72px; } }
+.tower-product-photo { display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; background:var(--bg); overflow:hidden; }
+.tower-product-photo img { object-fit:contain; }
 .tower-product-photo { position:relative; }
 .tower-product-photo .photo-status { position:absolute; inset:0; display:grid; place-items:center; padding:4px; background:var(--bg); text-align:center; pointer-events:none; }
 .tower-product-photo > span { font-size:12px; color:var(--muted); }

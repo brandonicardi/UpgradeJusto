@@ -21,4 +21,22 @@ describe("acciones de entrada38, sin contrato backend nuevo", () => {
     expect(html).toContain('id="beginner-start-title" tabindex="-1"');
     expect(html).toContain("Volver a las opciones para empezar");
   });
+  it("sin catálogo muestra el estado sin datos con acceso al catálogo y deja los cuatro caminos", () => {
+    const html = renderToStaticMarkup(<BeginnerEntry sample={null} />);
+    expect(html).toContain("No se pudo cargar una pieza");
+    expect(html).toContain("No mostramos fotos ni precios inventados.");
+    expect(html).toContain('href="/catalog"');
+    for (const href of ['href="#hardware-guide-title"', 'href="/pcs"', 'href="/pcs/import"', 'href="/build"']) expect(html).toContain(href);
+    expect(html).not.toContain("Ver ficha y procedencia");
+  });
+  it("presenta la promesa sin ofrecer armado automático ni formularios que crean o envían", () => {
+    const html = renderToStaticMarkup(<BeginnerEntry />);
+    expect(html).toContain("<h1");
+    expect(html).toContain("Quiero mejorar mi PC");
+    expect(html).toContain("Tu PC puede dar");
+    expect(html).toContain("De tu PC a un plan que entendés");
+    expect(html).not.toContain("<form");
+    expect(html).not.toContain("<button");
+    expect(html).not.toContain("type=\"submit\"");
+  });
 });

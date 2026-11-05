@@ -36,13 +36,14 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     if (viewport.width === 390) {
       const counts = { page_objective: 0, builder_objective: 0, page_budget: 0, builder_budget: 0, page_condition: 0, builder_condition: 0 };
       Object.assign(observed, { mobile_goal_controls: counts });
-      // Nested select labels include option text in label-text matching. Use the
-      // actual combobox accessible-name prefix, not an exact whole-label match.
-      const objectiveControl = builder.getByRole("combobox", { name: /^Objetivo del armado/ });
+      // El objetivo es un grupo de botones; cada opción es un botón dentro del grupo.
+      const objectiveControl = builder.getByRole("group", { name: "Objetivo del armado" });
       phase = "mobile-goal-objective-counts";
-      counts.page_objective = await page.getByRole("combobox", { name: /^Objetivo del armado/ }).count(); counts.builder_objective = await objectiveControl.count();
+      counts.page_objective = await page.getByRole("group", { name: "Objetivo del armado" }).count(); counts.builder_objective = await objectiveControl.count();
       expect(counts.page_objective).toBe(1); await expect(objectiveControl).toHaveCount(1, { timeout: 5000 });
       phase = "mobile-goal-objective-visible"; await expect(objectiveControl).toBeVisible({ timeout: 5000 });
+      await expect(objectiveControl.getByRole("button")).not.toHaveCount(0);
+      await expect(objectiveControl.getByRole("button", { pressed: true })).toHaveCount(1);
       const budgetControl = builder.getByRole("textbox", { name: "Presupuesto ARS del armado", exact: true });
       phase = "mobile-goal-budget-counts";
       counts.page_budget = await page.getByRole("textbox", { name: "Presupuesto ARS del armado", exact: true }).count(); counts.builder_budget = await budgetControl.count();
@@ -54,11 +55,12 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       expect(counts.page_condition).toBe(1); await expect(conditionControl).toHaveCount(1, { timeout: 5000 });
       phase = "mobile-goal-condition-visible"; await expect(conditionControl).toBeVisible({ timeout: 5000 });
       phase = "mobile-goal-label-geometry";
-      const objective = await objectiveControl.locator("xpath=ancestor::label[1]").boundingBox(), budget = await budgetControl.locator("xpath=ancestor::label[1]").boundingBox(), condition = await conditionControl.locator("xpath=ancestor::label[1]").boundingBox();
+      const objective = await objectiveControl.boundingBox(), budget = await budgetControl.locator("xpath=ancestor::label[1]").boundingBox(), condition = await conditionControl.locator("xpath=ancestor::label[1]").boundingBox();
       expect(Boolean(objective && budget && condition)).toBe(true);
       if (!objective || !budget || !condition) throw new Error("goal_strip_geometry_unavailable");
-      phase = "mobile-goal-strip-two-columns";
-      expect(Math.abs(objective.y - budget.y)).toBeLessThanOrEqual(1); expect(objective.x + objective.width <= budget.x + 1).toBe(true); expect(condition.y >= Math.max(objective.y + objective.height, budget.y + budget.height) - 1).toBe(true);
+      phase = "mobile-goal-strip-single-column";
+      // En 390 px los pasos 1 y 2 se apilan: objetivo, presupuesto y condición en ese orden, sin solaparse.
+      expect(budget.y >= objective.y + objective.height - 1).toBe(true); expect(condition.y >= budget.y + budget.height - 1).toBe(true);
     }
     await shot("02-armado-vacio.png", builder.getByRole("heading", { level: 1 }));
     phase = "selection-api-fetch"; const catalog = await api(page, "/api/catalog/components?category=cpu&page=1&page_size=12&sort=retail_first"); observed.catalog_status = catalog.status;

@@ -177,6 +177,12 @@ describe("GoalPicker", () => {
     expect(html).toContain("aria-labelledby");
   });
 
+  it("con `nombre`, el grupo usa ese nombre accesible en lugar de la pregunta", () => {
+    const html = renderToStaticMarkup(<GoalPicker pregunta="¿Para qué?" nombre="Objetivo del armado" opciones={opciones} valor={null} onCambio={() => {}} />);
+    expect(html).toContain('aria-label="Objetivo del armado"');
+    expect(html).not.toContain("aria-labelledby");
+  });
+
   it("modo una sola opción: elegir otra reemplaza, elegir la misma la deja", () => {
     expect(siguienteSeleccion("jugar", "editar", false)).toBe("editar");
     expect(siguienteSeleccion("jugar", "jugar", false)).toBe("jugar");
