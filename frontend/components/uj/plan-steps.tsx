@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { Button } from "./button";
 import { PriceTag, type PriceTagProps } from "./price-tag";
 import { Verdict } from "./verdict";
 
@@ -13,6 +14,10 @@ export type EtapaDelPlan = {
   estado: EstadoDeEtapa;
   /** Veredicto de la PC con todos los cambios hasta esta etapa. Sin veredicto dice «Falta un dato». */
   veredicto?: string | null;
+  /** Identidad estable de la etapa (la que da la API); evita usar la posición como clave. */
+  clave?: string;
+  /** Acción de la persona sobre la etapa, por ejemplo «Ya lo compré» o «Deshacer». */
+  accion?: { texto: "Ya lo compré" | "Deshacer"; alHacer: () => void; deshabilitada?: boolean };
 };
 
 export type PlanStepsProps = {
@@ -48,7 +53,7 @@ export function PlanSteps({ total, totalInformado, etapas }: PlanStepsProps) {
       <ol className="m-0 grid list-none gap-0 p-0">
         {etapas.map((etapa, i) => (
           <li
-            key={`${i}-${etapa.nombre}`}
+            key={etapa.clave ?? `${i}-${etapa.nombre}`}
             aria-current={etapa.estado === "actual" ? "step" : undefined}
             className="relative grid grid-cols-[40px_minmax(0,1fr)] gap-space-4 pb-space-5"
           >
@@ -72,6 +77,17 @@ export function PlanSteps({ total, totalInformado, etapas }: PlanStepsProps) {
               </div>
               {etapa.costoInformado !== undefined ? <span className="break-words text-cuerpo-fuerte tabular-nums">{etapa.costoInformado}</span> : <PriceTag {...etapa.costo} compacto />}
               <Verdict estado={etapa.veredicto} />
+              {etapa.accion && (
+                <Button
+                  peso={etapa.accion.texto === "Deshacer" ? "quieto" : "secundario"}
+                  chico
+                  disabled={etapa.accion.deshabilitada}
+                  aria-label={`${etapa.accion.texto}: ${etapa.nombre}`}
+                  onClick={etapa.accion.alHacer}
+                >
+                  {etapa.accion.texto}
+                </Button>
+              )}
             </div>
           </li>
         ))}

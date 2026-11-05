@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { emptyTower, type Tower } from "../../lib/towers";
-import { createTowerPlanWriter, emptyManualPlan, planActions, planDraftFromRead, planMoney, positiveRevision, towerPlanInput, towerPlanRequest, type CanonicalPlanAction, type PlanWriteState, type TowerPlanDraft, type TowerPlanRead } from "../../lib/tower-plans";
+import { createTowerPlanWriter, emptyManualPlan, planActions, planDraftFromRead, planMoney, planProgressSummary, planStageStates, positiveRevision, setStageProgress, towerPlanInput, towerPlanRequest, type CanonicalPlanAction, type PlanWriteState, type TowerPlanDraft, type TowerPlanRead } from "../../lib/tower-plans";
 import type { TowerAction, TowerEvaluation } from "../../lib/tower-compatibility";
 import TowerPlanActionEditor from "../../components/tower-plan-action-editor";
 import TowerPlanView from "../../components/tower-plan-view";
@@ -21,7 +21,7 @@ function saved(): TowerPlanRead {
   const cost = { total_ars: null, known_subtotal_ars: "0.00", within_budget: null, lines: [], missing_fields: ["synthetic price missing"], excluded: ["shipping", "financing", "labor"] as ("shipping" | "financing" | "labor")[] };
   const benefit = { status: "unknown" as const, before: null, after: null, source: [], workload: null };
   const evaluation: TowerEvaluation = { verdict: "requiere_verificacion", rule_results: [], missing_fields: ["synthetic technical evidence missing"], rules_version: "cu05-tower-stock-engine-1", data_revision: "synthetic-catalog", pc_revision: 1, scope: { id: "cu05-tower-stock-1", policy_version: "tower-stock-policy-1", inventory_version: "tower-stock-inventory-1", label: "Tower stock", operating_regime: "stock_no_oc", excludes: ["Physical certification"] }, coverage: { required: 12, implemented: 12, evaluated: 0, passed: 0, failed: 0, unknown: 12, not_applicable: 0, not_implemented: 0, complete: false }, additional_checks: [], warnings: [], evaluated_configuration: pc() };
-  return { kind: "tower_plan", schema_version: 2, id: other, name: draft().name, revision: 1, pc_id: id, created_at: "2026-10-26T10:00:00Z", updated_at: "2026-10-26T10:00:00Z", snapshot: { kind: "tower_plan", schema_version: 2, name: draft().name, generated_at: "2026-10-26T10:00:00Z", pc_revision: 1, base_configuration: pc(), objective: "general", workload: null, budget_ars: draft().budget_ars, currency: "ARS", price_condition: "cash", versions: { catalog: "synthetic-catalog", rules: "synthetic", policy: "synthetic", inventory: "synthetic", scope: "synthetic", references: "synthetic", identity: "synthetic", calculation: "synthetic" }, stages: draft().stages.map((stage, index) => ({ ...stage, position: index + 1, evaluated_configuration: pc(), evaluation, benefit, dependencies: [], offers: [], cost, cumulative_cost: cost, status: "requires_verification", missing_fields: ["synthetic missing"], warnings: [] })), cost, benefit, status: "requires_verification", label: "Synthetic partial plan", missing_fields: ["synthetic missing"], limitations: ["Not physical certification"] } };
+  return { kind: "tower_plan", schema_version: 2, id: other, name: draft().name, revision: 1, pc_id: id, created_at: "2026-10-26T10:00:00Z", updated_at: "2026-10-26T10:00:00Z", stage_keys: draft().stages.map((_, index) => "ab"[index].repeat(64)), progress: {}, snapshot: { kind: "tower_plan", schema_version: 2, name: draft().name, generated_at: "2026-10-26T10:00:00Z", pc_revision: 1, base_configuration: pc(), objective: "general", workload: null, budget_ars: draft().budget_ars, currency: "ARS", price_condition: "cash", versions: { catalog: "synthetic-catalog", rules: "synthetic", policy: "synthetic", inventory: "synthetic", scope: "synthetic", references: "synthetic", identity: "synthetic", calculation: "synthetic" }, stages: draft().stages.map((stage, index) => ({ ...stage, position: index + 1, evaluated_configuration: pc(), evaluation, benefit, dependencies: [], offers: [], cost, cumulative_cost: cost, status: "requires_verification", missing_fields: ["synthetic missing"], warnings: [] })), cost, benefit, status: "requires_verification", label: "Synthetic partial plan", missing_fields: ["synthetic missing"], limitations: ["Not physical certification"] } };
 }
 function writer(statuses: number[]) {
   const onState = vi.fn<(state: PlanWriteState) => void>(), onSaved = vi.fn(), uuid = vi.fn().mockReturnValueOnce(id).mockReturnValue(other);
@@ -71,8 +71,9 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const brief = visible.textContent!;
     for (const text of ["Cantidad explícita: 1", "Coste por confirmar", "Cobertura incompleta: no confirma compatibilidad completa", "Encaja", "No encaja", "Falta un dato", "Plan bloqueado", "Plan pendiente de verificación", "Listo según el servidor", "2 con precio completo", "1 con coste por confirmar", "Así quedaría tu plan", "Tu PC con todo el plan", "Para el uso de todos los días", "Supera el presupuesto guardado"]) expect(brief).toContain(text);
     expect(brief).not.toContain("Antes de esta etapa");
-    expect(brief).not.toMatch(/Hecha|Comprada|Ya compraste|Paso actual|etapas compradas|snapshot|coverage|schema|PASS/);
-    expect(root.querySelector("progress,[role=progressbar],[aria-current=step]")).toBeNull();
+    expect(brief).not.toMatch(/Hecha|Comprada|Ya compraste|etapas compradas|snapshot|coverage|schema|PASS/);
+    expect(root.querySelector("progress,[role=progressbar]")).toBeNull();
+    expect(root.querySelectorAll("[aria-current=step]")).toHaveLength(1); expect(brief).toContain("Paso actual");
     expect(root.querySelectorAll(".plan-stage-number")).toHaveLength(3);
     expect(root.querySelectorAll(".accordion.plan-stage")).toHaveLength(3);
     expect(html).toContain('<details class="stage-technical-evaluation">'); expect(html).toContain('<details class="plan-comparison">');
@@ -165,6 +166,72 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const edited = planDraftFromRead(plan, pc(), "current-catalog"); expect(edited.stages.every(stage => !stage.materials.length)).toBe(true); expect(plan.snapshot.stages[0].materials).toHaveLength(1);
     const request = vi.fn<typeof fetch>().mockResolvedValue(Response.json(plan)); await towerPlanRequest(`/${other}/revisions/1`, "GET", undefined, undefined, request);
     expect(request).toHaveBeenCalledTimes(1); expect(request.mock.calls[0][1]!.method).toBe("GET"); expect(request.mock.calls[0][1]!.body).toBeUndefined();
+  });
+  it("deriva hecha, actual y pendiente desde stage_keys y progress; sin marcas la primera es la actual", () => {
+    const plan = saved(); plan.snapshot.stages = [...plan.snapshot.stages, { ...plan.snapshot.stages[0], position: 3 }]; plan.stage_keys = ["a".repeat(64), "b".repeat(64), "c".repeat(64)];
+    expect(planStageStates(plan)).toEqual(["actual", "pendiente", "pendiente"]);
+    expect(planStageStates(plan, { ["a".repeat(64)]: "2026-11-05T10:00:00Z" })).toEqual(["hecha", "actual", "pendiente"]);
+    expect(planStageStates(plan, { ["a".repeat(64)]: "x", ["c".repeat(64)]: "x" })).toEqual(["hecha", "actual", "hecha"]);
+    expect(planStageStates(plan, { ["d".repeat(64)]: "x" })).toEqual(["actual", "pendiente", "pendiente"]);
+    expect(planStageStates(plan, { ["a".repeat(64)]: "x" }, true)).toEqual(["propuesta", "propuesta", "propuesta"]);
+    expect(planProgressSummary(["hecha", "hecha", "actual", "pendiente", "pendiente"])).toBe("2 de 5 etapas compradas"); expect(planProgressSummary(["hecha"])).toBe("1 de 1 etapa comprada"); expect(planProgressSummary(["actual", "pendiente"])).toBeNull();
+  });
+  it("muestra Ya lo compré / Deshacer y el resumen solo en la versión actual", () => {
+    const plan = saved(); plan.progress = { ["a".repeat(64)]: "2026-11-05T10:00:00Z" };
+    const root = document.createElement("div"); root.innerHTML = renderToStaticMarkup(<TowerPlanView plan={plan} now={0} onProgress={() => {}} />);
+    const labels = Array.from(root.querySelectorAll("button")).map(item => item.textContent);
+    expect(labels).toContain("Deshacer"); expect(labels.filter(label => label === "Ya lo compré")).toHaveLength(1);
+    expect(root.textContent).toContain("1 de 2 etapas compradas"); expect(root.textContent).toContain("Hecha"); expect(root.textContent).toContain("Paso actual");
+    const aside = root.querySelector(".plan-reading-aside")!.cloneNode(true) as HTMLElement; aside.querySelectorAll("details").forEach(detail => detail.remove());
+    expect(aside.textContent).not.toMatch(/snapshot|schema|revisión \d|[0-9a-f]{64}/i); expect(root.querySelector(".plan-reading-stages")!.textContent).not.toMatch(/[0-9a-f]{64}/);
+    const history = document.createElement("div"); history.innerHTML = renderToStaticMarkup(<TowerPlanView plan={plan} now={0} historical onProgress={() => {}} />);
+    expect(Array.from(history.querySelectorAll("button")).some(item => /Ya lo compré|Deshacer/.test(item.textContent ?? ""))).toBe(false);
+    expect(history.textContent).not.toMatch(/etapas compradas|Hecha|Paso actual/); expect(history.textContent).toContain("Cambio propuesto");
+  });
+  it("marca y desmarca con CSRF, sin cuerpo ni user_id, y muestra el progreso confirmado por el servidor", async () => {
+    const plan = saved(), first = "a".repeat(64); let progress: Record<string, string> = {};
+    const request = vi.fn<typeof fetch>().mockImplementation(async (input, options) => {
+      const path = String(input);
+      if (path === "/api/tower-plans?page=1&page_size=20") return Response.json({ items: [plan], total: 1, page: 1, page_size: 20 });
+      if (path === `/api/tower-plans/${other}`) return Response.json(plan);
+      if (path === "/api/auth/csrf") return Response.json({ csrf_token: "synthetic" });
+      if (path === `/api/tower-plans/${other}/stages/${first}/progress`) { progress = options?.method === "PUT" ? { [first]: "2026-11-05T10:00:00Z" } : {}; return Response.json({ kind: "tower_plan_progress", plan_id: other, revision: 1, progress }); }
+      throw new Error(`Solicitud inesperada: ${path}`);
+    });
+    vi.stubGlobal("fetch", request);
+    const host = await mount(<TowerPlans initialId={other} />); await settle();
+    expect(host.textContent).not.toContain("etapas compradas");
+    await click(button(host, /^Ya lo compré: Stage1$/));
+    expect(host.textContent).toContain("1 de 2 etapas compradas"); expect(button(host, /^Deshacer: Stage1$/)).not.toBeNull();
+    const writes = request.mock.calls.filter(([path]) => String(path).includes("/progress"));
+    expect(writes).toHaveLength(1); expect(writes[0][1]!.method).toBe("PUT"); expect(writes[0][1]!.body).toBeUndefined(); expect((writes[0][1]!.headers as Headers).get("X-CSRF-Token")).toBe("synthetic");
+    expect(JSON.stringify(request.mock.calls)).not.toContain("user_id");
+    await click(button(host, /^Deshacer: Stage1$/));
+    expect(host.textContent).not.toContain("etapas compradas"); expect(button(host, /^Ya lo compré: Stage1$/)).not.toBeNull();
+    expect(request.mock.calls.filter(([path]) => String(path).includes("/progress")).map(([, options]) => options?.method)).toEqual(["PUT", "DELETE"]);
+  });
+  it("si falla marcar, muestra un aviso y conserva el plan sin inventar marcas ni reintentar", async () => {
+    const plan = saved(), first = "a".repeat(64);
+    const request = vi.fn<typeof fetch>().mockImplementation(async input => {
+      const path = String(input);
+      if (path === "/api/tower-plans?page=1&page_size=20") return Response.json({ items: [plan], total: 1, page: 1, page_size: 20 });
+      if (path === `/api/tower-plans/${other}`) return Response.json(plan);
+      if (path === "/api/auth/csrf") return Response.json({ csrf_token: "synthetic" });
+      if (path === `/api/tower-plans/${other}/stages/${first}/progress`) return Response.json({ detail: "private" }, { status: 503 });
+      throw new Error(`Solicitud inesperada: ${path}`);
+    });
+    vi.stubGlobal("fetch", request);
+    const host = await mount(<TowerPlans initialId={other} />); await settle();
+    await click(button(host, /^Ya lo compré: Stage1$/));
+    const alert = host.querySelector('[role="alert"]'); expect(alert?.textContent).toContain("No pudimos confirmar el cambio"); expect(alert?.textContent).not.toContain("private");
+    expect(host.querySelector('[aria-label="Detalle de plan de torre"]')).not.toBeNull(); expect(button(host, /^Ya lo compré: Stage1$/)).not.toBeNull(); expect(host.textContent).not.toContain("etapas compradas");
+    expect(request.mock.calls.filter(([path]) => String(path).includes("/progress"))).toHaveLength(1);
+  });
+  it("setStageProgress rechaza ids y claves inválidas antes de enviar y valida la respuesta", async () => {
+    const request = vi.fn<typeof fetch>().mockImplementation(async path => path === "/api/auth/csrf" ? Response.json({ csrf_token: "synthetic" }) : Response.json({ kind: "tower_plan_progress", progress: { nope: "x" } }));
+    await expect(setStageProgress(other, "A".repeat(64), true, undefined, request)).rejects.toThrow(); await expect(setStageProgress("no-uuid", "a".repeat(64), true, undefined, request)).rejects.toThrow();
+    expect(request).not.toHaveBeenCalled();
+    await expect(setStageProgress(other, "a".repeat(64), true, undefined, request)).rejects.toThrow("Respuesta de progreso inválida.");
   });
   it("cancel save ignores late response without pretending rollback or applying PC", async () => {
     let finish: ((response: Response) => void) | undefined;

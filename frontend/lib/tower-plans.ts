@@ -16,7 +16,7 @@ export type TowerPlanCreate = TowerPlanDraft & { kind: "tower_plan"; schema_vers
 export type TowerPlanRecalculate = TowerPlanCreate & { expected_plan_revision: number };
 export type PlanStageRead = Omit<PlanStageInput, "actions"> & { actions: CanonicalPlanAction[]; position: number; evaluated_configuration: Tower; evaluation: TowerEvaluation; benefit: PlanBenefit; dependencies: PlanDependency[]; offers: RetailOffer[]; cost: PlanCost; cumulative_cost: PlanCost; status: "blocked" | "ready" | "requires_verification"; missing_fields: string[]; warnings: string[] };
 export type TowerPlanSnapshot = { kind: "tower_plan"; schema_version: 2; name: string; generated_at: string; pc_revision: number; base_configuration: Tower; objective: RecommendationObjective; workload: "blender-cpu" | null; budget_ars: string; currency: "ARS"; price_condition: "cash" | "list"; versions: { catalog: string; rules: string; policy: string; inventory: string; scope: string; references: string; identity: string; calculation: string }; stages: PlanStageRead[]; cost: PlanCost; benefit: PlanBenefit; status: "blocked" | "ready" | "requires_verification"; label: string; missing_fields: string[]; limitations: string[] };
-export type TowerPlanRead = { kind: "tower_plan"; schema_version: 2; id: string; name: string; revision: number; pc_id: string | null; created_at: string; updated_at: string; snapshot: TowerPlanSnapshot };
+export type TowerPlanRead = { kind: "tower_plan"; schema_version: 2; id: string; name: string; revision: number; pc_id: string | null; created_at: string; updated_at: string; snapshot: TowerPlanSnapshot; stage_keys: string[]; progress: Record<string, string> };
 export type TowerPlanPage = { kind: "tower_plan"; schema_version: 2; items: TowerPlanRead[]; total: number; page: number; page_size: number };
 export function positiveRevision(value: number): boolean { return Number.isSafeInteger(value) && value >= 1; }
 export function planMoney(value: string): string {
@@ -81,6 +81,34 @@ export async function towerPlanRequest(path: string, method = "GET", body?: stri
     if (signal?.aborted) throw new Error("Cancelled"); headers.set("X-CSRF-Token", token.csrf_token); headers.set("Content-Type", "application/json");
   }
   sending?.(); const response = await request(`/api/tower-plans${path}`, { method, headers, body, signal, credentials: "same-origin", cache: "no-store" }); if (!response.ok) throw new TowerPlanError(response.status); return response;
+}
+const stageKeyPattern = /^[0-9a-f]{64}$/;
+export type StageState = "hecha" | "actual" | "pendiente" | "propuesta";
+// Una etapa está marcada si el servidor guardó su clave. La primera sin marcar es la actual.
+// En una versión anterior no hay progreso: todo sigue siendo una propuesta.
+export function planStageStates(plan: Pick<TowerPlanRead, "stage_keys" | "progress"> & { snapshot: { stages: unknown[] } }, progress: Record<string, string> = plan.progress, historical = false): StageState[] {
+  if (historical) return plan.snapshot.stages.map(() => "propuesta");
+  let current = false;
+  const keys = plan.stage_keys ?? [], marks = progress ?? {};
+  return plan.snapshot.stages.map((_, index) => {
+    const key = keys[index];
+    if (key !== undefined && Object.hasOwn(marks, key)) return "hecha";
+    if (current) return "pendiente";
+    current = true; return "actual";
+  });
+}
+export function planProgressSummary(states: StageState[]): string | null {
+  const done = states.filter(state => state === "hecha").length;
+  return done ? `${done} de ${states.length} ${states.length === 1 ? "etapa comprada" : "etapas compradas"}` : null;
+}
+// Marca (PUT) o desmarca (DELETE) una etapa. Sin cuerpo: el dueño sale de la sesión. Devuelve el progreso confirmado por el servidor.
+export async function setStageProgress(planId: string, stageKey: string, done: boolean, signal?: AbortSignal, request: typeof fetch = fetch): Promise<Record<string, string>> {
+  if (!towerUUID.test(planId) || !stageKeyPattern.test(stageKey)) throw new Error("Esa etapa no se puede marcar.");
+  const response = await towerPlanRequest(`/${planId}/stages/${stageKey}/progress`, done ? "PUT" : "DELETE", undefined, signal, request);
+  const body = await response.json() as { kind?: unknown; progress?: unknown };
+  const progress = body.progress;
+  if (body.kind !== "tower_plan_progress" || typeof progress !== "object" || progress === null || Array.isArray(progress) || Object.entries(progress).some(([key, value]) => !stageKeyPattern.test(key) || typeof value !== "string")) throw new Error("Respuesta de progreso inválida.");
+  return progress as Record<string, string>;
 }
 export type PlanWriteState = { phase: "idle" | "saving" | "error" | "uncertain" | "saved"; message: string };
 export function createTowerPlanWriter(deps: { onState: (state: PlanWriteState) => void; onSaved: (plan: TowerPlanRead) => void; request?: typeof fetch; uuid?: () => string }) {

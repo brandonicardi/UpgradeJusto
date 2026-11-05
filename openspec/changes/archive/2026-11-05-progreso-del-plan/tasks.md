@@ -29,12 +29,30 @@ transferirlas. El revisor observa que conservar la marca de una etapa que sigue 
 agente.
 
 ## 2. Frontend
-- [ ] 2.1 Proxy en `app/api` con la lista exacta y CSRF.
+- [x] 2.1 Proxy en `app/api` con la lista exacta y CSRF.
       Prueba: `tests/unit/` del proxy; nunca se envía `user_id`.
-- [ ] 2.2 «Ya lo compré» y «Deshacer» en `/tower-plans/[id]`; `PlanSteps` muestra hecha, actual y
+- [x] 2.2 «Ya lo compré» y «Deshacer» en `/tower-plans/[id]`; `PlanSteps` muestra hecha, actual y
       pendiente desde la API. Prueba: `tests/unit/tower-plans.test.tsx`, error visible sin perder la vista.
 
+Nota de la sección 2 (5/11, orquestador). Ambas tareas en verde con la suite completa del frontend
+(`70 archivos, 635 pruebas`), `tsc --noEmit` limpio y `eslint .` limpio. El backend no se tocó: no
+corrieron `pytest` ni `ruff` porque el diff de este cambio en backend sigue intacto y ya verificado.
+Recorrido real con Edge headless sobre `localhost:3000`: a 1440 y 390 se marcó, recargó y desmarcó;
+la marca persiste al recargar y desaparece al deshacer, sin desborde horizontal (`scrollWidth` igual
+al ancho). Tras todo el recorrido, la revisión del plan, el `snapshot`, la revisión de la PC, su
+`updated_at` y sus líneas quedaron idénticos; el progreso final quedó vacío. Capturas y
+`walkthrough.json` en `.local/capturas/progreso-del-plan/`.
+
 ## 3. Verificación
-- [ ] 3.1 `pytest`, `ruff`, `npm test`, `npm run typecheck`, `npm run lint`.
-- [ ] 3.2 Recorrido real a 1440 y 390: marcar, recargar, desmarcar, y comprobar que la PC no cambió.
-- [ ] 3.3 Revisor: propiedad en el servidor, plan y PC sin modificar, sin jerga.
+- [x] 3.1 `pytest`, `ruff`, `npm test`, `npm run typecheck`, `npm run lint`.
+- [x] 3.2 Recorrido real a 1440 y 390: marcar, recargar, desmarcar, y comprobar que la PC no cambió.
+- [x] 3.3 Revisor: propiedad en el servidor, plan y PC sin modificar, sin jerga.
+
+Nota de la sección 3 (5/11, orquestador). Una sola pasada del revisor. En el alcance del cambio no
+encontró bloqueantes: el proxy limita métodos y ruta, reenvía solo sesión/CSRF/Origin y no pasa el
+cuerpo; la UI usa progreso confirmado, conserva la vista ante errores y las pruebas cubren los casos
+principales. Señaló un menor —el aviso de fallo afirmaba «Tu plan quedó como estaba» sin poder saberlo
+ante 5xx o corte de red— ya corregido a «No pudimos confirmar el cambio…», con su prueba. Volvió a
+pasar la suite completa (`70 archivos, 635 pruebas`), `tsc --noEmit` y `eslint .`, los tres limpios.
+El revisor marcó además cambios en `.opencode/agents/*` que no son de este cambio: no los hizo este
+trabajo ni se revirtieron (regla de no revertir trabajo ajeno); quedan para decisión del planificador.
