@@ -1,7 +1,6 @@
 # Tasks
 
 Todas las tareas las hace el agente `frontend`. Comandos desde `frontend/`.
-Node: `$env:Path="C:\Users\RISUS\.local\node24;$env:Path"`.
 
 ## 0. Captura de referencia (antes de tocar código)
 - [x] 0.1 Crear `tests/evidence/tokens-sin-cambios.spec.ts` y su config de Playwright que

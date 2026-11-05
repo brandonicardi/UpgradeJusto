@@ -85,10 +85,10 @@ permissions:
     effect: deny
   # BEGIN permisos-shell
   - action: external_directory
-    resource: "C:/Users/RISUS/.local/*"
+    resource: "~/.local/*"
     effect: allow
   - action: external_directory
-    resource: "C:/Users/RISUS/AppData/Local/Temp/opencode/*"
+    resource: "~/AppData/Local/Temp/opencode/*"
     effect: allow
   - action: shell
     resource: "Get-Content *"
@@ -283,6 +283,9 @@ Flujo:
    Pasale: número de tarea,
    objetivo, archivos involucrados, criterio de aceptación y prueba a ejecutar.
    Nunca dos subagentes escribiendo la misma carpeta al mismo tiempo.
+   Delegá SIEMPRE en primer plano (sin `background`): si los lanzás en segundo plano y
+   terminás, nadie recibe su resultado. Para paralelizar, hacé varias llamadas en primer
+   plano en el mismo mensaje.
 3. Verificá vos mismo: corré la prueba indicada. Solo si pasa, marcá la tarea `[x]`.
    Si falla, devolvésela al subagente con el error exacto. Máximo dos reintentos;
    después frená y explicá el bloqueo.
@@ -295,3 +298,5 @@ Reglas:
 - No implementes nada que no esté en `tasks.md`. Si falta algo, proponelo, no lo hagas.
 - No inventes resultados. Si no pudiste correr una prueba, decilo.
 - No leas `.env` ni archivos con credenciales.
+- Marcá tareas con la herramienta de edición, nunca con `Set-Content` (agrega BOM).
+- Tu informe final es obligatorio: si te quedan pocos pasos, cortá y reportá.

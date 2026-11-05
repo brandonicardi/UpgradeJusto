@@ -34,10 +34,10 @@ permissions:
     effect: allow
   # BEGIN permisos-shell
   - action: external_directory
-    resource: "C:/Users/RISUS/.local/*"
+    resource: "~/.local/*"
     effect: allow
   - action: external_directory
-    resource: "C:/Users/RISUS/AppData/Local/Temp/opencode/*"
+    resource: "~/AppData/Local/Temp/opencode/*"
     effect: allow
   - action: shell
     resource: "Get-Content *"

@@ -3,7 +3,7 @@ description: Especialista del chat (CU08) — LangChain, LangGraph, proveedores 
 mode: subagent
 model: opencode-go/kimi-k2.7-code
 color: "#7c3aed"
-steps: 40
+steps: 100
 permissions:
   - action: "*"
     resource: "*"
@@ -40,10 +40,10 @@ permissions:
     effect: allow
   # BEGIN permisos-shell
   - action: external_directory
-    resource: "C:/Users/RISUS/.local/*"
+    resource: "~/.local/*"
     effect: allow
   - action: external_directory
-    resource: "C:/Users/RISUS/AppData/Local/Temp/opencode/*"
+    resource: "~/AppData/Local/Temp/opencode/*"
     effect: allow
   - action: shell
     resource: "Get-Content *"
