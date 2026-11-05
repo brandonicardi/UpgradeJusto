@@ -51,3 +51,16 @@ revisions = sa.Table(
         name="ck_tower_plan_snapshot_v2",
     ),
 )
+progress = sa.Table(
+    "tower_plan_stage_progress",
+    metadata,
+    sa.Column(
+        "plan_id",
+        sa.Uuid,
+        sa.ForeignKey("tower_plans.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    sa.Column("stage_key", sa.String(64), primary_key=True),
+    sa.Column("completed_at", sa.DateTime(timezone=True), nullable=False),
+    sa.CheckConstraint("stage_key ~ '^[0-9a-f]{64}$'", name="ck_tower_plan_stage_key"),
+)

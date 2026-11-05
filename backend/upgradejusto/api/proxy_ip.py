@@ -23,13 +23,16 @@ def permitted_tower_plan_request(request: Request) -> bool:
     """Closed CU07/CU09 route policy, identical for direct/signed ingress."""
     root = rb"/api/tower-plans"
     uid = rb"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    stage = rb"/stages/[0-9a-f]{64}/progress"
     path = request.scope["raw_path"]
     if request.method == "GET":
         pattern = root + rb"(?:/" + uid + rb"(?:/revisions/[1-9][0-9]{0,9}|/shares)?)?"
     elif request.method == "POST":
         pattern = root + rb"(?:/" + uid + rb"/(?:recalculate|shares))?"
+    elif request.method == "PUT":
+        pattern = root + rb"/" + uid + stage
     elif request.method == "DELETE":
-        pattern = root + rb"/" + uid + rb"(?:/shares/" + uid + rb")?"
+        pattern = root + rb"/" + uid + rb"(?:/shares/" + uid + rb"|" + stage + rb")?"
     else:
         return False
     if not re.fullmatch(pattern, path):

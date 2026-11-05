@@ -14,6 +14,7 @@ from upgradejusto.plans.tower_models import (
     TowerPlanCreate,
     TowerPlanDelete,
     TowerPlanPage,
+    TowerPlanProgress,
     TowerPlanRead,
     TowerPlanRecalculate,
 )
@@ -31,8 +32,10 @@ def ingress(request: Request):
         pattern = root + rb"(?:/" + uid + rb"(?:/revisions/[1-9][0-9]{0,9})?)?"
     elif request.method == "POST":
         pattern = root + rb"(?:/" + uid + rb"/recalculate)?"
+    elif request.method == "PUT":
+        pattern = root + rb"/" + uid + rb"/stages/[0-9a-f]{64}/progress"
     elif request.method == "DELETE":
-        pattern = root + rb"/" + uid
+        pattern = root + rb"/" + uid + rb"(?:/stages/[0-9a-f]{64}/progress)?"
     else:
         raise AuthError(403, "Forbidden")
     if not re.fullmatch(pattern, raw):
@@ -61,6 +64,25 @@ router = APIRouter(
 
 def service():
     return TowerPlanService(TowerPlanRepository(runtime_engine()))
+
+
+StageKey = Annotated[str, Path(pattern=r"[0-9a-f]{64}")]
+
+
+def stage_progress(identity, plan_id, stage_key, completed, svc):
+    """Owner-scoped, idempotent toggle; the plan revision itself is never written.
+
+    The revision and the marks come from the single transaction that wrote the
+    mark, so the response never names a revision that a concurrent
+    recalculation already replaced.
+    """
+    result = svc.set_progress(identity, plan_id, stage_key, completed)
+    return {
+        "kind": "tower_plan_progress",
+        "plan_id": plan_id,
+        "revision": result["revision"],
+        "progress": result["progress"],
+    }
 
 
 @router.post("", status_code=201, response_model=TowerPlanRead)
@@ -124,3 +146,25 @@ def delete(
     svc=Depends(service),
 ):
     svc.delete(identity, plan_id, data.expected_plan_revision)
+
+
+@router.put("/{plan_id}/stages/{stage_key}/progress", response_model=TowerPlanProgress)
+def mark_stage(
+    plan_id: UUID,
+    stage_key: StageKey,
+    identity=Depends(owner),
+    svc=Depends(service),
+):
+    return stage_progress(identity, plan_id, stage_key, True, svc)
+
+
+@router.delete(
+    "/{plan_id}/stages/{stage_key}/progress", response_model=TowerPlanProgress
+)
+def unmark_stage(
+    plan_id: UUID,
+    stage_key: StageKey,
+    identity=Depends(owner),
+    svc=Depends(service),
+):
+    return stage_progress(identity, plan_id, stage_key, False, svc)

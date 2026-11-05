@@ -6,9 +6,14 @@ Las revisiones del plan son fotos inmutables (`tower_tables.py`, columna `snapsh
 progreso ahí crearía una revisión por cada tilde y mezclaría «qué compré» con «qué me conviene». Va en
 una tabla propia, ligada al plan y a la identidad estable de la etapa dentro de la revisión actual.
 
-Clave `(plan_id, stage_key)`, con `completed_at`. Si la etapa no tiene identidad estable en el
-`snapshot`, se usa su posición y se documenta en el código. Al recalcular, las marcas de etapas que
-siguen existiendo se conservan; las que ya no existen se ignoran al leer y no se inventan.
+Clave `(plan_id, stage_key)`, con `completed_at`. El `snapshot` no tiene identidad de etapa, así que la
+clave se deriva de su contenido, más la ocurrencia y el total del grupo de etapas idénticas. Al
+recalcular, las marcas de etapas que siguen existiendo se conservan; las que ya no existen se ignoran
+al leer y no se inventan.
+
+Limitación aceptada: si un plan tiene etapas idénticas y ese grupo cambia, sus marcas se ocultan en vez
+de transferirse. Perder una tilde es preferible a marcar como comprado algo que no lo fue. Un
+`stage_id` persistente cambiaría el contrato de las revisiones: queda fuera de alcance.
 
 ## Rutas
 

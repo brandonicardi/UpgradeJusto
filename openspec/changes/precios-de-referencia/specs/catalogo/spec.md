@@ -13,6 +13,17 @@ El sistema SHALL renovar los precios de referencia solo mediante lectores explí
 - **WHEN** se importa un lote ya importado
 - **THEN** no se agregan ofertas duplicadas
 
+### Requirement: Validez de un precio de referencia
+El sistema SHALL considerar vigente un precio de referencia durante 30 días desde su observación. Un precio vencido SHALL tratarse como desconocido, nunca como cero.
+
+#### Scenario: Precio dentro de la validez
+- **WHEN** una oferta se observó hace 29 días
+- **THEN** cuenta para el costo y se muestra con su fecha real
+
+#### Scenario: Precio vencido
+- **WHEN** una oferta se observó hace 31 días
+- **THEN** el costo queda desconocido y la pantalla muestra «Sin precio»
+
 ### Requirement: Precio de referencia con su fuente
 El sistema SHALL mostrar un precio de referencia solo con moneda, fecha y tienda. Si falta alguno de esos datos, SHALL mostrar «Sin precio».
 

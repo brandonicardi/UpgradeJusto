@@ -7,6 +7,12 @@ Agente `frontend`, salvo la revisión. Leer `README.md` y `preview.html` de `Pan
 - [x] 0.1 Resuelto el 5/11: `lib/purchase-draft.ts` queda intacto y el subtotal se rotula como
       estimado. El origen de los precios se planifica en `precios-de-referencia`.
 
+- [ ] 0.2 Pasar las reglas viejas por elemento de `app/globals.css` (`button`, `input`, `select`,
+      `textarea` y demás) a `@layer base`. Hoy están fuera de capa y le ganan a Tailwind: `Button` y las
+      pestañas ignoran `rounded-pill` y salen cuadrados, y `.uj-btn` pide `--radius-pill`.
+      Prueba: en el navegador, `Button` y las pestañas de ingreso computan 999 px; capturas de una
+      pantalla vieja sin regresiones.
+
 ## 1. Inicio (prueba primero)
 - [ ] 1.1 Promesa principal y caminos a guía, `/pcs`, `/pcs/import` y `/build` por teclado, sin crear
       ni enviar nada. Prueba: `tests/unit/beginner-actions.test.tsx` y `hardware-guide.test.tsx`.

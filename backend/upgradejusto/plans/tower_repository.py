@@ -4,6 +4,7 @@ import hashlib
 from uuid import uuid4
 
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from upgradejusto.administration.tables import active
 from upgradejusto.catalog.postgres import published_catalog_snapshot
@@ -14,7 +15,8 @@ from upgradejusto.recommendations.tower_repository import (
     published_identities,
 )
 
-from .tower_tables import headers, revisions
+from .tower_progress import snapshot_keys
+from .tower_tables import headers, progress, revisions
 
 MAX_STORED_REVISION = 2147483647  # PostgreSQL INTEGER, not the API route limit.
 
@@ -74,6 +76,7 @@ class TowerPlanRepository:
         )
         if row is None:
             raise PCError(404, "Plan revision not found")
+        keys = snapshot_keys(row["snapshot"])
         return {
             "kind": "tower_plan",
             "schema_version": 2,
@@ -84,6 +87,12 @@ class TowerPlanRepository:
             "created_at": header["created_at"],
             "updated_at": row["created_at"],
             "snapshot": row["snapshot"],
+            # Derived per read, never stored: one key per stage of this exact
+            # snapshot, aligned by index, plus only the marks of those keys.
+            "stage_keys": list(keys),
+            "progress": TowerPlanRepository.progress_for(
+                conn, header["id"], row["snapshot"]
+            ),
         }
 
     def get(self, owner, identity, revision=None):
@@ -301,3 +310,69 @@ class TowerPlanRepository:
                 )
                 .values(deleted_at=sa.func.clock_timestamp())
             )
+
+    @staticmethod
+    def progress_for(conn, plan_id, snapshot):
+        """Return ``{stage_key: completed_at ISO}`` for marks still in ``snapshot``.
+
+        Marks whose stage key is no longer in the current snapshot are kept in
+        the table for history but never returned: an edited, removed or
+        reordered stage does not silently inherit a previous mark.
+        """
+        keys = snapshot_keys(snapshot)
+        if not keys:
+            return {}
+        rows = conn.execute(
+            sa.select(progress.c.stage_key, progress.c.completed_at).where(
+                progress.c.plan_id == plan_id,
+                progress.c.stage_key.in_(list(keys)),
+            )
+        ).all()
+        return {key: completed_at.isoformat() for key, completed_at in rows}
+
+    def set_progress(self, owner, identity, stage_key, completed):
+        """Mark or unmark one stage as bought; return revision and live progress.
+
+        Idempotent in both directions: marking twice inserts one row, unmarking
+        twice deletes nothing. It never writes ``tower_plans`` or
+        ``tower_plan_revisions``, so the current revision, its prices and its
+        verdicts stay frozen. Returns ``{"revision": current_revision,
+        "progress": {stage_key: ISO completed_at}}`` read in this same
+        transaction, so a concurrent recalculation cannot make the caller report
+        a revision it did not modify; ``progress`` is limited to stages of that
+        revision's snapshot.
+        """
+        with self.engine.begin() as conn:
+            self.bounds(conn)
+            header = self.owned(conn, owner, identity, write=True)
+            snapshot = conn.scalar(
+                sa.select(revisions.c.snapshot).where(
+                    revisions.c.plan_id == header["id"],
+                    revisions.c.revision == header["current_revision"],
+                )
+            )
+            if snapshot is None or stage_key not in snapshot_keys(snapshot):
+                raise PCError(404, "Plan stage not found")
+            if completed:
+                conn.execute(
+                    pg_insert(progress)
+                    .values(
+                        plan_id=header["id"],
+                        stage_key=stage_key,
+                        completed_at=conn.scalar(sa.select(sa.func.clock_timestamp())),
+                    )
+                    .on_conflict_do_nothing(
+                        index_elements=[progress.c.plan_id, progress.c.stage_key]
+                    )
+                )
+            else:
+                conn.execute(
+                    progress.delete().where(
+                        progress.c.plan_id == header["id"],
+                        progress.c.stage_key == stage_key,
+                    )
+                )
+            return {
+                "revision": header["current_revision"],
+                "progress": self.progress_for(conn, header["id"], snapshot),
+            }

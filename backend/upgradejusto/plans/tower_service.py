@@ -81,3 +81,6 @@ class TowerPlanService:
 
     def delete(self, owner, identity, expected_revision):
         self.repository.delete(owner, identity, expected_revision)
+
+    def set_progress(self, owner, identity, stage_key, completed):
+        return self.repository.set_progress(owner, identity, stage_key, completed)

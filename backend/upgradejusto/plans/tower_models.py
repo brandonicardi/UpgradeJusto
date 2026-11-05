@@ -79,6 +79,16 @@ class TowerPlanDelete(InputModel):
 
 
 class TowerPlanRead(InputModel):
+    """One plan revision plus the live progress of its stages.
+
+    ``stage_keys`` holds one opaque key per entry of ``snapshot["stages"]``, in
+    the same order and with the same length, so a client can locate a stage
+    without recomputing its SHA-256. ``progress`` maps every key still present
+    in this snapshot to the timestamp it was marked as bought. Both fields are
+    derived at read time: the stored snapshot is never modified, and marks of
+    stages that no longer exist are omitted, never transferred or invented.
+    """
+
     kind: Literal["tower_plan"] = "tower_plan"
     schema_version: Literal[2] = 2
     id: UUID
@@ -88,6 +98,8 @@ class TowerPlanRead(InputModel):
     created_at: datetime
     updated_at: datetime
     snapshot: dict
+    stage_keys: list[str] = []
+    progress: dict[str, datetime] = {}
 
 
 class TowerPlanPage(InputModel):
@@ -97,3 +109,12 @@ class TowerPlanPage(InputModel):
     total: int
     page: int
     page_size: int
+
+
+class TowerPlanProgress(InputModel):
+    """Live marks of the current revision only; never a loose dict response."""
+
+    kind: Literal["tower_plan_progress"] = "tower_plan_progress"
+    plan_id: UUID
+    revision: int
+    progress: dict[str, datetime]
