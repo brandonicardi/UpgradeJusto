@@ -2,6 +2,10 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { Check } from "lucide-react";
+import { Button, Notice } from "../../components/uj";
+import AccountAccess from "../../components/account-access";
+import type { AccessTab } from "../../lib/account-access";
 import { authError, authRequest, type PublicUser } from "../../lib/auth";
 import GoogleSignIn from "../../components/google-signin";
 import AccountProfile from "../../components/account-profile";
@@ -11,8 +15,15 @@ export default function Account() {
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<AccessTab>("login");
   const [googleActive, setGoogleActive] = useState(false);
+  const [email, setEmail] = useState("");
+  const [created, setCreated] = useState(false);
+
+  // Cambiar de pestaña limpia los avisos pero conserva el email escrito.
+  function changeTab(next: AccessTab) {
+    setMode(next); setError(""); setNotice(""); setCreated(false);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -32,17 +43,17 @@ export default function Account() {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
-    const email = String(data.get("email") ?? "");
+    const typedEmail = String(data.get("email") ?? "");
     const password = String(data.get("password") ?? "");
     // Never retain the password in React state or persistent storage.
     const field = form.elements.namedItem("password");
     if (field instanceof HTMLInputElement) field.value = "";
-    setBusy(true); setError(""); setNotice("");
+    setBusy(true); setError(""); setNotice(""); setCreated(false);
     try {
-      const response = await authRequest(mode, { email, password });
+      const response = await authRequest(mode, { email: typedEmail, password });
       if (mode === "register") {
         setMode("login");
-        setNotice("Cuenta creada. Iniciá sesión: el registro no abre una sesión automáticamente.");
+        setCreated(true);
       } else {
         setUser(await response.json());
         setNotice("Sesión iniciada.");
@@ -59,32 +70,67 @@ export default function Account() {
     finally { setBusy(false); }
   }
 
-  return <section className="account-layout" aria-busy={busy}>
-    <header className="account-intro"><h1>Tu cuenta</h1><p className="muted">Guardá tus configuraciones, organizá mejoras y retomá tus conversaciones.</p><ul className="account-benefits"><li>✓ Tus PCs, sólo para vos</li><li>✓ Planes por etapas</li><li>✓ Tus configuraciones son privadas</li></ul><Link href="/catalog">Explorar el catálogo sin cuenta</Link></header>
-    <div className="surface account-card stack">
-    <p role="status" aria-label="Estado de cuenta" className="status-line muted">{busy ? "Consultando tu sesión…" : notice}</p>
-    {error && <p role="alert" className="notice">{error}</p>}
-    {user ? <div className="stack"><span className="badge badge-good">✓ Conectado</span><h2>Continuar con mi PC</h2><p className="muted">Sesión activa validada por el servidor. Retomá una configuración o empezá una propuesta por comprar.</p><Link className="plan-link" href="/pcs">Continuar con mi PC</Link><Link href="/build">Armar una configuración desde cero</Link><Link href="/tower-plans">Ver mis planes de torre</Link><AccountProfile user={user} /><button className="secondary" type="button" disabled={busy} onClick={logout}>Cerrar sesión</button></div> : <>
-      <div className="segmented-control" role="group" aria-label="Elegir acceso">
-        <button className="secondary" type="button" disabled={busy} aria-pressed={mode === "login"} onClick={() => { setMode("login"); setError(""); setNotice(""); }}>Iniciar sesión</button>
-        <button className="secondary" type="button" disabled={busy} aria-pressed={mode === "register"} onClick={() => { setMode("register"); setError(""); setNotice(""); }}>Crear cuenta</button>
-      </div>
-      <form onSubmit={submit} aria-label={mode === "login" ? "Iniciar sesión" : "Crear cuenta"}>
-        <fieldset disabled={busy || googleActive} className="stack">
-          <legend className="form-legend">{mode === "login" ? "Qué bueno verte" : "Creá tu espacio"}</legend>
-          <label className="block" htmlFor="email">Email</label>
-          <input id="email" name="email" type="email" autoComplete="username" required maxLength={254} aria-describedby="email-help" />
-          <p id="email-help" className="muted">Usá el email con el que registraste tu cuenta.</p>
-          <label className="block" htmlFor="password">Contraseña</label>
-          <input key={mode} id="password" name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} required aria-describedby="password-help" />
-          <p id="password-help" className="muted">{mode === "register" ? "Entre 12 y 128 caracteres. Los espacios también cuentan." : "Tu contraseña no se almacena en este navegador."}</p>
-          <button type="submit">{mode === "login" ? "Entrar" : "Registrar cuenta"}</button>
-        </fieldset>
-      </form>
-      {!busy && <GoogleSignIn key={mode} onUser={setUser} onActiveChange={setGoogleActive} />}
-    </>}
-    <details className="accordion"><summary>Privacidad y condiciones de acceso</summary><p className="muted">El servidor valida la sesión y los permisos. Sin recuperación de contraseña ni verificación de titularidad del email en esta versión. El registro no inicia sesión automáticamente.</p><p className="muted">Email ASCII, normalizado a minúsculas conservando puntos y sufijos. Contraseña de hasta 512 bytes UTF-8, sin carácter NUL; se conservan espacios.</p></details>
-    <noscript>Para gestionar tu sesión necesitás habilitar JavaScript. El catálogo sigue disponible.</noscript>
+  const privacy = <details className="accordion"><summary>Privacidad y condiciones de acceso</summary><p className="muted">El servidor valida la sesión y los permisos. Sin recuperación de contraseña ni verificación de titularidad del email en esta versión. El registro no inicia sesión automáticamente.</p><p className="muted">Usá un email con letras, números y símbolos comunes, sin acentos ni caracteres especiales; lo guardamos en minúsculas. La contraseña puede llevar espacios, que cuentan como parte de ella, y no puede ser demasiado larga. Crear la cuenta no te abre la sesión: después entrás con tu email y tu contraseña.</p></details>;
+  const noscript = <noscript>Para gestionar tu sesión necesitás habilitar JavaScript. El catálogo sigue disponible.</noscript>;
+
+  if (!user) return <section className="mx-auto grid w-full max-w-[1120px] min-w-0 gap-space-6 py-space-5 lg:grid-cols-[5fr_6fr] lg:items-start lg:gap-space-7" aria-busy={busy}>
+    <header className="grid content-start gap-space-4 text-tinta">
+      <h1 className="m-0 text-titular-l lg:text-titular-xl">Tu PC puede dar <mark className="rounded-sm bg-lima px-[0.12em] text-sobre-lima">más</mark>.</h1>
+      <ul className="m-0 grid list-none gap-space-3 p-0 text-cuerpo-l">
+        {["Guardá tus PCs para no cargarlas de nuevo.", "Armá un plan y seguilo de a una compra por vez.", "Retomá tus charlas con el asistente donde las dejaste."].map(item => <li key={item} className="flex items-start gap-space-3"><Check aria-hidden="true" className="mt-[2px] size-6 flex-none text-pino" strokeWidth={2.25} />{item}</li>)}
+      </ul>
+      <p className="m-0 text-cuerpo text-tinta-suave">¿Solo querés mirar? <Link href="/catalog" className="font-semibold text-pino underline underline-offset-4">Explorá el catálogo sin cuenta</Link>. Para guardar tu PC y tu plan vas a necesitar una.</p>
+    </header>
+    <div className="grid min-w-0 gap-space-4">
+      <AccountAccess
+        tab={mode} busy={busy} locked={googleActive} email={email} error={error} created={created} statusText={busy ? "Consultando tu sesión…" : notice}
+        onTabChange={changeTab} onEmailChange={setEmail} onSubmit={submit}
+        alternative={!busy && <GoogleSignIn key={mode} onUser={setUser} onActiveChange={setGoogleActive} />}
+      />
+      {privacy}
+      {noscript}
     </div>
+  </section>;
+
+  const card = "grid min-w-0 content-start gap-space-4 rounded-lg border border-linea bg-papel-alto p-space-5 sm:p-space-6";
+  const link = "inline-flex min-h-11 items-center rounded-pill border border-linea-fuerte bg-papel-alto px-space-4 font-semibold text-tinta no-underline hover:border-tinta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
+  return <section className="mx-auto grid w-full max-w-[1120px] min-w-0 gap-space-6 py-space-5" aria-busy={busy}>
+    <header className="grid gap-space-2 text-tinta">
+      <h1 className="m-0 text-titular-l lg:text-titular-xl">Tu cuenta</h1>
+      <p className="m-0 text-cuerpo-l text-tinta-suave">Tus datos y a dónde seguir.</p>
+    </header>
+    <div role="status" aria-label="Estado de cuenta" className="text-chico text-tinta-suave empty:hidden">{busy ? "Consultando tu sesión…" : notice}</div>
+    {error && <Notice tono="no" titulo="No pudimos continuar">{error}</Notice>}
+    <div className="grid min-w-0 gap-space-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-space-6">
+      <div className="grid min-w-0 gap-space-5">
+        <section className={card} aria-labelledby="cuenta-datos">
+          <h2 id="cuenta-datos" className="m-0 text-titular-m">Tus datos</h2>
+          <AccountProfile user={user} />
+        </section>
+        <section className={card} aria-labelledby="cuenta-seguir">
+          <h2 id="cuenta-seguir" className="m-0 text-titular-m">Seguí por acá</h2>
+          <div className="flex flex-wrap gap-space-3">
+            <Link className={link} href="/pcs">Mi PC</Link>
+            <Link className={link} href="/tower-plans">Mis planes</Link>
+            <Link className={link} href="/build">Armar una configuración</Link>
+            <Link className={link} href="/catalog">Catálogo</Link>
+          </div>
+        </section>
+      </div>
+      <aside className="grid min-w-0 gap-space-4">
+        <div className={card}>
+          <h2 className="m-0 text-cuerpo-l font-semibold">Tu privacidad</h2>
+          <ul className="m-0 grid list-none gap-space-2 p-0 text-cuerpo text-tinta-suave">
+            {["Tus PCs son privadas.", "Un plan solo lo ve quien tenga el enlace, si decidís compartirlo; podés dejar de compartirlo cuando quieras.", "El servidor revisa tu sesión en cada pedido."].map(item => <li key={item} className="flex items-start gap-space-2"><Check aria-hidden="true" className="mt-[2px] size-5 flex-none text-pino" strokeWidth={2.25} />{item}</li>)}
+          </ul>
+        </div>
+        <div className={card}>
+          <h2 className="m-0 text-cuerpo-l font-semibold">Salir</h2>
+          <p className="m-0 text-cuerpo text-tinta-suave">Cerrá la sesión si usás una compu que no es tuya.</p>
+          <Button peso="secundario" disabled={busy} onClick={logout}>Cerrar sesión</Button>
+        </div>
+      </aside>
+    </div>
+    {noscript}
   </section>;
 }

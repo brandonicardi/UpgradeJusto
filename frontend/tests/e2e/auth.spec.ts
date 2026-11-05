@@ -38,7 +38,19 @@ test("registro no autentica; login persiste en recarga y logout revoca", async (
     method: "POST", credentials: "same-origin", signal: AbortSignal.timeout(3000),
   })).status);
   expect(forbidden).toBe(403);
-  await page.getByRole("button", { name: "Crear cuenta", exact: true }).click();
+  // Teclado: la flecha derecha pasa de «Entrar» a «Crear cuenta» y muestra el registro.
+  // Una contraseña escrita para entrar no puede pasar a la cuenta nueva al cambiar de pestaña.
+  await page.getByLabel("Contraseña", { exact: true }).evaluate(field => {
+    if (!(field instanceof HTMLInputElement)) throw new Error("Campo de contraseña no disponible");
+    field.value = "texto-de-prueba";
+  });
+  await page.getByRole("tab", { name: "Entrar", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("tab", { name: "Crear cuenta", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByLabel("Contraseña", { exact: true })).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Registrar cuenta", exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Entrar", exact: true }).click();
+  await page.getByRole("tab", { name: "Crear cuenta", exact: true }).click();
   await page.getByLabel("Email", { exact: true }).fill(email);
   await enterPassword();
   const [registered] = await Promise.all([
@@ -56,14 +68,14 @@ test("registro no autentica; login persiste en recarga y logout revoca", async (
   ]);
   expect(loggedIn.status()).toBe(200);
   expect(await loggedIn.request().headerValue("origin")).toBe(origin);
-  await expect(page.getByRole("heading", { name: "Sesión activa" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tus datos", exact: true })).toBeVisible();
   // The heading appears before the post-login CSRF refresh completes.
   await expect(page.getByRole("button", { name: "Cerrar sesión", exact: true })).toBeEnabled();
   // Check application errors, not framework announcements outside the main content.
   await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
   expect(await sessionStatus()).toBe(200);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Sesión activa" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tus datos", exact: true })).toBeVisible();
   const [loggedOut] = await Promise.all([
     mutation("logout"),
     page.getByRole("button", { name: "Cerrar sesión", exact: true }).click(),

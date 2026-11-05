@@ -88,6 +88,8 @@ describe("GIS frontend: mocked SDK only, never proof of Google login", () => {
     const user = publicUser({ id, email: null, auth_provider: "google", display_name: '<img src=x onerror="bad()">', roles: ["admin"], credential: "not-retained" });
     const html = renderToStaticMarkup(<AccountProfile user={user} />);
     expect(html).toContain("Email no disponible"); expect(html).toContain("&lt;img"); expect(html).not.toContain("<img");
+    expect(html).toContain("Google"); expect(html).not.toMatch(/<input|<button|disabled/);
+    expect(renderToStaticMarkup(<AccountProfile user={publicUser({ id, email: "synthetic@example.test" })} />)).not.toContain("Google");
     expect(user).not.toHaveProperty("roles"); expect(user).not.toHaveProperty("credential");
     expect(publicUser({ id, email: "synthetic@example.test", display_name: "ignored" })).toEqual({ id, email: "synthetic@example.test" });
     expect(googleError(429, "12")).toContain("12 segundos"); expect(googleError(429, "private arbitrary text")).not.toContain("private arbitrary text");
