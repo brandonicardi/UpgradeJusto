@@ -105,14 +105,32 @@ def test_plan_allowlist_all_three_notes_paths_and_frozen_quotes():
     assert "private_future_field" not in snapshot["stages"][0]
     assert "notes" not in snapshot["base_configuration"]["context"]
     assert "notes" not in snapshot["stages"][0]["evaluated_configuration"]["context"]
-    assert (
-        "notes"
-        not in snapshot["stages"][0]["evaluation"]["evaluated_configuration"]["context"]
-    )
+    assert "evaluated_configuration" not in snapshot["stages"][0]["evaluation"]
     assert snapshot["stages"][0]["offers"] == before["snapshot"]["stages"][0]["offers"]
     assert snapshot["stages"][0]["evaluation"]["verdict"] == "requiere_verificacion"
-    assert snapshot["stages"][0]["evaluation"]["missing_fields"]
-    assert len(snapshot["stages"][0]["evaluation"]["rule_results"]) == 12
+    assert snapshot["stages"][0]["missing_fields"]
+    assert snapshot["scope"] == before["snapshot"]["stages"][0]["evaluation"]["scope"]
+    evaluation = snapshot["stages"][0]["evaluation"]
+    assert evaluation["reglas_ok"] == sum(
+        1
+        for r in before["snapshot"]["stages"][0]["evaluation"]["rule_results"]
+        if r["state"] == "pass"
+    )
+    assert len(evaluation["rule_results"]) == sum(
+        1
+        for r in before["snapshot"]["stages"][0]["evaluation"]["rule_results"]
+        if r["state"] in ("fail", "unknown")
+    )
+    for rule in evaluation["rule_results"]:
+        if rule["state"] == "fail":
+            source = next(
+                r
+                for r in before["snapshot"]["stages"][0]["evaluation"]["rule_results"]
+                if r["rule_id"] == rule["rule_id"]
+            )
+            assert rule == {k: v for k, v in source.items() if k != "evidence"}
+        else:
+            assert rule == {"rule_id": rule["rule_id"], "state": rule["state"]}
     assert snapshot["versions"]["catalog"] == "synthetic-frozen-old"
     assert plan == before
 

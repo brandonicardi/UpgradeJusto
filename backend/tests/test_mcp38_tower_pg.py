@@ -109,7 +109,11 @@ async def assert_simulation_wire_and_graph_conversion(listing, validate_schema):
         compile(
             ast.Expression(body=expression), "<trusted-graph-bind-argument>", "eval"
         ),
-        {"__builtins__": {}, "tools": listing.tools},
+        {
+            "__builtins__": {},
+            "tools": listing.tools,
+            "_compact_schema": graph._compact_schema,
+        },
     )
     assert {tool["function"]["name"] for tool in arguments} == TOOLS
     converted = [convert_to_openai_tool(tool) for tool in arguments]
@@ -147,8 +151,10 @@ async def assert_simulation_wire_and_graph_conversion(listing, validate_schema):
             )
     assert not attempts
     assert wire.input_schema == snapshot
-    assert simulation == snapshot
-    assert bound_simulation == snapshot
+    # The wire schema stays strict; only the copy sent to the model is compact.
+    compact = graph._compact_schema(snapshot, name="simulate_pc")
+    assert simulation == compact
+    assert bound_simulation == compact
     assert len(snapshot["oneOf"]) == 2
     legacy_branch, tower_branch = snapshot["oneOf"]
     assert legacy_branch["properties"]["configuration_schema"] == {"const": 1}
@@ -163,9 +169,10 @@ async def assert_simulation_wire_and_graph_conversion(listing, validate_schema):
             "candidates": [{"component_id": "synthetic-cpu-part", "quantity": 1}],
         },
     }
+    # The server keeps accepting six-category input; the model only sees the tower.
+    validate_schema(snapshot, legacy)
+    validate_schema(snapshot, {**legacy, "configuration_schema": 1})
     for schema in (snapshot, simulation, bound_simulation):
-        validate_schema(schema, legacy)
-        validate_schema(schema, {**legacy, "configuration_schema": 1})
         validate_schema(schema, tower_simulation(2))
         with pytest.raises(SchemaValidationError):
             validate_schema(schema, tower_simulation(1))

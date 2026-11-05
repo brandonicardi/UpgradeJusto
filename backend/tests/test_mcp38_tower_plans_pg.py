@@ -166,9 +166,7 @@ def test_real_seventh_mcp_plan_formats_owner_frozen_privacy_collision_and_revoca
             assert PRIVATE not in projected.text
             current_data = json.loads(projected.text)
             assert current_data["data"]["snapshot"]["status"] == "requires_verification"
-            assert current_data["data"]["snapshot"]["stages"][0]["evaluation"][
-                "missing_fields"
-            ]
+            assert current_data["data"]["snapshot"]["stages"][0]["missing_fields"]
             historical = await client.call_tool(
                 "get_plan", {"plan_id": str(historical_id)}
             )

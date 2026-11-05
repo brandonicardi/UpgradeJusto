@@ -39,6 +39,7 @@ SNAPSHOT_KEYS = frozenset(
         "label",
         "missing_fields",
         "limitations",
+        "scope",
     }
 )
 STAGE_KEYS = frozenset(
@@ -113,6 +114,7 @@ class Snapshot(Closed):
     label: StrictStr
     missing_fields: list[StrictStr]
     limitations: list[StrictStr]
+    scope: dict | None = None
 
 
 def strip_context_notes(value):
@@ -132,12 +134,13 @@ def strip_context_notes(value):
 
 def project_plan(raw):
     from .tool_projection import (
-        MAX_TOOL_BYTES,
+        MAX_PLAN_BYTES,
         Projection,
         ToolFailure,
-        _configuration,
         _evaluation,
         _json,
+        _minimal_tower_configuration,
+        _summarize_tower_stage_evaluation,
     )
 
     if set(raw) != {"configuration_schema", "data"}:
@@ -157,11 +160,29 @@ def project_plan(raw):
         for stage in snapshot["stages"]
     ]
     snapshot = Snapshot.model_validate_json(_json(snapshot)).model_dump(mode="json")
-    evidence, urls = [], []
-    _configuration(snapshot["base_configuration"])
+    # Remove from plan-level missing_fields exact prefixed copies already present
+    # in each stage. All other plan-level entries are preserved.
+    plan_missing = set(snapshot.get("missing_fields", []))
     for stage in snapshot["stages"]:
-        _configuration(stage["evaluated_configuration"])
+        position = stage["position"]
+        for path in stage.get("missing_fields", []):
+            plan_missing.discard(f"stages.{position}.{path}")
+    snapshot["missing_fields"] = sorted(plan_missing)
+    evidence, urls = [], []
+    snapshot["base_configuration"] = _minimal_tower_configuration(
+        snapshot["base_configuration"]
+    )
+    plan_scope = None
+    for stage in snapshot["stages"]:
+        stage["evaluated_configuration"] = _minimal_tower_configuration(
+            stage["evaluated_configuration"]
+        )
         _evaluation(stage["evaluation"], evidence, urls)
+        if plan_scope is None:
+            plan_scope = stage["evaluation"].get("scope")
+        stage["evaluation"] = _summarize_tower_stage_evaluation(stage["evaluation"])
+    if plan_scope is not None:
+        snapshot["scope"] = plan_scope
     wire["snapshot"] = strip_context_notes(snapshot)
     projected = {
         "projection_version": "2",
@@ -169,10 +190,8 @@ def project_plan(raw):
         "tool": "get_plan",
         "data": wire,
     }
-    if evidence:
-        projected.update(evidence=evidence, source_urls=urls)
     text = _json(projected)
     size = len(text.encode("utf-8"))
-    if size > MAX_TOOL_BYTES:
+    if size > MAX_PLAN_BYTES:
         raise ToolFailure("tool_output_limit_full_api_required")
     return Projection(text, size, ())

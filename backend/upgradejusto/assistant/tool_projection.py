@@ -4,6 +4,7 @@ Never apply this parser to user messages. References are presentation IDs only,
 not authority, instructions, or a second compatibility decision.
 """
 
+import copy
 import json
 from dataclasses import dataclass
 from urllib.parse import urlsplit
@@ -16,10 +17,13 @@ from upgradejusto.pcs.models import PC
 from upgradejusto.plans.models import Plan
 from upgradejusto.recommendations.models import PreviewResponse
 
-MAX_TOOL_BYTES = 24_000
+MAX_TOOL_BYTES = 6_000
+MAX_PLAN_BYTES = 9_000
 MAX_INPUT_BYTES = 2_000_000
 MAX_NODES = 50_000
 MAX_DEPTH = 24
+
+_VERDICT_ORDER = {"incompatible": 0, "requiere_verificacion": 1, "compatible": 2}
 
 
 class ToolFailure(Exception):
@@ -153,6 +157,275 @@ def _evaluation(data, evidence, urls):
         rule["evidence_refs"] = refs
 
 
+def _sort_by_verdict(items, path):
+    def verdict(item):
+        value = item
+        for key in path:
+            value = value[key]
+        return _VERDICT_ORDER.get(value, 3)
+
+    return [
+        item
+        for _, item in sorted(
+            enumerate(items),
+            key=lambda pair: (verdict(pair[1]), pair[0]),
+        )
+    ]
+
+
+def _set_mas_resultados(candidate, remaining):
+    if remaining:
+        candidate["mas_resultados"] = remaining
+    else:
+        candidate.pop("mas_resultados", None)
+
+
+def _compact_catalog(data):
+    return {
+        **data,
+        "items": [
+            {
+                "id": component["id"],
+                "category": component["category"],
+                "name": component["name"],
+                "attributes": {
+                    key: value
+                    for key, value in component.get("attributes", {}).items()
+                    if key not in {"tower_stock_v1", "basic_stock_v1"}
+                },
+                "offers": [
+                    {
+                        "store": offer["store"],
+                        "amount": offer["amount"],
+                        "currency": offer["currency"],
+                        "observed_at": offer["observed_at"],
+                        "status": offer["status"],
+                    }
+                    for offer in component.get("offers", [])
+                ],
+            }
+            for component in data.get("items", [])
+        ],
+    }
+
+
+def _catalog_candidates(data):
+    compact = _compact_catalog(data)
+    items = compact["items"]
+    for count in range(len(items), -1, -1):
+        candidate = copy.deepcopy(compact)
+        candidate["items"] = copy.deepcopy(items[:count])
+        _set_mas_resultados(candidate, len(items) - count)
+        yield candidate
+
+
+def _compact_tower_configuration(evaluated):
+    """Keep identity, presence, declared selection and context; drop notes."""
+    _configuration(evaluated)
+    return {
+        "id": evaluated.get("id"),
+        "name": evaluated.get("name"),
+        "revision": evaluated.get("revision"),
+        "category_status": evaluated.get("category_status", {}),
+        "lines": [
+            {
+                "line_id": line.get("line_id"),
+                "category": line.get("category"),
+                "component_id": line.get("component_id"),
+                "declared_model": line.get("declared_model"),
+                "quantity": line.get("quantity"),
+            }
+            for line in evaluated.get("lines", [])
+        ],
+        "context": evaluated.get("context", {}),
+    }
+
+
+def _minimal_tower_configuration(evaluated):
+    """Context-only tower configuration; used when full selection does not fit."""
+    _configuration(evaluated)
+    return {"context": evaluated.get("context", {})}
+
+
+def _without_evidence(rule):
+    return {k: v for k, v in rule.items() if k not in ("evidence", "evidence_refs")}
+
+
+def _summarize_rule_results(rule_results):
+    summarized = []
+    for rule in rule_results:
+        state = rule.get("state")
+        if state == "fail":
+            summarized.append(_without_evidence(rule))
+        elif state in ("unknown", "not_implemented"):
+            summarized.append({"rule_id": rule["rule_id"], "state": state})
+    return summarized
+
+
+def _summarize_additional_checks(additional_checks):
+    return [
+        _without_evidence(check)
+        for check in additional_checks
+        if check.get("status") in ("fail", "unknown")
+    ]
+
+
+def _summarize_evaluation(
+    data,
+    *,
+    include_missing_fields=True,
+    include_warnings=True,
+    include_scope=True,
+    include_revisions=True,
+):
+    """Model-facing summary: never hide a fail/unknown, never send evidence/URLs."""
+    summary = {"verdict": data["verdict"], "coverage": data["coverage"]}
+    if include_missing_fields:
+        summary["missing_fields"] = data.get("missing_fields", [])
+    if include_revisions:
+        summary["pc_revision"] = data["pc_revision"]
+        summary["data_revision"] = data["data_revision"]
+        summary["rules_version"] = data["rules_version"]
+    if include_warnings and "warnings" in data:
+        summary["warnings"] = data["warnings"]
+    if include_scope:
+        scope = data.get("scope")
+        if scope is not None:
+            summary["scope"] = scope
+    rule_results = data.get("rule_results", [])
+    summary["rule_results"] = _summarize_rule_results(rule_results)
+    summary["reglas_ok"] = sum(
+        1 for rule in rule_results if rule.get("state") == "pass"
+    )
+    summary["reglas_no_aplican"] = sum(
+        1 for rule in rule_results if rule.get("state") == "not_applicable"
+    )
+    summary["additional_checks"] = _summarize_additional_checks(
+        data.get("additional_checks", [])
+    )
+    summary["chequeos_fuera_de_alcance"] = sum(
+        1
+        for check in data.get("additional_checks", [])
+        if check.get("status") == "outside_scope"
+    )
+    return summary
+
+
+def _summarize_tower_evaluation(data):
+    """Tower-facing summary: preserves verdict/facts/scope, compacts configuration."""
+    summary = {
+        "verdict": data["verdict"],
+        "missing_fields": data.get("missing_fields", []),
+        "coverage": data["coverage"],
+        "scope": data.get("scope"),
+        "pc_revision": data["pc_revision"],
+        "data_revision": data["data_revision"],
+        "rules_version": data["rules_version"],
+    }
+    if "warnings" in data:
+        summary["warnings"] = data["warnings"]
+    rule_results = data.get("rule_results", [])
+    summary["rule_results"] = _summarize_rule_results(rule_results)
+    summary["reglas_ok"] = sum(
+        1 for rule in rule_results if rule.get("state") == "pass"
+    )
+    summary["reglas_no_aplican"] = sum(
+        1 for rule in rule_results if rule.get("state") == "not_applicable"
+    )
+    summary["additional_checks"] = _summarize_additional_checks(
+        data.get("additional_checks", [])
+    )
+    summary["chequeos_fuera_de_alcance"] = sum(
+        1
+        for check in data.get("additional_checks", [])
+        if check.get("status") == "outside_scope"
+    )
+    evaluated = data.get("evaluated_configuration")
+    if evaluated is not None:
+        summary["evaluated_configuration"] = _compact_tower_configuration(evaluated)
+    return summary
+
+
+def _summarize_tower_stage_evaluation(data):
+    """Plan-stage summary: only verdict, coverage, rules/checks and counters."""
+    rule_results = data.get("rule_results", [])
+    return {
+        "verdict": data["verdict"],
+        "coverage": data["coverage"],
+        "rule_results": _summarize_rule_results(rule_results),
+        "reglas_ok": sum(1 for rule in rule_results if rule.get("state") == "pass"),
+        "reglas_no_aplican": sum(
+            1 for rule in rule_results if rule.get("state") == "not_applicable"
+        ),
+        "additional_checks": _summarize_additional_checks(
+            data.get("additional_checks", [])
+        ),
+        "chequeos_fuera_de_alcance": sum(
+            1
+            for check in data.get("additional_checks", [])
+            if check.get("status") == "outside_scope"
+        ),
+    }
+
+
+def _envelope(name, data):
+    return {"projection_version": "1", "tool": name, "data": data}
+
+
+def _fit_summary(name, summary):
+    text = _json(_envelope(name, summary))
+    count = len(text.encode("utf-8"))
+    if count > MAX_TOOL_BYTES:
+        raise ToolFailure("tool_output_limit_full_api_required")
+    return text, count
+
+
+def _fit_catalog(data):
+    for candidate in _catalog_candidates(data):
+        text = _json(_envelope("catalog_search", candidate))
+        count = len(text.encode("utf-8"))
+        if count <= MAX_TOOL_BYTES:
+            return text, count
+    raise ToolFailure("tool_output_limit_full_api_required")
+
+
+def _fit_preview(data):
+    data = copy.deepcopy(data)
+    items = _sort_by_verdict(data["items"], ["evaluation", "verdict"])
+    for count in range(len(items), 0, -1):
+        candidate = copy.deepcopy(data)
+        candidate["items"] = copy.deepcopy(items[:count])
+        for item in candidate["items"]:
+            item["evaluation"] = _summarize_evaluation(item["evaluation"])
+        _set_mas_resultados(candidate, len(items) - count)
+        text = _json(_envelope("preview_recommendations", candidate))
+        byte_count = len(text.encode("utf-8"))
+        if byte_count <= MAX_TOOL_BYTES:
+            return text, byte_count
+    raise ToolFailure("tool_output_limit_full_api_required")
+
+
+def _fit_plan(data):
+    data = copy.deepcopy(data)
+    _configuration(data["base_snapshot"])
+    for stage in data["stages"]:
+        _configuration(stage["evaluated_configuration"])
+        stage["evaluation"] = _summarize_evaluation(stage["evaluation"])
+    text = _json(_envelope("get_plan", data))
+    byte_count = len(text.encode("utf-8"))
+    if byte_count <= MAX_PLAN_BYTES:
+        return text, byte_count
+    raise ToolFailure("tool_output_limit_full_api_required")
+
+
+def _simple_projection(name, data, citations=()):
+    text = _json(_envelope(name, data))
+    count = len(text.encode("utf-8"))
+    if count > MAX_TOOL_BYTES:
+        raise ToolFailure("tool_output_limit_full_api_required")
+    return Projection(text=text, byte_count=count, citations=citations)
+
+
 def project_tool_result(name, result):
     """Return complete projected JSON or a bounded fixed-code ToolFailure.
 
@@ -175,43 +448,29 @@ def project_tool_result(name, result):
         # Validate as JSON transport: strict domain tuples legitimately arrive as
         # JSON arrays. This does not enable Python scalar coercions/strict=False.
         data = SCHEMAS[name].model_validate_json(_json(raw)).model_dump(mode="json")
-        evidence, urls = [], []
         citations = ()
         if name in {"evaluate_pc", "simulate_pc"}:
-            _evaluation(data, evidence, urls)
+            text, count = _fit_summary(name, _summarize_evaluation(data))
         elif name == "get_pc":
             _configuration(data)
+            return _simple_projection(name, data)
         elif name == "preview_recommendations":
             if len(data["items"]) > 20:
                 raise ToolFailure("tool_output_limit_full_api_required")
-            for item in data["items"]:
-                _evaluation(item["evaluation"], evidence, urls)
+            text, count = _fit_preview(data)
         elif name == "get_plan":
-            _configuration(data["base_snapshot"])
-            for stage in data["stages"]:
-                _configuration(stage["evaluated_configuration"])
-                _evaluation(stage["evaluation"], evidence, urls)
+            text, count = _fit_plan(data)
         elif name == "search_public_docs":
             if len(data["citations"]) > 5:
                 raise ToolFailure("tool_output_limit_full_api_required")
             for citation in data["citations"]:
                 _url(citation["url"], canonical=True)
             citations = tuple(data["citations"])
+            return _simple_projection(name, data, citations=citations)
         elif name == "catalog_search":
-            for component in data["items"]:
-                component["attributes"].pop("basic_stock_v1", None)
-                component["attributes"].pop("tower_stock_v1", None)
-                for source in component["sources"]:
-                    _url(source["url"])
-                for offer in component.get("offers", []):
-                    _url(offer["source_url"])
-        envelope = {"projection_version": "1", "tool": name, "data": data}
-        if evidence:
-            envelope.update(evidence=evidence, source_urls=urls)
-        text = _json(envelope)
-        count = len(text.encode("utf-8"))
-        if count > MAX_TOOL_BYTES:
-            raise ToolFailure("tool_output_limit_full_api_required")
+            text, count = _fit_catalog(data)
+        else:
+            raise ToolFailure("unknown_tool")
         return Projection(text=text, byte_count=count, citations=citations)
     except ToolFailure:
         raise

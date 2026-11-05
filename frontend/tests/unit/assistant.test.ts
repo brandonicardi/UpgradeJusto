@@ -1,10 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SSEParser, readAssistantStream, citationText, messageInput, AssistantError } from "../../lib/assistant";
+import { SSEParser, readAssistantStream, citationText, messageInput, AssistantError, streamErrorText } from "../../lib/assistant";
 import { assistantProxy } from "../../lib/assistant-proxy";
 import { signedProxyHeaders } from "../../lib/gateway";
 import { readFileSync } from "node:fs";
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+describe("mensajes de error del chat", () => {
+  it("provider_rate_limited se muestra como asistente ocupado", () => {
+    expect(streamErrorText({ code: "provider_rate_limited", retryable: false })).toBe("El asistente está ocupado. Probá de nuevo en un minuto.");
+  });
+  it("otros códigos o datos inválidos usan el mensaje general", () => {
+    for (const data of [{ code: "generation_failed", retryable: false }, { code: "round_limit" }, {}, { code: 5 }]) {
+      const text = streamErrorText(data);
+      expect(text).toContain("El turno falló");
+      expect(text).not.toContain("ocupado");
+    }
+  });
+});
 describe("CU08 I framing y fronteras aisladas, no sustituyen LIVE", () => {
   it("SSE soporta fragmentación, CRLF, comentarios y múltiples líneas data", () => {
     const parser = new SSEParser();

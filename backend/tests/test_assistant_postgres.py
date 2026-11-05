@@ -80,6 +80,7 @@ def test_real_mcp_owner_checks_and_live_revocation(assistant_actors, pg_engine):
         "DATABASE_URL",
         "PYTHONPATH",
         "UJ_ENV",
+        "UJ_ASSISTANT_RAG_CONFIG",
     }
     env = {k: v for k, v in os.environ.items() if k in allowed}
     env["UJ_ASSISTANT_SESSION"] = raw
@@ -96,15 +97,17 @@ def test_real_mcp_owner_checks_and_live_revocation(assistant_actors, pg_engine):
             listing = await client.list_tools()
             assert all(tool.output_schema is not None for tool in listing.tools)
             names = {tool.name for tool in listing.tools}
-            assert names == {
+            expected = {
                 "catalog_search",
                 "get_pc",
                 "evaluate_pc",
                 "simulate_pc",
                 "preview_recommendations",
                 "get_plan",
-                "search_public_docs",
             }
+            if os.environ.get("UJ_ASSISTANT_RAG_CONFIG"):
+                expected.add("search_public_docs")
+            assert names == expected
             found = await client.call_tool("get_pc", {"pc_id": own["id"]})
             assert not found.is_error
             for extra in ("user_id", "owner", "owner_id", "unknown_extra"):

@@ -5,18 +5,21 @@ by the live test. MCP, session checks, encoder and PostgreSQL remain real.
 """
 
 import asyncio
+import inspect
 import json
 import os
 import sys
-from uuid import UUID
+from types import SimpleNamespace
+from uuid import UUID, uuid4
 
+import pytest
 from langchain_core.messages import AIMessageChunk
 from mcp import Client, StdioServerParameters
 from test_assistant_postgres import assistant_actors as assistant_actors
 from test_pcs_postgres import actors as actors
 from test_pcs_postgres import create
 
-from upgradejusto.assistant import graph
+from upgradejusto.assistant import graph, mcp_server
 from upgradejusto.assistant.repository import Repository
 from upgradejusto.catalog.postgres import PostgresCatalogRepository
 from upgradejusto.catalog.service import CatalogService
@@ -26,6 +29,76 @@ from upgradejusto.pcs.repository import PCRepository
 from upgradejusto.pcs.service import PCService
 
 PUBLIC_QUERY = "Kingston DDR4 KVR32N22S8/8 memory specifications"
+
+
+EXPECTED_TOOLS = {
+    "catalog_search",
+    "get_pc",
+    "evaluate_pc",
+    "simulate_pc",
+    "preview_recommendations",
+    "get_plan",
+}
+
+
+def _stub_build_server_dependencies(monkeypatch):
+    """Let build_server() list tools without a real database or auth stack."""
+    monkeypatch.setattr(mcp_server, "runtime_engine", lambda: object())
+    monkeypatch.setattr(mcp_server, "AuthRepository", lambda engine: object())
+    monkeypatch.setattr(
+        mcp_server,
+        "AuthService",
+        lambda repo: SimpleNamespace(current=lambda raw: {"id": str(uuid4())}),
+    )
+    monkeypatch.setattr(mcp_server, "PostgresCatalogRepository", lambda: object())
+    monkeypatch.setattr(mcp_server, "CatalogService", lambda repo: object())
+    monkeypatch.setattr(mcp_server, "PCRepository", lambda engine: object())
+    monkeypatch.setattr(mcp_server, "PCService", lambda repo, catalog: object())
+    monkeypatch.setattr(
+        mcp_server, "TowerReadTools", lambda engine, catalog, pcs: object()
+    )
+    monkeypatch.setattr(
+        mcp_server,
+        "Repository",
+        lambda engine: SimpleNamespace(get=lambda identity, conversation_id: None),
+    )
+
+
+def test_build_server_lists_six_tools_without_rag_config(monkeypatch):
+    """When UJ_ASSISTANT_RAG_CONFIG is absent search_public_docs is not advertised."""
+    _stub_build_server_dependencies(monkeypatch)
+    monkeypatch.setenv("UJ_ASSISTANT_SESSION", "synthetic-session")
+    monkeypatch.setenv("UJ_ASSISTANT_CONVERSATION", str(uuid4()))
+    monkeypatch.delenv("UJ_ASSISTANT_RAG_CONFIG", raising=False)
+
+    server = mcp_server.build_server()
+    tools = asyncio.run(server.list_tools())
+    names = {tool.name for tool in tools}
+    assert "search_public_docs" not in names
+    assert EXPECTED_TOOLS <= names
+    assert len(names) == 6
+
+
+def test_build_server_lists_seven_tools_with_rag_config(monkeypatch):
+    """When UJ_ASSISTANT_RAG_CONFIG is present search_public_docs is advertised."""
+    _stub_build_server_dependencies(monkeypatch)
+    monkeypatch.setenv("UJ_ASSISTANT_SESSION", "synthetic-session")
+    monkeypatch.setenv("UJ_ASSISTANT_CONVERSATION", str(uuid4()))
+    monkeypatch.setenv("UJ_ASSISTANT_RAG_CONFIG", "postgres")
+
+    server = mcp_server.build_server()
+    tools = asyncio.run(server.list_tools())
+    names = {tool.name for tool in tools}
+    assert "search_public_docs" in names
+    assert EXPECTED_TOOLS <= names
+    assert len(names) == 7
+
+
+def test_search_public_docs_removal_is_guarded_by_env_in_source():
+    """The conditional removal is visible in build_server source."""
+    source = inspect.getsource(mcp_server.build_server)
+    assert "UJ_ASSISTANT_RAG_CONFIG" in source
+    assert 'server.remove_tool("search_public_docs")' in source
 
 
 def child_params(actor, conversation_id):
@@ -68,6 +141,10 @@ def public_shape(structured):
     }
 
 
+@pytest.mark.skipif(
+    not os.environ.get("UJ_ASSISTANT_RAG_CONFIG"),
+    reason="search_public_docs probe requires UJ_ASSISTANT_RAG_CONFIG",
+)
 def test_real_mcp_search_structured_output_reaches_graph(
     assistant_actors, pg_engine, monkeypatch
 ):
@@ -91,7 +168,8 @@ def test_real_mcp_search_structured_output_reaches_graph(
 
         async def list_tools(self):
             listing = await self.client.list_tools()
-            assert len(listing.tools) == 7
+            expected_count = 7 if os.environ.get("UJ_ASSISTANT_RAG_CONFIG") else 6
+            assert len(listing.tools) == expected_count
             assert all(tool.output_schema is not None for tool in listing.tools)
             return listing
 

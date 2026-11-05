@@ -6,7 +6,7 @@ import json
 import anyio
 from fastapi.encoders import jsonable_encoder
 
-from .graph import RoundLimit, ToolFailure, run_turn
+from .graph import ProviderRateLimited, RoundLimit, ToolFailure, run_turn
 
 # Cleanup budgets, not increases to provider/turn timeouts. A stalled MCP close
 # must not prevent the independent pending->interrupted transaction.
@@ -100,6 +100,8 @@ class AssistantService:
                 code = (
                     "round_limit"
                     if isinstance(exc, RoundLimit)
+                    else "provider_rate_limited"
+                    if isinstance(exc, ProviderRateLimited)
                     else "tool_output_limit_full_api_required"
                     if isinstance(exc, ToolFailure)
                     and str(exc) == "tool_output_limit_full_api_required"

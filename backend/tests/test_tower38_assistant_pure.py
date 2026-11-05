@@ -11,7 +11,11 @@ from test_tower38_engine import evaluate, fixture
 from upgradejusto.assistant.models import MessageCreate
 from upgradejusto.assistant.service import AssistantService
 from upgradejusto.assistant.tool_inputs import INPUTS, validate_call
-from upgradejusto.assistant.tool_projection import ToolFailure, project_tool_result
+from upgradejusto.assistant.tool_projection import (
+    MAX_TOOL_BYTES,
+    ToolFailure,
+    project_tool_result,
+)
 from upgradejusto.assistant.tower_context import TurnHistory
 from upgradejusto.compatibility.tower_http_models import TowerEvaluationResponse
 from upgradejusto.pcs.tower_models import Tower
@@ -70,8 +74,27 @@ def test_projection_preserves_rules_coverage_scope_and_removes_nested_notes(
         assert data["data"]["verdict"] == verdict
         assert data["data"]["coverage"] == evaluation.coverage.model_dump(mode="json")
         assert data["data"]["missing_fields"] == list(evaluation.missing_fields)
-        assert len(data["data"]["rule_results"]) == 12
+        expected_rules = [
+            r for r in evaluation.rule_results if r.state in ("fail", "unknown")
+        ]
+        assert len(data["data"]["rule_results"]) == len(expected_rules)
+        assert data["data"]["reglas_ok"] == sum(
+            1 for r in evaluation.rule_results if r.state == "pass"
+        )
         assert data["data"]["scope"] == evaluation.scope.model_dump(mode="json")
+        projected_by_id = {r["rule_id"]: r for r in data["data"]["rule_results"]}
+        for source in expected_rules:
+            if source.state == "fail":
+                assert projected_by_id[source.rule_id] == {
+                    k: v
+                    for k, v in source.model_dump(mode="json").items()
+                    if k not in ("evidence", "evidence_refs")
+                }
+            else:
+                assert projected_by_id[source.rule_id] == {
+                    "rule_id": source.rule_id,
+                    "state": source.state,
+                }
         assert "PRIVATE-CONTEXT" not in projected.text
         assert "notes" not in data["data"]["evaluated_configuration"]["context"]
     pc = project_tool_result(
@@ -316,3 +339,80 @@ def test_overflow_safe_code_reaches_stream_without_changing_lifecycle():
         '"code": "tool_output_limit_full_api_required"' in frame for frame in frames
     )
     assert not any("event: done" in frame for frame in frames)
+
+
+def test_thirty_unknown_and_two_fail_fits_within_budget_and_preserves_ids():
+    from upgradejusto.compatibility.models import Coverage, Fact
+    from upgradejusto.compatibility.observations import EvidenceRef
+    from upgradejusto.compatibility.tower_contract import TowerRuleResult
+
+    tower, base_evaluation = tower_and_evaluation("unknown")
+    ref = EvidenceRef(
+        source_id="synthetic",
+        url="https://example.org/synthetic",
+        locator="fixture",
+        consulted_on="2026-10-26",
+    )
+    fail_rules = [
+        TowerRuleResult(
+            rule_id="T01",
+            family="T01",
+            state="fail",
+            facts=(Fact(name="gpu_length", value=400, unit="mm"),),
+            evidence=(ref,),
+        ),
+        TowerRuleResult(
+            rule_id="T02",
+            family="T02",
+            state="fail",
+            facts=(Fact(name="psu_power", value=100, unit="W"),),
+            evidence=(ref,),
+        ),
+    ]
+    unknown_rules = [
+        TowerRuleResult(
+            rule_id=f"T{i + 3:02d}",
+            family=f"T{i + 3:02d}",
+            state="unknown",
+            missing_fields=(f"synthetic.missing.{i}",),
+        )
+        for i in range(30)
+    ]
+    all_rules = tuple(fail_rules + unknown_rules)
+    rule_ids = tuple(r.rule_id for r in all_rules)
+    coverage = Coverage(
+        required=rule_ids,
+        implemented=rule_ids,
+        evaluated=rule_ids,
+        passed=(),
+        failed=tuple(r.rule_id for r in fail_rules),
+        unknown=tuple(r.rule_id for r in unknown_rules),
+        not_applicable=(),
+        not_implemented=(),
+        complete=False,
+    )
+    evaluation = TowerEvaluationResponse(
+        verdict="incompatible",
+        rule_results=all_rules,
+        missing_fields=tuple(f"synthetic.missing.{i}" for i in range(30)),
+        data_revision=base_evaluation.data_revision,
+        pc_revision=base_evaluation.pc_revision,
+        coverage=coverage,
+        additional_checks=(),
+        warnings=("synthetic",),
+        evaluated_configuration=tower,
+    )
+    projected = project_tool_result(
+        "evaluate_pc",
+        result({"configuration_schema": 2, "data": evaluation.model_dump(mode="json")}),
+    )
+    data = json.loads(projected.text)["data"]
+    assert projected.byte_count <= MAX_TOOL_BYTES
+    assert len(data["rule_results"]) == 32
+    assert {r["rule_id"] for r in data["rule_results"]} == set(rule_ids)
+    for rule in data["rule_results"]:
+        if rule["state"] == "fail":
+            assert "facts" in rule
+            assert "evidence" not in rule
+        else:
+            assert rule == {"rule_id": rule["rule_id"], "state": "unknown"}

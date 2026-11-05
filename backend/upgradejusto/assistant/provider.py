@@ -18,19 +18,23 @@ def tls_context():
     raise ValueError("Invalid UJ_TLS_TRUST")
 
 
-def model(client):
+def model(client, *, max_tokens=None):
     configured_model = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
     if not 1 <= len(configured_model) <= 200 or any(
         character.isspace() or not character.isprintable()
         for character in configured_model
     ):
         raise ValueError("Invalid GROQ_MODEL")
+    kwargs = {}
+    if max_tokens is not None:
+        kwargs["max_tokens"] = max_tokens
     return ChatGroq(
         model=configured_model,
         timeout=30,
         max_retries=0,
         http_async_client=client,
         temperature=0,
+        **kwargs,
     )
 
 
@@ -51,7 +55,7 @@ def chat_model(client):
     """CU08 only; extraction keeps model(client), without silent provider fallback."""
     selected = os.environ.get("UJ_CHAT_PROVIDER", "groq")
     if selected == "groq":
-        return model(client)
+        return model(client, max_tokens=800)
     if selected != "ollama":
         raise ValueError("Invalid chat provider")
     if os.environ.get("UJ_OLLAMA_BASE_URL", "http://127.0.0.1:11434") != (

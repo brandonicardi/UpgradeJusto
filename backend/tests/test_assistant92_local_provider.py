@@ -38,13 +38,13 @@ def test_default_and_explicit_groq_keep_existing_factory(monkeypatch, selection)
     client, sentinel = object(), object()
     calls = []
 
-    def original(received):
-        calls.append(received)
+    def original(received, **kwargs):
+        calls.append((received, kwargs))
         return sentinel
 
     monkeypatch.setattr(provider, "model", original)
     assert provider.chat_model(client) is sentinel
-    assert calls == [client]
+    assert calls == [(client, {"max_tokens": 800})]
     assert graph.model is provider.chat_model
 
 

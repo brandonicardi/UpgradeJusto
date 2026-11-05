@@ -65,11 +65,26 @@ def build_server():
     @safe_tool
     def catalog_search(
         q: Annotated[str, StringConstraints(max_length=100)] = "",
-        category: Category | None = None,
+        category: Annotated[
+            Category | None,
+            Field(
+                description=(
+                    "Categoría exacta del componente: cpu (procesador), "
+                    "motherboard (placa madre), ram (memoria), gpu (placa de video), "
+                    "psu (fuente), case (gabinete), storage (almacenamiento), "
+                    "cooler (refrigeración), fan (ventiladores)."
+                )
+            ),
+        ] = None,
         page: Annotated[int, Field(strict=True, ge=1)] = 1,
         page_size: Annotated[int, Field(strict=True, ge=1, le=20)] = 12,
     ) -> dict[str, Any]:
-        """Buscar catálogo curado. No inventa precios ni atributos."""
+        """Buscar catálogo curado por nombre y categoría.
+
+        Para la categoría usá siempre el código exacto del enum:
+        cpu, motherboard, ram, gpu, psu, case, storage, cooler o fan.
+        No inventa precios ni atributos.
+        """
         owner()
         return catalog.list_components(
             category=category, q=q, page=page, page_size=page_size
@@ -153,6 +168,9 @@ def build_server():
         from .rag import search
 
         return {"citations": search(engine, query, top_k)}
+
+    if not os.environ.get("UJ_ASSISTANT_RAG_CONFIG"):
+        server.remove_tool("search_public_docs")
 
     return server
 

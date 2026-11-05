@@ -2,27 +2,36 @@
 
 import copy
 import json
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from mcp.types import CallToolResult, TextContent
 
 from upgradejusto.assistant.tool_projection import (
+    MAX_PLAN_BYTES,
     MAX_TOOL_BYTES,
     ToolFailure,
     project_tool_result,
 )
 from upgradejusto.catalog.dataset import COMPONENTS, DATASET_VERSION
-from upgradejusto.catalog.models import ComponentPage
+from upgradejusto.catalog.models import Category, Component, ComponentPage, Source
 from upgradejusto.compatibility.application import resolve_configuration
+from upgradejusto.compatibility.basic_evaluation import REQUIRED, aggregate_basic
 from upgradejusto.compatibility.evaluation import _aggregate, evaluate_d
 from upgradejusto.compatibility.http_models import (
     EvaluatedConfiguration,
     EvaluationResponse,
 )
-from upgradejusto.compatibility.models import RuleSpec
+from upgradejusto.compatibility.models import (
+    EvidenceRef,
+    ResolvedConfiguration,
+    RuleResult,
+    RuleSpec,
+)
 from upgradejusto.pcs.models import PC
 from upgradejusto.plans.models import Plan
 from upgradejusto.recommendations.models import PreviewResponse
+from upgradejusto.retail.models import Offer
 
 
 def mcp_result(data, *, structured=True):
@@ -56,6 +65,29 @@ def report():
     rules[1] = rules[1].model_copy(
         update={"state": "unknown", "missing_fields": ("explicit.unknown",)}
     )
+    # Keep a real 12-rule inventory while fitting the 4000-byte model budget:
+    # the remaining rules are marked pass with fixture evidence so the summary
+    # still reports a real verdict and a non-zero reglas_ok count.
+    fixture_evidence = EvidenceRef(
+        source_id="F99",
+        url="https://example.org/fixture-evidence",
+        locator="fixture",
+        consulted_on="2026-10-20",
+    )
+    rules = [
+        rules[0],
+        rules[1],
+        *(
+            r.model_copy(
+                update={
+                    "state": "pass",
+                    "evidence": (fixture_evidence,),
+                    "missing_fields": (),
+                }
+            )
+            for r in rules[2:]
+        ),
+    ]
     result = _aggregate(
         resolved,
         tuple(RuleSpec(rule_id=r.rule_id, family=r.family) for r in rules),
@@ -71,6 +103,7 @@ def report():
 def test_real_six_category_resolution_preserves_every_decision(report, name):
     before = copy.deepcopy(report)
     projection = project_tool_result(name, mcp_result(report))
+    print(f"projection size: {projection.byte_count}")
     envelope = json.loads(projection.text)
     data = envelope["data"]
     assert data["verdict"] == "incompatible"
@@ -80,24 +113,30 @@ def test_real_six_category_resolution_preserves_every_decision(report, name):
     assert not data["coverage"]["complete"]
     for key in ("pc_revision", "data_revision", "rules_version"):
         assert data[key] == report[key]
-    assert len(data["rule_results"]) == 12
-    for source, projected in zip(
-        report["rule_results"], data["rule_results"], strict=True
-    ):
-        assert {k: v for k, v in source.items() if k != "evidence"} == {
-            k: v for k, v in projected.items() if k != "evidence_refs"
+    fail_rules = [r for r in report["rule_results"] if r["state"] == "fail"]
+    unknown_rules = [r for r in report["rule_results"] if r["state"] == "unknown"]
+    projected_by_id = {r["rule_id"]: r for r in data["rule_results"]}
+    assert len(data["rule_results"]) == len(fail_rules) + len(unknown_rules)
+    for source in fail_rules:
+        assert projected_by_id[source["rule_id"]] == {
+            k: v for k, v in source.items() if k != "evidence"
         }
-        recovered = []
-        for index in projected["evidence_refs"]:
-            ref = dict(envelope["evidence"][index])
-            ref["url"] = envelope["source_urls"][ref.pop("url_ref")]
-            recovered.append(ref)
-        unique = {json.dumps(r, sort_keys=True): r for r in source["evidence"]}
-        assert recovered == list(unique.values())
+    for source in unknown_rules:
+        assert projected_by_id[source["rule_id"]] == {
+            "rule_id": source["rule_id"],
+            "state": source["state"],
+        }
+    assert data["reglas_ok"] == sum(
+        1 for r in report["rule_results"] if r["state"] == "pass"
+    )
+    assert "evidence" not in envelope
+    assert "source_urls" not in envelope
+    assert "source_urls" not in projection.text
     assert "PRIVATE_DO_NOT_SEND" not in projection.text
     assert "structured_content" not in projection.text
     assert projection.byte_count == len(projection.text.encode("utf-8"))
     assert projection.byte_count <= MAX_TOOL_BYTES
+    assert projection.byte_count > 0
     duplicated = json.dumps(mcp_result(report).model_dump(mode="json"))
     assert projection.byte_count < len(duplicated.encode("utf-8"))
     assert report == before
@@ -112,7 +151,7 @@ def test_schema_authority_not_arbitrary_dictionary_or_text(report):
         project_tool_result("execute_sql", mcp_result({"sql": "anything"}))
 
 
-def test_evidence_dedup_and_safe_urls(report):
+def test_evidence_and_source_urls_never_reach_model(report):
     ref = {
         "source_id": "F03",
         "url": "https://www.asrock.com/mb/AMD/B550M%20Pro4/index.us.asp",
@@ -123,12 +162,13 @@ def test_evidence_dedup_and_safe_urls(report):
         rule["evidence"] = [ref]
     projection = project_tool_result("evaluate_pc", mcp_result(report))
     envelope = json.loads(projection.text)
-    assert len(envelope["evidence"]) == len(envelope["source_urls"]) == 1
-    assert all(r["evidence_refs"] == [0] for r in envelope["data"]["rule_results"])
-    # EvidenceRef permits public HTTP(S) provenance and document fragments.
-    ref["url"] = "http://example.org/manual#specifications"
-    valid = project_tool_result("evaluate_pc", mcp_result(report))
-    assert json.loads(valid.text)["source_urls"] == [ref["url"]]
+    assert "evidence" not in envelope
+    assert "source_urls" not in envelope
+    for rule in envelope["data"]["rule_results"]:
+        assert "evidence" not in rule
+    assert "https://www.asrock.com" not in projection.text
+    # Evidence is dropped before URL validation, but invalid evidence still
+    # fails schema validation before projection.
     ref["url"] = "https://private:password@example.test/document"
     with pytest.raises(ToolFailure, match="^invalid_tool_output$"):
         project_tool_result("evaluate_pc", mcp_result(report))
@@ -148,6 +188,86 @@ def test_structured_wins_and_closed_json_fallback(report):
         result = CallToolResult(content=[TextContent(type="text", text=text)])
         with pytest.raises(ToolFailure, match="^invalid_tool_output$"):
             project_tool_result("search_public_docs", result)
+
+
+def test_summary_preserves_not_implemented_and_counts_every_rule_state():
+    from upgradejusto.assistant.tool_projection import _summarize_evaluation
+
+    full = {
+        "verdict": "incompatible",
+        "missing_fields": [],
+        "coverage": {
+            "required": ["R01", "R02", "R03", "R04", "R05"],
+            "implemented": ["R01", "R02", "R03", "R04", "R05"],
+            "evaluated": ["R01", "R02", "R03", "R04", "R05"],
+            "passed": ["R01"],
+            "failed": ["R02"],
+            "unknown": ["R03"],
+            "not_applicable": ["R04"],
+            "not_implemented": ["R05"],
+            "complete": False,
+        },
+        "pc_revision": "fixture-pc",
+        "data_revision": "fixture-data",
+        "rules_version": "fixture-rules",
+        "rule_results": [
+            {"rule_id": "R01", "family": "R01", "state": "pass", "evidence": []},
+            {"rule_id": "R02", "family": "R02", "state": "fail", "evidence": []},
+            {
+                "rule_id": "R03",
+                "family": "R03",
+                "state": "unknown",
+                "evidence": [],
+                "missing_fields": ["fixture.unknown"],
+            },
+            {
+                "rule_id": "R04",
+                "family": "R04",
+                "state": "not_applicable",
+                "evidence": [],
+                "conditions": ["fixture.not_applicable"],
+            },
+            {
+                "rule_id": "R05",
+                "family": "R05",
+                "state": "not_implemented",
+                "evidence": [],
+                "missing_fields": ["fixture.not_implemented"],
+            },
+        ],
+        "additional_checks": [
+            {
+                "id": "C01",
+                "status": "outside_scope",
+                "reason": "fuera de alcance",
+                "evidence_refs": [],
+            },
+            {"id": "C02", "status": "pass", "reason": "ok", "evidence_refs": []},
+        ],
+    }
+    summary = _summarize_evaluation(full)
+    assert summary["reglas_ok"] == 1
+    assert summary["reglas_no_aplican"] == 1
+    assert len(summary["rule_results"]) == 3
+    assert {r["state"] for r in summary["rule_results"]} == {
+        "fail",
+        "unknown",
+        "not_implemented",
+    }
+    assert "not_implemented" in {r["state"] for r in summary["rule_results"]}
+    for rule in summary["rule_results"]:
+        source = next(
+            r for r in full["rule_results"] if r["rule_id"] == rule["rule_id"]
+        )
+        if rule["state"] == "fail":
+            assert rule == {k: v for k, v in source.items() if k != "evidence"}
+        else:
+            assert rule == {"rule_id": source["rule_id"], "state": source["state"]}
+    assert summary["additional_checks"] == []
+    assert summary["chequeos_fuera_de_alcance"] == 1
+    assert summary["reglas_ok"] + summary["reglas_no_aplican"] + len(
+        summary["rule_results"]
+    ) == len(full["rule_results"])
 
 
 def test_citations_unchanged_and_untrusted_instruction_is_only_data():
@@ -174,7 +294,7 @@ def test_utf8_budget_never_slices_missing_fields_or_facts(report):
         project_tool_result("evaluate_pc", mcp_result(report))
 
 
-def test_recommendations_keep_rejected_prices_and_full_reports(report):
+def test_recommendations_keep_rejected_prices_and_summary(report):
     item = {
         "key": "explicit",
         "replacements": [],
@@ -214,9 +334,176 @@ def test_recommendations_keep_rejected_prices_and_full_reports(report):
         assert projected[key] == item[key]
     assert projected["evaluation"]["coverage"] == report["coverage"]
     assert projected["evaluation"]["missing_fields"] == report["missing_fields"]
+    fail_rules = [r for r in report["rule_results"] if r["state"] == "fail"]
+    unknown_rules = [r for r in report["rule_results"] if r["state"] == "unknown"]
+    projected_rules = projected["evaluation"]["rule_results"]
+    assert len(projected_rules) == len(fail_rules) + len(unknown_rules)
+    projected_by_id = {r["rule_id"]: r for r in projected_rules}
+    for source in fail_rules:
+        assert projected_by_id[source["rule_id"]] == {
+            k: v for k, v in source.items() if k != "evidence"
+        }
+    for source in unknown_rules:
+        assert projected_by_id[source["rule_id"]] == {
+            "rule_id": source["rule_id"],
+            "state": source["state"],
+        }
+    assert projected["evaluation"]["reglas_ok"] == sum(
+        1 for r in report["rule_results"] if r["state"] == "pass"
+    )
+    for rule in projected_rules:
+        assert "evidence" not in rule
     payload["items"] = [dict(item, key=f"alternative-{i}") for i in range(21)]
     with pytest.raises(ToolFailure, match="^tool_output_limit_full_api_required$"):
         project_tool_result("preview_recommendations", mcp_result(payload))
+
+
+def test_catalog_large_within_budget_keeps_last_item_fields():
+    observed = datetime.now(timezone.utc)
+    expires = observed + timedelta(hours=24)
+    items = []
+    for i in range(40):
+        offer = Offer(
+            offer_id=f"O{i}",
+            store="compragamer",
+            product_id=f"P{i}",
+            component_id=f"C{i}",
+            variant_key="default",
+            amount="12345.67",
+            condition="cash",
+            availability="in_stock",
+            stock_quantity=1,
+            source_url="https://compragamer.com/product/1",
+            observed_at=observed,
+            expires_at=expires,
+            status="fresh",
+        )
+        items.append(
+            Component(
+                id=f"C{i}",
+                category=Category.CPU,
+                name=f"Synthetic CPU {i}",
+                attributes={},
+                sources=(Source(id="F00", url="https://example.org/spec"),),
+                offers=(offer,),
+            )
+        )
+    page = ComponentPage(
+        dataset_version=DATASET_VERSION,
+        items=tuple(items),
+        total=len(items),
+        page=1,
+        page_size=len(items),
+    ).model_dump(mode="json")
+    projection = project_tool_result("catalog_search", mcp_result(page))
+    envelope = json.loads(projection.text)
+    data = envelope["data"]
+    assert projection.byte_count <= MAX_TOOL_BYTES
+    assert data["mas_resultados"] > 0
+    last = data["items"][-1]
+    assert last["id"] == f"C{len(items) - data['mas_resultados'] - 1}"
+    assert last["offers"]
+    for offer in last["offers"]:
+        assert offer["store"] == "compragamer"
+        assert offer["amount"] == "12345.67"
+        assert offer["currency"] == "ARS"
+        assert offer["observed_at"]
+        assert offer["status"] == "fresh"
+
+
+def test_recommendations_order_keeps_incompatible_first_and_survives_trim(report):
+    from upgradejusto.compatibility.models import RuleResult
+
+    small_configuration = {
+        "components": [report["evaluated_configuration"]["components"][0]],
+        "context": {"bios_version": "P2.30", "notes": None},
+    }
+
+    def make_item(key, verdict, rule_state, rule_count=1):
+        evidence = EvidenceRef(
+            source_id="F99",
+            url="https://example.org/fixture-evidence",
+            locator="fixture",
+            consulted_on="2026-10-20",
+        )
+        rules = []
+        for i in range(rule_count):
+            rules.append(
+                RuleResult(
+                    rule_id=f"R{i + 1:02d}",
+                    family=f"R{i + 1:02d}",
+                    state=rule_state,
+                    facts=(),
+                    evidence=(evidence,) if rule_state != "unknown" else (),
+                    conditions=(),
+                    missing_fields=()
+                    if rule_state != "unknown"
+                    else ("fixture.missing",),
+                )
+            )
+        rule_ids = tuple(f"R{i + 1:02d}" for i in range(rule_count))
+        eval_report = EvaluationResponse(
+            verdict=verdict,
+            rule_results=tuple(rules),
+            missing_fields=() if rule_state == "pass" else ("fixture.missing",),
+            rules_version="fixture-rules",
+            data_revision="fixture-data",
+            pc_revision="fixture-pc",
+            coverage={
+                "required": rule_ids,
+                "implemented": rule_ids,
+                "evaluated": rule_ids,
+                "passed": rule_ids if rule_state == "pass" else (),
+                "failed": rule_ids if rule_state == "fail" else (),
+                "unknown": rule_ids if rule_state == "unknown" else (),
+                "not_applicable": (),
+                "not_implemented": (),
+                "complete": rule_state == "pass",
+            },
+            evaluated_configuration=small_configuration,
+        ).model_dump(mode="json")
+        return {
+            "key": key,
+            "replacements": [],
+            "evaluation": eval_report,
+            "cost": {
+                "total_ars": None,
+                "known_subtotal_ars": "0",
+                "within_budget": None,
+                "lines": [],
+                "missing_fields": [],
+            },
+            "benefit": {"status": "unknown", "evidence": []},
+            "status": "rejected",
+            "missing_fields": [],
+        }
+
+    items = [
+        make_item("incompatible-1", "incompatible", "fail", rule_count=10),
+        make_item("incompatible-2", "incompatible", "fail", rule_count=10),
+        make_item("unknown-1", "requiere_verificacion", "unknown", rule_count=1),
+        *[
+            make_item(f"compatible-{i}", "compatible", "pass", rule_count=1)
+            for i in range(8)
+        ],
+    ]
+    payload = {
+        "pc_id": "00000000-0000-0000-0000-000000000001",
+        "pc_revision": report["pc_revision"],
+        "objective": "general",
+        "budget_ars": "1.00",
+        "currency": "ARS",
+        "items": items,
+        "limitations": ["Order fixture" + "x" * 1500],
+    }
+    projection = project_tool_result("preview_recommendations", mcp_result(payload))
+    envelope = json.loads(projection.text)
+    projected_items = envelope["data"]["items"]
+    verdicts = [item["evaluation"]["verdict"] for item in projected_items]
+    mas = envelope["data"].get("mas_resultados", 0)
+    assert verdicts[0] == "incompatible"
+    assert verdicts[-1] == "incompatible"
+    assert mas > 0
 
 
 @pytest.mark.parametrize(
@@ -233,6 +520,10 @@ def test_recommendations_keep_rejected_prices_and_full_reports(report):
 )
 def test_all_read_schemas_accept_real_model_json_transport(report, name):
     configuration = report["evaluated_configuration"]
+    small_configuration = {
+        "components": [configuration["components"][0]],
+        "context": {"bios_version": "P2.30", "notes": None},
+    }
     identity = "00000000-0000-0000-0000-000000000001"
     cost = {
         "total_ars": None,
@@ -275,7 +566,7 @@ def test_all_read_schemas_accept_real_model_json_transport(report, name):
         "created_at": "2026-10-25T00:00:00Z",
         "updated_at": "2026-10-25T00:00:00Z",
         "pc_revision": report["pc_revision"],
-        "base_snapshot": configuration,
+        "base_snapshot": small_configuration,
         "objective": "general",
         "budget_ars": "1.00",
         "currency": "ARS",
@@ -284,7 +575,7 @@ def test_all_read_schemas_accept_real_model_json_transport(report, name):
                 "name": "One explicit stage",
                 "replacements": replacements,
                 "position": 1,
-                "evaluated_configuration": configuration,
+                "evaluated_configuration": small_configuration,
                 "evaluation": report,
                 "cost": cost,
                 "cumulative_cost": cost,
@@ -331,13 +622,121 @@ def test_all_read_schemas_accept_real_model_json_transport(report, name):
     if name == "get_plan":
         stage = envelope["data"]["stages"][0]
         assert "notes" not in stage["evaluated_configuration"]["context"]
-        context = stage["evaluation"]["evaluated_configuration"]["context"]
-        assert "notes" not in context
+        assert "evaluated_configuration" not in stage["evaluation"]
         assert stage["evaluation"]["coverage"] == report["coverage"]
+        assert envelope["data"]["missing_fields"] == plan["missing_fields"]
         assert stage["evaluation"]["missing_fields"] == report["missing_fields"]
+        assert stage["evaluation"]["pc_revision"] == report["pc_revision"]
+        assert stage["evaluation"]["data_revision"] == report["data_revision"]
+        assert stage["evaluation"]["rules_version"] == report["rules_version"]
+        if report.get("warnings"):
+            assert stage["evaluation"]["warnings"] == report["warnings"]
+        if report.get("scope"):
+            assert stage["evaluation"]["scope"] == report["scope"]
 
 
 def test_json_transport_keeps_strict_scalars(report):
     report["coverage"]["complete"] = "false"
     with pytest.raises(ToolFailure, match="^invalid_tool_output$"):
         project_tool_result("evaluate_pc", mcp_result(report))
+
+
+def test_plan_basic_preserves_missing_fields_warnings_scope_per_stage():
+    rules = tuple(
+        RuleResult(
+            rule_id=identity,
+            family=identity,
+            state="unknown",
+            missing_fields=(identity + ".needed",),
+        )
+        for identity in REQUIRED
+    )
+    failed = RuleResult(
+        rule_id="B04",
+        family="B04",
+        state="fail",
+        evidence=(
+            EvidenceRef(
+                source_id="mfr",
+                url="https://example.org/spec",
+                locator="Dimensions",
+                consulted_on="2026-10-25",
+            ),
+        ),
+    )
+    basic_report = aggregate_basic(
+        ResolvedConfiguration(pc_revision="1", data_revision="published-new", parts=()),
+        rules[:3] + (failed,) + rules[4:],
+    ).model_dump(mode="json")
+    identity = "00000000-0000-0000-0000-000000000001"
+    cost = {
+        "total_ars": None,
+        "known_subtotal_ars": "0",
+        "within_budget": None,
+        "lines": [],
+        "missing_fields": [],
+    }
+    benefit = {"status": "unknown", "evidence": []}
+    plan = {
+        "id": identity,
+        "name": "Basic plan fixture",
+        "revision": 1,
+        "pc_id": identity,
+        "created_at": "2026-10-25T00:00:00Z",
+        "updated_at": "2026-10-25T00:00:00Z",
+        "pc_revision": basic_report["pc_revision"],
+        "base_snapshot": {
+            "components": [{"category": "cpu", "component_id": "C01", "quantity": 1}],
+            "context": {"bios_version": "P2.30", "notes": None},
+        },
+        "objective": "general",
+        "budget_ars": "1.00",
+        "currency": "ARS",
+        "stages": [
+            {
+                "name": "Basic stage",
+                "replacements": [
+                    {
+                        "category": "cpu",
+                        "candidates": [{"component_id": "C01", "quantity": 1}],
+                    }
+                ],
+                "position": 1,
+                "evaluated_configuration": {
+                    "components": [
+                        {"category": "cpu", "component_id": "C01", "quantity": 1}
+                    ],
+                    "context": {"bios_version": "P2.30", "notes": None},
+                },
+                "evaluation": {
+                    **basic_report,
+                    "evaluated_configuration": {
+                        "components": [
+                            {"category": "cpu", "component_id": "C01", "quantity": 1}
+                        ],
+                        "context": {"bios_version": "P2.30", "notes": None},
+                    },
+                },
+                "cost": cost,
+                "cumulative_cost": cost,
+                "benefit": benefit,
+            }
+        ],
+        "status": "blocked",
+        "cost": cost,
+        "benefit": benefit,
+        "missing_fields": ["fixture.price.unknown"],
+    }
+    data = Plan.model_validate_json(json.dumps(plan)).model_dump(mode="json")
+    projection = project_tool_result("get_plan", mcp_result(data))
+    envelope = json.loads(projection.text)
+    stage = envelope["data"]["stages"][0]
+    assert stage["evaluation"]["missing_fields"] == basic_report["missing_fields"]
+    assert stage["evaluation"]["warnings"] == basic_report["warnings"]
+    assert stage["evaluation"]["scope"] == basic_report["scope"]
+    assert stage["evaluation"]["pc_revision"] == basic_report["pc_revision"]
+    assert stage["evaluation"]["data_revision"] == basic_report["data_revision"]
+    assert stage["evaluation"]["rules_version"] == basic_report["rules_version"]
+    assert envelope["data"]["missing_fields"] == plan["missing_fields"]
+    assert "notes" not in stage["evaluated_configuration"]["context"]
+    assert projection.byte_count <= MAX_PLAN_BYTES
