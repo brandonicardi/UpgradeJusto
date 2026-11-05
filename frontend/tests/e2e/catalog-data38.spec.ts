@@ -1,7 +1,8 @@
 import { expect } from "@playwright/test";
 import { test } from "./fixtures";
 import { parseCatalogTowerComponent, parseCatalogTowerPage, catalogBoundOffers } from "../../lib/catalog-tower-consumer";
-import { displayImage, formatRetailARS, retailSourceURL } from "../../lib/retail-presentation";
+import { cardPrice } from "../../lib/catalog-offers";
+import { displayImage, referencePriceLabel, retailSourceURL } from "../../lib/retail-presentation";
 test.use({ trace: "off", video: "off", screenshot: "off" });
 
 function envelope(value: unknown) {
@@ -88,14 +89,32 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
     if (!candidate) throw new Error("Missing prerequisite");
     phase = "bound-retail-row";
     const row = page.locator("article[data-component-id]").filter({ has: page.locator(`a[href="/catalog/${candidate.id}"]`) });
-    await expect(row.getByRole("heading", { level: 2 })).toHaveText(candidate.name);
+    // Tarjeta de la grilla (PartCard): nombre en el enlace a la ficha, precio con tienda y condición, y foto.
+    await expect(row.locator(`a[href="/catalog/${candidate.id}"]`)).toHaveText(candidate.name);
+    const shown = cardPrice(candidate), rowText = (await row.textContent()) ?? "";
+    if (shown.monto) {
+      // Sólo una oferta vigente se muestra como precio; si no, la tarjeta dice «Sin precio», nunca un importe vencido.
+      expect(rowText.replace(/\s/g, " ")).toContain(new Intl.NumberFormat("es-AR").format(Number(shown.monto)));
+      expect(rowText).toContain(`${shown.condicion} · visto el `); expect(rowText).toContain(shown.tienda ?? "");
+      if (shown.enlace) await expect(row.locator(`a[href="${shown.enlace}"]`)).toHaveCount(1);
+    } else expect(rowText).toContain("Sin precio");
+    await row.scrollIntoViewIfNeeded(); const cardPhoto = row.locator("img");
+    await expect(cardPhoto).toHaveCount(1);
+    await expect.poll(() => cardPhoto.evaluate(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)).toBe(true);
+    expect((await cardPhoto.getAttribute("src")) === displayImage(candidate)).toBe(true);
+    // Panel «Ver al lado»: todas las ofertas de la pieza, con su fuente, y la foto.
+    await row.getByRole("button", { name: /Ver al lado/ }).click();
+    const panel = page.getByRole("complementary", { name: "Ficha de la pieza seleccionada", exact: true });
+    await expect(panel.getByRole("heading", { level: 2 })).toHaveText(candidate.name);
+    await expect(row).toHaveAttribute("data-selected", "true");
+    const panelText = (await panel.textContent()) ?? "";
     for (const offer of catalogBoundOffers(candidate)) {
-      expect((await row.textContent())?.includes(offer.amount === null ? "Importe desconocido" : formatRetailARS(offer.amount))).toBe(true);
-      expect((await row.textContent())?.includes(offer.condition === "cash" ? "Contado" : "Lista (no cuotas)")).toBe(true);
+      expect(panelText.includes(referencePriceLabel(offer))).toBe(true);
+      expect(panelText.includes(offer.condition === "cash" ? "Contado" : "Lista (no cuotas)")).toBe(true);
       const source = retailSourceURL(offer.source_url);
-      if (source) expect(await row.locator("[data-retail-offer] a").evaluateAll((links, url) => links.some(link => link.getAttribute("href") === url), source)).toBe(true);
+      if (source) expect(await panel.locator("[data-retail-offer] a").evaluateAll((links, url) => links.some(link => link.getAttribute("href") === url), source)).toBe(true);
     }
-    await row.scrollIntoViewIfNeeded(); const photo = row.locator(".tower-product-photo img");
+    await panel.scrollIntoViewIfNeeded(); const photo = panel.locator(".tower-product-photo img");
     await expect.poll(() => photo.evaluateAll(images => images.some(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
     expect((await photo.first().getAttribute("src")) === displayImage(candidate)).toBe(true);
     phase = "sort-preserves-access-to-all-records";
@@ -120,7 +139,7 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
       const part = parseCatalogTowerComponent(raw); await page.goto(`/catalog/${id}`); await expect(page.getByRole("heading", { level: 1 })).toHaveText(part.name);
       const summary = page.getByRole("region", { name: "Resumen del componente", exact: true }); expect(await summary.locator("[data-retail-offer]").count()).toBe(catalogBoundOffers(part).length);
       expect(await page.locator('img[alt*="undefined"]').count()).toBe(0);
-      for (const offer of catalogBoundOffers(part)) expect((await summary.textContent())?.includes(offer.amount === null ? "Importe desconocido" : formatRetailARS(offer.amount))).toBe(true);
+      for (const offer of catalogBoundOffers(part)) expect((await summary.textContent())?.includes(referencePriceLabel(offer))).toBe(true);
     }
     phase = "complete";
   } catch (error) {

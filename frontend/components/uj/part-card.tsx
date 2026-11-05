@@ -31,15 +31,17 @@ export type PartCardProps = {
   /** Estado que devuelve el motor. Si no viene, la tarjeta no muestra veredicto. */
   veredicto?: string | null;
   href?: string;
+  /** Ocupa todo el ancho de su contenedor (grillas) en vez del máximo de 560 px. */
+  anchoCompleto?: boolean;
 };
 
 const FOCO_DE_LA_TARJETA =
   "has-[[data-cubre]:focus-visible]:outline-2 has-[[data-cubre]:focus-visible]:outline-offset-2 has-[[data-cubre]:focus-visible]:outline-foco";
 
-export function PartCard({ categoria, beneficio, modelo, foto, precio, veredicto, href }: PartCardProps) {
+export function PartCard({ categoria, beneficio, modelo, foto, precio, veredicto, href, anchoCompleto }: PartCardProps) {
   return (
     <article
-      className={`relative grid max-w-[560px] grid-cols-[64px_minmax(0,1fr)] items-center gap-space-4 rounded-md border border-solid border-linea bg-papel-alto p-space-4 font-sans-uj text-tinta shadow-sombra-1 min-[600px]:grid-cols-[64px_minmax(0,1fr)_auto] ${FOCO_DE_LA_TARJETA}`}
+      className={`relative grid ${anchoCompleto ? "w-full" : "max-w-[560px]"} grid-cols-[64px_minmax(0,1fr)] items-center gap-space-4 rounded-md border border-solid border-linea bg-papel-alto p-space-4 font-sans-uj text-tinta shadow-sombra-1 min-[600px]:grid-cols-[64px_minmax(0,1fr)_auto] ${FOCO_DE_LA_TARJETA}`}
     >
       <div className="col-start-2 row-start-1 min-w-0">
         <div className="text-etiqueta text-tinta-suave">{categoria}</div>

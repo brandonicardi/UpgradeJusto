@@ -42,6 +42,9 @@ export function TowerCatalogCard({ component, onInspect, selected = false }: { c
     <div className="catalog-row-actions">{onInspect && <button type="button" className="text-button" aria-pressed={selected} onClick={onInspect}>Ver al lado<span className="sr-only">: {component.name}</span></button>}<Link className="card-detail-link" href={`/catalog/${encodeURIComponent(component.id)}`}>Ver ficha y fuentes <span className="sr-only">de {component.name}</span> →</Link></div>
   </article>;
 }
-export function Failure({ invalid = false }: { invalid?: boolean }) {
-  return <section role="alert" className="surface empty-state"><span className="badge badge-warning">!</span><h2>{invalid ? "Revisá los filtros" : "No se pudo cargar el catálogo"}</h2><p className="muted">{invalid ? "Usá una categoría válida y revisá el nombre o la página solicitada." : "El servicio no está disponible. No sustituimos los datos por ejemplos."}</p><Link href="/catalog">Volver al catálogo e intentar nuevamente</Link></section>;
+export function Failure({ invalid = false, retryHref = "/catalog" }: { invalid?: boolean; retryHref?: string }) {
+  return <section role="alert" className="surface empty-state"><span className="badge badge-warning">!</span><h2>{invalid ? "Revisá los filtros" : "No se pudo cargar el catálogo"}</h2><p className="muted">{invalid ? "Usá una categoría válida y revisá el nombre o la página solicitada." : "El servicio no está disponible. No sustituimos los datos por ejemplos."}</p><Link href={invalid ? "/catalog" : retryHref}>{invalid ? "Volver al catálogo" : "Probar de nuevo"}</Link>{!invalid && retryHref !== "/catalog" && <Link href="/catalog">Ver todo el catálogo</Link>}</section>;
+}
+export function EmptyResults({ filtered, firstPageHref }: { filtered: boolean; firstPageHref: string }) {
+  return <section role="status" className="surface empty-state"><h2>{filtered ? "No encontramos piezas con esos filtros" : "No hay piezas para mostrar"}</h2><p className="muted">{filtered ? "Probá con otro nombre o categoría." : "Volvé a la primera página."}</p><Link href={filtered ? "/catalog" : firstPageHref}>{filtered ? "Limpiar filtros" : "Ir a la primera página"}</Link></section>;
 }

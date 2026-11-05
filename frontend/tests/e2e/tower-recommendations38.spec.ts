@@ -53,6 +53,10 @@ function observePreviewMetadata(page: Page, origin: string, pcId: string) {
     counts: () => ({ previews, writes, guardsFinished, guardFailures }),
   };
 }
+// Texto de la cotización tal como lo muestra la tarjeta: tienda · condición · importe.
+function offerLabel(offer: TowerRecommendationPreview["items"][number]["offers"][number]): string {
+  return `${offer.store === "compragamer" ? "Compra Gamer" : "Venex"} · ${offer.condition === "cash" ? "Contado" : "Lista (no cuotas)"} · ${formatRetailARS(offer.amount)}`;
+}
 async function assertOrderedCards(region: Locator, result: TowerRecommendationPreview, count: number) {
   const cards = region.getByRole("article");
   await expect(cards).toHaveCount(count);
@@ -67,11 +71,19 @@ async function assertOrderedCards(region: Locator, result: TowerRecommendationPr
     const cost = card.getByRole("region", { name: "Coste de la propuesta", exact: true });
     await expect(cost).toContainText(item.cost.total_ars === null ? "Total incompleto / desconocido" : formatRetailARS(item.cost.total_ars));
     await expect(cost).toContainText(`Subtotal conocido: ${formatRetailARS(item.cost.known_subtotal_ars)}`);
-    for (const line of item.cost.lines) await expect(card).toContainText(line.offer_id);
+    // Cada partida se identifica por lo que ve la persona: cantidad, importes y la tienda/condición de su cotización.
+    for (const [lineIndex, line] of item.cost.lines.entries()) {
+      await expect(card).toContainText(`Partida ${lineIndex + 1}: ${line.quantity} unidades · unitario ${formatRetailARS(line.unit_amount_ars)} · partida ${formatRetailARS(line.amount_ars)}`);
+      const quoted = item.offers.find(offer => offer.offer_id === line.offer_id);
+      expect(quoted, `La partida ${lineIndex + 1} debe corresponder a una cotización de la misma propuesta`).toBeDefined();
+      await expect(card).toContainText(offerLabel(quoted!));
+    }
+    const text = await card.textContent();
+    for (const technicalId of new Set([...item.cost.lines.map(line => line.offer_id), ...item.offers.map(offer => offer.offer_id)])) expect(text, "El ID técnico de la oferta no se muestra").not.toContain(technicalId);
     const quotes = card.locator(".tower-offer"); await expect(quotes).toHaveCount(item.offers.length);
     for (let offerIndex = 0; offerIndex < item.offers.length; offerIndex++) {
       const offer = item.offers[offerIndex], quote = quotes.nth(offerIndex);
-      await expect(quote).toContainText(formatRetailARS(offer.amount));
+      await expect(quote).toContainText(offerLabel(offer));
       await expect(quote.getByRole("link", { name: "Publicación de la tienda", exact: false, includeHidden: true })).toHaveAttribute("href", new URL(offer.source_url).href);
     }
     if (item.benefit.before !== null) await expect(card).toContainText(item.benefit.before);
@@ -178,7 +190,10 @@ test("@tower06-meta control sintético:metadata version injected después del lo
     await expect(region.getByRole("img")).toHaveCount(0); await expect(region).not.toContainText("Consultando referencia y versión del catálogo");
     await assertOrderedCards(region, result, target);
     const cards = region.getByRole("article");
-    for (let i = 0; i < target; i++) for (const id of metadataIds({ ...result, items: [result.items[i]] }, 1)) await expect(cards.nth(i)).toContainText(`Catálogo cambió; volvé a consultar (${id})`);
+    for (let i = 0; i < target; i++) for (const id of metadataIds({ ...result, items: [result.items[i]] }, 1)) {
+      await expect(cards.nth(i)).toContainText("Catálogo cambió; volvé a consultar");
+      expect(await cards.nth(i).innerText(), "El ID técnico de la pieza no se muestra").not.toContain(id);
+    }
     expect(injected).toBe(1); expect([...observer.ids.values()].every(count => count === 1)).toBe(true); expect(observer.unexpected).toEqual([]);
     // Version mismatch is before ID work in this new batch; no new variant names
     // or photos are fetched, and original quotes/statuses remain on their cards.
@@ -209,7 +224,10 @@ for (const scenario of [{ objective: "general", budget: "1000000.00" }, { object
       const form = page.getByRole("form", { name: "Objetivo y presupuesto de torre", exact: true });
       await form.getByLabel("Objetivo de mejora", { exact: true }).selectOption(scenario.objective);
       await form.getByLabel("Presupuesto ARS (punto decimal, sin miles)", { exact: true }).fill(scenario.budget);
-      await expect(form.getByRole("checkbox")).not.toBeChecked(); expect(previews).toBe(0);
+      // La casilla vive en «Materiales y datos a confirmar», cerrado y fuera del formulario.
+      const materials = page.locator("details").filter({ has: page.getByText("Materiales y datos a confirmar", { exact: true }) });
+      await materials.getByText("Materiales y datos a confirmar", { exact: true }).click();
+      await expect(materials.getByRole("checkbox", { name: /Confirmé que tengo pasta térmica/ })).not.toBeChecked(); expect(previews).toBe(0);
       const received = page.waitForResponse(response => response.url().endsWith(`/api/towers/${own.id}/recommendations/preview`) && response.request().method() === "POST");
       await form.getByRole("button", { name: "Buscar propuestas para mi torre", exact: true }).click(); const response = await received; expect(response.status()).toBe(200);
       const result = await response.json() as TowerRecommendationPreview;

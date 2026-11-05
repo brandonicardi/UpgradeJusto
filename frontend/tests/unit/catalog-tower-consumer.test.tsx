@@ -49,7 +49,7 @@ describe("catalog tower consumer functional integration, not visual approval", (
   it("distinguishes null amount, zero amount, list condition and component binding", () => {
     const source = part(), parsed = parseCatalogTowerComponent({ ...source, offers: [{ ...source.offers[0], amount: null }, { ...source.offers[0], offer_id: "synthetic-list", condition: "list", amount: "0.00" }, { ...source.offers[0], offer_id: "foreign-component", component_id: "another" }] });
     expect(catalogBoundOffers(parsed)).toHaveLength(2);
-    const html = renderToStaticMarkup(<CatalogRetailOffers part={parsed} now={0} />); expect(html).toContain("Importe desconocido"); expect(html).toContain("ARS 0,00"); expect(html).toContain("Lista (no cuotas)");
+    const html = renderToStaticMarkup(<CatalogRetailOffers part={parsed} now={0} />); expect(html).toContain("Sin precio"); expect(html).toContain("ARS 0,00"); expect(html).toContain("Lista (no cuotas)");
   });
   it("keeps exact image association/host guards and nine-category labels without undefined illustrations", () => {
     const parsed = parseCatalogTowerComponent(part()); expect(displayImage(parsed)).not.toBeNull();

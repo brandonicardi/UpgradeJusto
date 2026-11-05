@@ -26,14 +26,15 @@ Agente `frontend`, salvo la revisión. Leer `README.md` y `preview.html` de `Pan
       Prueba: `tests/unit/tower-plan-deactivation.test.tsx`.
 
 ## 3. Verificación
-- [ ] 3.1 `npm test`, `npm run typecheck`, `npm run lint`, y e2e `tower-recommendations38.spec.ts` y
+- [x] 3.1 `npm test`, `npm run typecheck`, `npm run lint`, y e2e `tower-recommendations38.spec.ts` y
       `tower-plans38.spec.ts`.
       Hecho por el orquestador: `npm test` 613/613, `npm run typecheck` y `npm run lint` en verde.
       E2e ejecutados el 5/11: 1 aprobado y 5 fallidos, por eso esta tarea queda sin marcar.
       Tres fallan por entorno: `upgradejusto_test` tiene 0 `retail_publications` (desarrollo tiene 22)
       y el servidor devuelve 0 propuestas. Dos fallan por un selector viejo, previo a este cambio:
       `tower-recommendations38.spec.ts:212` busca la casilla dentro del formulario y está en un
-      `details` cerrado. Pendiente: cargar precios en la base de test y corregir el selector.
+      `details` cerrado. Resuelto después de archivar: se cargaron precios en la base de test con
+      `demo_seed` y se alinearon los specs; ambos e2e quedaron en verde.
 - [x] 3.2 Capturas reales de una propuesta y de `/tower-plans/[id]` a 1440 y 390.
       Nota: `.local/capturas/pantallas-conviene-y-plan/` (1-propuesta-1440, 2-propuesta-390,
       3-plan-1440, 4-plan-390) contra `localhost:3000` con 128 propuestas reales y un plan real

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { catalogTowerPage, parseTowerCatalogQuery, towerQueryString, type TowerCatalogQuery } from "../../lib/catalog-tower-consumer";
 import { towerCategories } from "../../lib/towers";
 import type { TowerCatalogPage } from "../../lib/tower-catalog";
-import { Failure } from "./presentation";
+import { EmptyResults, Failure } from "./presentation";
 import CatalogWorkbench from "../../components/catalog-workbench";
 
 export const dynamic = "force-dynamic";
@@ -23,9 +23,9 @@ export default async function Catalog({ searchParams }: { searchParams: Promise<
     </form>
     <p className="compact-help">El orden no garantiza precio vigente, stock ni compatibilidad. Todas las piezas siguen disponibles.</p>
     <nav className="category-tabs" aria-label="Categorías del catálogo"><Link href={`/catalog?${towerQueryString({ ...query, category: "" }, 1)}`} aria-current={!query.category ? "page" : undefined}>Todas</Link>{Object.entries(towerCategories).map(([category, label]) => <Link key={category} href={`/catalog?${towerQueryString({ ...query, category }, 1)}`} aria-current={query.category === category ? "page" : undefined}>{label}</Link>)}</nav>
-    {!data ? <Failure /> : <>
+    {!data ? <Failure retryHref={`/catalog?${towerQueryString(query)}`} /> : <>
       <p role="status" className="results-count">{data.total} componentes · Página {data.page} · Datos curados del catálogo</p>
-      {data.items.length ? <CatalogWorkbench data={data} /> : <section className="surface empty-state"><h2>No hay componentes en esta página</h2><p className="muted">Cambiá los filtros o volvé a la primera página.</p><Link href={`/catalog?${towerQueryString(query, 1)}`}>Ir a la primera página</Link></section>}
+      {data.items.length ? <CatalogWorkbench data={data} /> : <EmptyResults filtered={Boolean(query.q || query.category) && data.total === 0} firstPageHref={`/catalog?${towerQueryString(query, 1)}`} />}
       <nav aria-label="Paginación" className="catalog-pagination">
         {data.page > 1 && <Link href={`/catalog?${towerQueryString(query, data.page - 1)}`}>Página anterior</Link>}
         {data.page < 10000 && data.page * data.page_size < data.total && <Link href={`/catalog?${towerQueryString(query, data.page + 1)}`}>Página siguiente</Link>}

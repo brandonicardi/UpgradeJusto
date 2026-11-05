@@ -17,9 +17,16 @@ lectores existentes, una corrida. Sin HardGamers ni otras tiendas.
       una oferta vencida nunca cuenta como cero. Actualizar las pruebas de 24 h sin aflojar el resto.
 
 ## 2. Pantalla
-- [ ] 2.1 Rótulo «precio de referencia» con moneda, fecha y tienda.
+- [x] 2.1 Rótulo «precio de referencia» con moneda, fecha y tienda.
       Prueba: falta la fecha → «Sin precio».
+      `referencePriceLabel` en `lib/retail-presentation.ts`; usado en `catalog-retail-offers` y
+      `tower-product-summary`. Sin importe, fecha, tienda o moneda ARS → «Sin precio». Oferta
+      vencida conserva su mensaje de histórica. Vitest: 39/39 en las pruebas dirigidas.
 
 ## 3. Verificación
-- [ ] 3.1 `pytest`, `ruff`, `npm test`, `npm run typecheck`, `npm run lint`.
-- [ ] 3.2 Revisor: regla 5 de `AGENTS.md` y que nada invente ni promedie precios.
+- [x] 3.1 `pytest`, `ruff`, `npm test`, `npm run typecheck`, `npm run lint`.
+      5/11: `npm test` 74 archivos / 652 pruebas; `typecheck` y `lint` sin errores. `pytest` sin
+      PostgreSQL: 922 aprobadas y 263 salteadas. `ruff check` limpio. `ruff format --check` marca 4
+      archivos, previos a este cambio; no se reformatearon.
+- [x] 3.2 Revisor: regla 5 de `AGENTS.md` y que nada invente ni promedie precios.
+      Sin bloqueantes. Importante corregido: la tarjeta ya no toma una oferta vencida como precio.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import TowerProductSummary, { TowerProductPhoto } from "../../components/tower-product-summary";
-import { displayImage, displayRetailDate, formatRetailARS, offerDisplayStatus, retailSourceURL, stockLabel, vendorImageURL } from "../../lib/retail-presentation";
+import { displayImage, displayRetailDate, formatRetailARS, offerDisplayStatus, referencePriceLabel, retailSourceURL, stockLabel, vendorImageURL } from "../../lib/retail-presentation";
 import type { RetailOffer, TowerComponent } from "../../lib/tower-catalog";
 
 // Synthetic metadata for pure tests only; never published/catalog fixtures.
@@ -69,6 +69,22 @@ describe("presentación retail central38B, sin cotización cliente", () => {
     expect(stockLabel({ ...offer(), availability: "in_stock" })).toContain("cantidad desconocida");
     expect(displayRetailDate(null)).toBe("Fecha no disponible");
   });
+  it("rotula precio de referencia solo con importe, fecha y tienda; si no, «Sin precio»", () => {
+    expect(referencePriceLabel(offer())).toBe(`Precio de referencia: ARS 123.456,78 · ${displayRetailDate("2026-10-26T10:00:00Z")} · Compra Gamer`);
+    expect(referencePriceLabel({ ...offer(), store: "venex" })).toContain("Venex");
+    expect(referencePriceLabel({ ...offer(), observed_at: "" })).toBe("Sin precio");
+    expect(referencePriceLabel({ ...offer(), observed_at: "invalid" })).toBe("Sin precio");
+    expect(referencePriceLabel({ ...offer(), amount: null })).toBe("Sin precio");
+    expect(referencePriceLabel({ ...offer(), amount: "12.345" })).toBe("Sin precio");
+    expect(referencePriceLabel({ ...offer(), store: undefined as unknown as RetailOffer["store"] })).toBe("Sin precio");
+    expect(referencePriceLabel({ ...offer(), amount: null })).not.toContain("0,00");
+    expect(referencePriceLabel({ ...offer(), amount: "0.00" })).toContain("ARS 0,00");
+  });
+  it("una oferta vencida no se presenta como precio vigente", () => {
+    const html = renderToStaticMarkup(<TowerProductSummary part={{ ...part(), offers: [{ ...offer(), status: "stale" as const }] }} now={now} />);
+    expect(html).toContain("Precio de referencia: ARS 123.456,78"); expect(html).toContain("Consulta vencida; no es precio vigente");
+    expect(html).not.toContain("Dentro del plazo"); expect(referencePriceLabel(offer())).not.toMatch(/vigente/i);
+  });
   it("fresh y stale son distintos; vence sin recotizar y no reactiva estados servidor", () => {
     expect(offerDisplayStatus(offer(), now)).toBe("fresh");
     expect(offerDisplayStatus(offer(), Date.parse(offer().expires_at))).toBe("stale");
@@ -77,7 +93,7 @@ describe("presentación retail central38B, sin cotización cliente", () => {
     const item = { ...part(), offers: [{ ...offer(), status: "stale" as const, condition: "list" as const, amount: null }] };
     const html = renderToStaticMarkup(<TowerProductSummary part={item} now={now} />);
     expect(html).toContain("Lista (no cuotas)"); expect(html).toContain("Consulta vencida; no es precio vigente");
-    expect(html).toContain("Importe no disponible"); expect(html).toContain("Stock por confirmar"); expect(html).toContain("Observado:");
+    expect(html).toContain("Sin precio"); expect(html).not.toContain("ARS 0,00"); expect(html).toContain("Stock por confirmar"); expect(html).toContain("Observado:");
     expect(html).toContain("Las ofertas no sustituyen los precios históricos ni constituyen un presupuesto completo"); expect(html).toContain("No se calculó compatibilidad");
     expect(item.offers[0].amount).toBeNull(); expect(item.prices).toEqual([]);
   });

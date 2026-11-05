@@ -3,7 +3,7 @@ import { test } from "../e2e/fixtures";
 import { ownRouteSession, routeEvidence } from "../support/route-evidence";
 import { evidenceApi } from "../support/visual-evidence";
 import { parseCatalogTowerPage, catalogBoundOffers } from "../../lib/catalog-tower-consumer";
-import { displayImage, formatRetailARS, retailSourceURL } from "../../lib/retail-presentation";
+import { displayImage, referencePriceLabel, retailSourceURL } from "../../lib/retail-presentation";
 import { emptyTower, towerUUID, type Tower } from "../../lib/towers";
 import type { Conversation, PageOf, Message } from "../../lib/assistant";
 import type { AdminPage, Revision } from "../../lib/curation";
@@ -36,7 +36,7 @@ for (const width of [1440, 390]) {
       await summary.scrollIntoViewIfNeeded();
       await expect.poll(() => summary.locator(".tower-product-photo img").evaluateAll(images => images.some(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)), { timeout: 5000 }).toBe(true);
       for (const offer of catalogBoundOffers(candidate)) {
-        await expect(summary).toContainText(offer.amount === null ? "Importe desconocido" : formatRetailARS(offer.amount));
+        await expect(summary).toContainText(referencePriceLabel(offer));
       }
       await expect(summary.locator("[data-retail-offer]")).toHaveCount(catalogBoundOffers(candidate).length);
       await shot("04-detail-photo-offers.png", summary);

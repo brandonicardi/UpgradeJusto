@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { TowerComponent } from "../lib/tower-catalog";
 import HardwareArt from "./hardware-art";
-import { displayImage, displayRetailDate, formatRetailARS, offerDisplayStatus, retailSourceURL, stockLabel } from "../lib/retail-presentation";
+import { displayImage, displayRetailDate, offerDisplayStatus, referencePriceLabel, retailSourceURL, stockLabel } from "../lib/retail-presentation";
 
 export function TowerProductPhoto({ part }: { part: TowerComponent }) {
   const [failedURL, setFailedURL] = useState<string | null>(null), [loadedURL, setLoadedURL] = useState<string | null>(null), url = displayImage(part, failedURL);
@@ -38,7 +38,7 @@ export default function TowerProductSummary({ part, now }: { part: TowerComponen
       {offers.map(offer => {
         const state = offerDisplayStatus(offer, now ?? clock), link = retailSourceURL(offer.source_url);
         return <section key={offer.offer_id} className="tower-offer"><h4>{offer.store === "compragamer" ? "Compra Gamer" : "Venex"} · {offer.condition === "cash" ? "Contado" : "Lista (no cuotas)"}</h4>
-          <p>{formatRetailARS(offer.amount)} · {state === "fresh" ? "Dentro del plazo de consulta" : state === "stale" ? "Consulta vencida; no es precio vigente" : "Oferta no disponible para cotizar"}</p>
+          <p>{referencePriceLabel(offer)} · {state === "fresh" ? "Dentro del plazo de consulta" : state === "stale" ? "Consulta vencida; no es precio vigente" : "Oferta no disponible para cotizar"}</p>
           <p>{stockLabel(offer)}. No garantiza stock futuro.</p><p>Observado: {displayRetailDate(offer.observed_at)} · Vence: {displayRetailDate(offer.expires_at)}</p>
           {link ? <a href={link} target="_blank" rel="noopener noreferrer">Ver publicación de la tienda (otra pestaña)</a> : <p>Enlace de procedencia no disponible para abrir.</p>}
         </section>;

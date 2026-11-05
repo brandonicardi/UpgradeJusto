@@ -44,6 +44,14 @@ export function displayRetailDate(value: string | null | undefined): string {
   const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
   return new Intl.DateTimeFormat("es-AR", { dateStyle: "medium", ...(dateOnly ? {} : { timeStyle: "short" as const }), timeZone: dateOnly ? "UTC" : "America/Argentina/Buenos_Aires" }).format(date);
 }
+export const NO_PRICE_LABEL = "Sin precio";
+// Precio de referencia solo con importe ARS, fecha y tienda; si falta algo, "Sin precio" (nunca cero).
+export function referencePriceLabel(offer: Pick<RetailOffer, "amount" | "currency" | "observed_at" | "store">): string {
+  const store = offer.store === "compragamer" ? "Compra Gamer" : offer.store === "venex" ? "Venex" : null;
+  const complete = offer.currency === "ARS" && store !== null && Number.isFinite(Date.parse(offer.observed_at ?? ""))
+    && typeof offer.amount === "string" && /^(?:0|[1-9]\d*)\.\d{2}$/.test(offer.amount);
+  return complete ? `Precio de referencia: ${formatRetailARS(offer.amount)} · ${displayRetailDate(offer.observed_at)} · ${store}` : NO_PRICE_LABEL;
+}
 export function stockLabel(offer: RetailOffer): string {
   if (offer.availability === "unknown") return "Stock por confirmar";
   if (offer.availability === "out_of_stock") return "Sin stock informado por la tienda";
