@@ -158,7 +158,9 @@ def publish_batches(engine, admin_id: UUID, data_dir: Path) -> tuple[list[dict],
             raise DemoSeedError("Un lote minorista excede el tamaño permitido")
         batch = VendorBatch.model_validate_json(payload)
         result = service.publish(admin_id, batch, expected_active)
-        expected_active = result["dataset_version"]
+        # Un lote idempotente devuelve la versión de SU publicación, no la vigente.
+        if not result["idempotent"]:
+            expected_active = result["dataset_version"]
         results.append(result)
         products += len(batch.records)
     return results, products

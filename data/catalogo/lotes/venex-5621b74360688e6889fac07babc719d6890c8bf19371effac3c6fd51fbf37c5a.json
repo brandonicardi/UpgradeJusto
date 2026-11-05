@@ -1,0 +1,40 @@
+{
+  "store": "venex",
+  "source_version": "venex-53188a2b915dbca0de67346e7c9a0f3f8ae18c2dd3f267bf458736fdc924a03e",
+  "raw_sha256": "86fbf355e745f4b262cf673a0324ffaa5f418d0f9c6dd4e8bd14a1c83e585bb9",
+  "observed_at": "2026-11-05T13:20:01.817287+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "12936",
+      "category": "motherboard",
+      "name": "Motherboard ASUS Prime A520M-K AM4 DDR4",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/motherboards/amd/motherboard-asus-prime-a520m-k-am4.html",
+      "mpn": null,
+      "gtin": "192876826928",
+      "variant_key": "venex-12936-42b5b9db6efa4dbc74a4d0225b3bd5196be3649084e267fdadfe8da9fd805d2c",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": {
+        "url": "https://www.venex.com.ar/products_images/1603824949_p_setting_fff_1_90_end_600.jpg",
+        "alt": "Motherboard ASUS Prime A520M-K AM4 DDR4",
+        "source_url": "https://www.venex.com.ar/componentes-de-pc/motherboards/amd/motherboard-asus-prime-a520m-k-am4.html",
+        "retrieved_at": "2026-11-05T13:20:01.817287+00:00",
+        "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+        "exact_variant": true,
+        "status": "verified",
+        "photo_bytes_verified": false
+      },
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": null,
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": false
+        }
+      ]
+    }
+  ]
+}

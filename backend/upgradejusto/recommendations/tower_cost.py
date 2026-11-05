@@ -1,10 +1,10 @@
 """Incremental Decimal offers only, no historical price or resale fallback."""
 
 import re
-from datetime import timedelta
 from decimal import Decimal
 
 from upgradejusto.compatibility.tower_contract import REQUIRED
+from upgradejusto.retail.models import REFERENCE_PRICE_VALIDITY
 
 
 def select_offer(component, condition, now, identity=None, quantity=1):
@@ -30,7 +30,7 @@ def select_offer(component, condition, now, identity=None, quantity=1):
             or offer.amount is None
             or not re.fullmatch(r"(?:0|[1-9][0-9]*)\.[0-9]{2}", offer.amount)
             or not offer.observed_at <= now < offer.expires_at
-            or offer.expires_at > offer.observed_at + timedelta(hours=24)
+            or offer.expires_at > offer.observed_at + REFERENCE_PRICE_VALIDITY
             or Decimal(offer.amount) <= 0
         ):
             continue

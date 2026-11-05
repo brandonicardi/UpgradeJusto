@@ -28,6 +28,7 @@ from upgradejusto.plans.tower_service import (
     request_hash,
 )
 from upgradejusto.plans.tower_tables import headers, revisions
+from upgradejusto.retail.models import REFERENCE_PRICE_VALIDITY
 
 
 @pytest.fixture
@@ -284,7 +285,7 @@ def test_frozen_get_replay_no_catalog_access_and_revoked_session(
     result = a.post("/api/tower-plans", headers=ctx.a[1], json=payload)
     assert result.status_code == 201
     saved = result.json()
-    # Owned historical fixture: synthetic quote which expired before this test.
+    # Owned historical fixture: synthetic quote observed in the past.
     # Insert history, never UPDATE an existing revision or claim live retail data.
     historical_id = uuid4()
     then = datetime.now(UTC) - timedelta(days=2)
@@ -296,7 +297,7 @@ def test_frozen_get_replay_no_catalog_access_and_revoked_session(
         "status": "fresh",
         "availability": "in_stock",
         "observed_at": then.isoformat(),
-        "expires_at": (then + timedelta(hours=24)).isoformat(),
+        "expires_at": (then + REFERENCE_PRICE_VALIDITY).isoformat(),
         "source_url": "https://example.test/synthetic-history",
     }
     document["stages"][0]["offers"] = [quote]

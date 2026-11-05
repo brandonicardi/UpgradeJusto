@@ -21,6 +21,9 @@ Identifier = Annotated[
 ]
 Store = Literal["compragamer", "venex"]
 
+# Single source of truth for how long an observed reference price stays valid.
+REFERENCE_PRICE_VALIDITY = timedelta(days=30)
+
 
 class Closed(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -206,7 +209,7 @@ def make_offer(batch, record, item, component_id):
         stock_quantity=item.stock_quantity,
         source_url=record.source_url,
         observed_at=batch.observed_at,
-        expires_at=batch.observed_at + timedelta(hours=24),
+        expires_at=batch.observed_at + REFERENCE_PRICE_VALIDITY,
         status="fresh" if item.amount and item.condition_verified else "unavailable",
     )
 

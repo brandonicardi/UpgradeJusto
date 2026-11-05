@@ -1,0 +1,40 @@
+{
+  "store": "venex",
+  "source_version": "venex-ed898d4af3aecfbd85207c0e5152e3867ee0346f217882a623b2d07a4787215a",
+  "raw_sha256": "17c6800f4c494899ff829decab904f2aa778e2c9078687635276e2e8cf4f769a",
+  "observed_at": "2026-11-05T13:20:16.475971+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "19849",
+      "category": "fan",
+      "name": "Fan Cooler Cooler Master MF120 Lite ARGB Pack x3",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/refrigeracion/coolers-cpu/fan-cooler-cooler-master-mf120-lite-argb-pack-x3.html",
+      "mpn": null,
+      "gtin": "4719512154915",
+      "variant_key": "venex-19849-4700956ecbac3e749527b47797f78eaf11c6437ab0d88b35bafc26540d215dfc",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": {
+        "url": "https://www.venex.com.ar/products_images/1752159569_1.jpg",
+        "alt": "Fan Cooler Cooler Master MF120 Lite ARGB Pack x3",
+        "source_url": "https://www.venex.com.ar/componentes-de-pc/refrigeracion/coolers-cpu/fan-cooler-cooler-master-mf120-lite-argb-pack-x3.html",
+        "retrieved_at": "2026-11-05T13:20:16.475971+00:00",
+        "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+        "exact_variant": true,
+        "status": "verified",
+        "photo_bytes_verified": false
+      },
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "54990.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}

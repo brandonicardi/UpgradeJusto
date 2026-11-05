@@ -1,0 +1,31 @@
+{
+  "store": "venex",
+  "source_version": "venex-94396e07b938845e7a9920c814c33d29ecf1c6e7c4ac918299686407a1626fb5",
+  "raw_sha256": "993231d0c8de2e2228a76bf33c402ab2bfdfe245d92bddca666b26bdb96f4575",
+  "observed_at": "2026-11-05T13:20:14.778772+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "9482",
+      "category": "storage",
+      "name": "Disco sólido SSD Kingston A400 240GB SATA III 2.5",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/discos-solidos-ssd/disco-duro-ssd-240gb-kingston-a400-sata-iii-25.html",
+      "mpn": null,
+      "gtin": "740617261219",
+      "variant_key": "venex-9482-ef78e30f53e36e7d42132726b7c91c0f46f1cbf6a869dfac4979dd5a31ac64ae",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": null,
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": null,
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": false
+        }
+      ]
+    }
+  ]
+}

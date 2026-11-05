@@ -8,11 +8,11 @@ lectores existentes, una corrida. Sin HardGamers ni otras tiendas.
       de uso no se revisaron.
 
 ## 1. Lectura
-- [ ] 1.1 Comando único que corre los dos lectores con pausa y corte por tiempo.
+- [x] 1.1 Comando único que corre los dos lectores con pausa y corte por tiempo.
       Prueba: sin red, con respuestas guardadas; un sitio caído no borra el lote anterior.
-- [ ] 1.2 Generar lotes nuevos y su manifiesto; importarlos sin duplicar.
+- [x] 1.2 Generar lotes nuevos y su manifiesto; importarlos sin duplicar.
       Prueba: reimportar el mismo lote no agrega nada.
-- [ ] 1.3 Validez de 30 días en vez de 24 h: `retail/models.py:209`, `recommendations/tower_cost.py:33`
+- [x] 1.3 Validez de 30 días en vez de 24 h: `retail/models.py:209`, `recommendations/tower_cost.py:33`
       y cualquier otro límite igual, con una sola constante. Prueba: a los 29 días vale, a los 31 no;
       una oferta vencida nunca cuenta como cero. Actualizar las pruebas de 24 h sin aflojar el resto.
 

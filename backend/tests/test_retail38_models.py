@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from upgradejusto.catalog.models import Component
 from upgradejusto.retail.models import (
+    REFERENCE_PRICE_VALIDITY,
     VendorBatch,
     current_offer,
     make_offer,
@@ -73,9 +74,17 @@ def test_large_batch_nine_categories_and_honest_unknown():
     assert len({r.category for r in batch.records}) == 9
     r = batch.records[0]
     offer = make_offer(batch, r, r.offers[0], "cg-900000")
+    assert offer.expires_at == offer.observed_at + REFERENCE_PRICE_VALIDITY
     assert current_offer(offer, batch.observed_at).status == "fresh"
     assert (
-        current_offer(offer, batch.observed_at + timedelta(hours=24)).status == "stale"
+        current_offer(offer, batch.observed_at + timedelta(days=29)).status == "fresh"
+    )
+    # Exactly 30 days is already outside the half-open validity window.
+    assert (
+        current_offer(offer, batch.observed_at + timedelta(days=30)).status == "stale"
+    )
+    assert (
+        current_offer(offer, batch.observed_at + timedelta(days=31)).status == "stale"
     )
     unknown = make_offer(batch, r, r.offers[1], "cg-900000")
     assert current_offer(unknown).status == "unavailable"

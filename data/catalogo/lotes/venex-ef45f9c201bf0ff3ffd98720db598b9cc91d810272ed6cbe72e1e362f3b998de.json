@@ -1,0 +1,31 @@
+{
+  "store": "venex",
+  "source_version": "venex-2ad515f8be57047ac68508a7ea222c9e40e70e3bbc189fda0d0eb662653b484e",
+  "raw_sha256": "fe7ea16d4e4ef9a825c6fb43676008549c56c27ec97d327ca62f2ca971e31f08",
+  "observed_at": "2026-11-05T13:20:06.576733+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "18167",
+      "category": "gpu",
+      "name": "Placa de Video ASUS NVIDIA GeForce RTX 3050 6GB Dual OC",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/placas-de-video/palca-de-video-asus-nvidia-geforce-rtx-3050-dual-06g-oc-d6.html",
+      "mpn": null,
+      "gtin": "197105470644",
+      "variant_key": "venex-18167-9d5ff64eab490c114c4940ef4dfce08e8144f461d3e8b1a07a065c9f22382920",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": null,
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": "499999.00",
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": true
+        }
+      ]
+    }
+  ]
+}

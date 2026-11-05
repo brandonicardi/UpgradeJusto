@@ -2,7 +2,7 @@
 
 import copy
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import pytest
 from mcp.types import CallToolResult, TextContent
@@ -31,7 +31,7 @@ from upgradejusto.compatibility.models import (
 from upgradejusto.pcs.models import PC
 from upgradejusto.plans.models import Plan
 from upgradejusto.recommendations.models import PreviewResponse
-from upgradejusto.retail.models import Offer
+from upgradejusto.retail.models import REFERENCE_PRICE_VALIDITY, Offer
 
 
 def mcp_result(data, *, structured=True):
@@ -360,7 +360,7 @@ def test_recommendations_keep_rejected_prices_and_summary(report):
 
 def test_catalog_large_within_budget_keeps_last_item_fields():
     observed = datetime.now(timezone.utc)
-    expires = observed + timedelta(hours=24)
+    expires = observed + REFERENCE_PRICE_VALIDITY
     items = []
     for i in range(40):
         offer = Offer(

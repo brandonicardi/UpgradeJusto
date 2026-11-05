@@ -8,7 +8,7 @@ import hashlib
 import json
 from copy import deepcopy
 from dataclasses import replace
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from uuid import UUID, uuid4
 
@@ -29,7 +29,11 @@ from upgradejusto.plans.tower_service import Generation, request_hash
 from upgradejusto.plans.tower_tables import headers, revisions
 from upgradejusto.recommendations.tower_cost import select_offer
 from upgradejusto.recommendations.tower_repository import TowerRecommendationCatalog
-from upgradejusto.retail.models import Offer, retail_url
+from upgradejusto.retail.models import (
+    REFERENCE_PRICE_VALIDITY,
+    Offer,
+    retail_url,
+)
 from upgradejusto.retail.tables import resources
 from upgradejusto.shares.tower_sources import PublicSources
 
@@ -128,7 +132,8 @@ def existing_expired_quote(conn):
                         quote.observed_at.tzinfo is None
                         or quote.expires_at.tzinfo is None
                         or quote.expires_at >= now
-                        or quote.expires_at != quote.observed_at + timedelta(hours=24)
+                        or quote.expires_at
+                        != quote.observed_at + REFERENCE_PRICE_VALIDITY
                         or quote.store not in ("compragamer", "venex")
                     ):
                         continue

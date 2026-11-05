@@ -1,6 +1,6 @@
 """Synthetic presentation tests, NOT PostgreSQL or current retail evidence."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from fastapi import FastAPI
@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from upgradejusto.api import catalog as api
 from upgradejusto.catalog.models import Category, Component
 from upgradejusto.catalog.service import CatalogService
-from upgradejusto.retail.models import ImageEvidence, Offer
+from upgradejusto.retail.models import REFERENCE_PRICE_VALIDITY, ImageEvidence, Offer
 
 
 def component(identifier, *, photo=False, priced=False, bound=True, category="cpu"):
@@ -41,7 +41,7 @@ def component(identifier, *, photo=False, priced=False, bound=True, category="cp
             stock_quantity=None,
             source_url="https://www.venex.com.ar/synthetic-product",
             observed_at=observed,
-            expires_at=observed + timedelta(hours=24),
+            expires_at=observed + REFERENCE_PRICE_VALIDITY,
             status="stale",
         ),
     )

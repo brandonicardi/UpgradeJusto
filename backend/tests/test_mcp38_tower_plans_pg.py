@@ -30,6 +30,7 @@ from upgradejusto.pcs.tower_service import TowerService
 from upgradejusto.persistence.schema import plans as legacy_plans
 from upgradejusto.plans.tower_models import TowerPlanCreate, TowerPlanRead
 from upgradejusto.plans.tower_tables import headers, revisions
+from upgradejusto.retail.models import REFERENCE_PRICE_VALIDITY
 
 PRIVATE = "SYNTHETIC_PRIVATE_NOTE_NEVER_MODEL"
 
@@ -122,7 +123,7 @@ def test_real_seventh_mcp_plan_formats_owner_frozen_privacy_collision_and_revoca
         "status": "fresh",
         "availability": "in_stock",
         "observed_at": then.isoformat(),
-        "expires_at": (then + timedelta(hours=24)).isoformat(),
+        "expires_at": (then + REFERENCE_PRICE_VALIDITY).isoformat(),
         "source_url": "https://example.test/synthetic-history-only",
     }
     document["generated_at"] = then.isoformat()

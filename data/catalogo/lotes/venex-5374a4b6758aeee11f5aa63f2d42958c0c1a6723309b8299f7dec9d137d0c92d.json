@@ -1,0 +1,40 @@
+{
+  "store": "venex",
+  "source_version": "venex-9a8ceaf430525d9cc08e98e7ceee1c99ed137f5f90153b5393d405a8746f86a3",
+  "raw_sha256": "50ef807d3217a7361606c7293cae63a9bb6735fef42c23102add1efa533803a3",
+  "observed_at": "2026-11-05T13:19:59.765956+00:00",
+  "partial_batch": true,
+  "pagination_complete": false,
+  "records": [
+    {
+      "product_id": "11158",
+      "category": "cpu",
+      "name": "Procesador AMD Ryzen 3 3200G 4/4 4.0GHz AM4",
+      "source_url": "https://www.venex.com.ar/componentes-de-pc/microprocesadores/microprocesador-amd-ryzen-5-3200g-cooler-graficos-zen2.html",
+      "mpn": null,
+      "gtin": "730143309851",
+      "variant_key": "venex-11158-a95bd74d561b5d7c0244aa906bbd48382fc824781cc6067d784ca1c3b4a842c7",
+      "identity_verified": true,
+      "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+      "image": {
+        "url": "https://www.venex.com.ar/products_images/1585940629_amd_ryzen_3_3200g_am4.jpg",
+        "alt": "Procesador AMD Ryzen 3 3200G 4/4 4.0GHz AM4",
+        "source_url": "https://www.venex.com.ar/componentes-de-pc/microprocesadores/microprocesador-amd-ryzen-5-3200g-cooler-graficos-zen2.html",
+        "retrieved_at": "2026-11-05T13:19:59.765956+00:00",
+        "rights_note": "Retailer-linked photograph; rights reserved, no redistribution grant inferred",
+        "exact_variant": true,
+        "status": "verified",
+        "photo_bytes_verified": false
+      },
+      "offers": [
+        {
+          "condition": "cash",
+          "amount": null,
+          "availability": "in_stock",
+          "stock_quantity": null,
+          "condition_verified": false
+        }
+      ]
+    }
+  ]
+}

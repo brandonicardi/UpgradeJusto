@@ -31,6 +31,7 @@ from upgradejusto.recommendations.tower_service import (
     replacement,
     simulate,
 )
+from upgradejusto.retail.models import REFERENCE_PRICE_VALIDITY
 
 NOW = datetime(2026, 10, 26, 12, tzinfo=UTC)
 
@@ -307,12 +308,56 @@ def test_full_catalog_scanned_before_bound_and_simulation_does_not_persist():
         {"component_id": "other"},
         {"expires_at": NOW},
         {"observed_at": NOW + timedelta(seconds=1)},
-        {"expires_at": NOW + timedelta(days=2)},
+        {"expires_at": NOW + timedelta(days=31)},
     ],
 )
 def test_offer_fails_closed(changes):
     component = SimpleNamespace(id="candidate", offers=(offer("candidate", **changes),))
     assert select_offer(component, "cash", NOW) is None
+
+
+def test_reference_price_counts_at_29_days_and_is_unknown_when_expired():
+    old, new = cpus()
+    before = tower(old)
+
+    observed_valid = NOW - timedelta(days=29)
+    priced = new.model_copy(
+        update={
+            "offers": (
+                offer(
+                    new.id,
+                    observed_at=observed_valid,
+                    expires_at=observed_valid + REFERENCE_PRICE_VALIDITY,
+                ),
+            )
+        }
+    )
+    data = catalog(old, priced)
+    after = simulate(before, [replacement(priced)], data)
+    cost, quotes = incremental_cost(before, after, data, "cash", Decimal("500.00"), NOW)
+    assert cost["total_ars"] == "100.00"
+    assert cost["within_budget"] is True
+    assert len(quotes) == 1
+
+    observed_expired = NOW - timedelta(days=31)
+    expired = new.model_copy(
+        update={
+            "offers": (
+                offer(
+                    new.id,
+                    observed_at=observed_expired,
+                    expires_at=observed_expired + REFERENCE_PRICE_VALIDITY,
+                ),
+            )
+        }
+    )
+    data = catalog(old, expired)
+    after = simulate(before, [replacement(expired)], data)
+    cost, quotes = incremental_cost(before, after, data, "cash", Decimal("500.00"), NOW)
+    assert cost["total_ars"] is None
+    assert cost["known_subtotal_ars"] == "0.00"
+    assert cost["missing_fields"] == [f"offer:{new.id}:available_quantity:1"]
+    assert quotes == []
 
 
 def test_ram_replaces_complete_set_and_multiplies_full_incremental_cost():
