@@ -426,11 +426,38 @@ def _simple_projection(name, data, citations=()):
     return Projection(text=text, byte_count=count, citations=citations)
 
 
+def validated_payload(name, result):
+    """Trusted raw payload validated by the same closed schemas as projection.
+
+    Returns JSON-mode data (schema 1) or the tower wrapper's data (schema 2).
+    Raises the same fixed codes as `project_tool_result`; it never projects or
+    truncates, so callers that only collect evidence can treat any failure as
+    "no evidence". Tool data and model arguments never become instructions here.
+    """
+    if name not in SCHEMAS:
+        raise ToolFailure("unknown_tool")
+    raw = _payload(result)
+    if "configuration_schema" in raw:
+        if (
+            type(raw["configuration_schema"]) is not int
+            or raw["configuration_schema"] != 2
+        ):
+            raise ToolFailure("invalid_tool_output")
+        from .tower_projection import WRAPPERS
+
+        if name not in WRAPPERS:
+            raise ToolFailure("invalid_tool_output")
+        wrapper = WRAPPERS[name].model_validate_json(_json(raw))
+        return wrapper.data.model_dump(mode="json")
+    return SCHEMAS[name].model_validate_json(_json(raw)).model_dump(mode="json")
+
+
 def project_tool_result(name, result):
     """Return complete projected JSON or a bounded fixed-code ToolFailure.
 
     No partial success: rule states, facts, conditions, missing fields, coverage
-    and versions survive. Oversize reports require the full API, never slicing.
+    and versions survive; tower previews keep failed/unknown coverage but drop
+    redundant lists and versions. Oversize reports require the full API, never slicing.
     """
     if name not in SCHEMAS:
         raise ToolFailure("unknown_tool")

@@ -28,6 +28,8 @@ def model(client, *, max_tokens=None):
     kwargs = {}
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    if configured_model.startswith("openai/gpt-oss"):
+        kwargs["reasoning_effort"] = "low"
     return ChatGroq(
         model=configured_model,
         timeout=30,

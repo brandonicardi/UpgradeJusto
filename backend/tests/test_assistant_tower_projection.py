@@ -8,6 +8,128 @@ from test_tower38_assistant_pure import result, tower_and_evaluation
 from upgradejusto.assistant.tool_projection import MAX_TOOL_BYTES, project_tool_result
 
 
+def test_empty_tower_recommendations_are_a_valid_answer():
+    tower, _ = tower_and_evaluation("unknown")
+    payload = {
+        "configuration_schema": 2,
+        "data": {
+            "pc_id": str(tower.id),
+            "pc_revision": tower.revision,
+            "objective": "gaming",
+            "budget_ars": "2000000.00",
+            "mode": "automatic",
+            "items": [],
+            "missing_fields": ["gpu.reference"],
+            "limitations": ["No published comparison"],
+        },
+    }
+    data = json.loads(
+        project_tool_result("preview_recommendations", result(payload)).text
+    )["data"]
+    assert data == payload["data"]
+
+
+def test_automatic_preview_preserves_recommendation_and_evidence_under_budget():
+    tower, evaluation = tower_and_evaluation("pass")
+    source = {
+        "source_url": "https://example.org/benchmark",
+        "unit": "relative index, NOT FPS",
+        "limitations": "Not measured on user's PC",
+        "observed_on": "2026-11-06",
+        "raw_sha256": "a" * 64,
+        "identity_source_url": "https://example.org/identity",
+        "identity_version": "synthetic",
+        "identity_kind": "published_retail_mpn",
+        "matched_mpn": "synthetic-mpn",
+    }
+    item = {
+        "key": "recommended",
+        "actions": [{"category": "gpu", "component_id": "synthetic"}],
+        "evaluation": evaluation.model_dump(mode="json"),
+        "benefit": {
+            "status": "supported",
+            "before": "48",
+            "after": "100",
+            "source": [source, source],
+        },
+        "cost": {
+            "total_ars": "1580050.00",
+            "missing_fields": [],
+            "excluded": ["shipping"],
+        },
+        "dependencies": [],
+        "offers": [
+            {
+                "amount": "1580050.00",
+                "currency": "ARS",
+                "store": "fixture",
+                "observed_at": "2026-11-06",
+                "source_url": "https://example.org/offer",
+                "offer_id": "opaque-offer",
+                "variant_key": "opaque-variant",
+            }
+        ],
+        "versions": {},
+        "status": "recommended",
+        "missing_fields": [],
+    }
+    unknown = {
+        **item,
+        "key": "unknown",
+        # A sort by verdict would put this one first: automatic order must win.
+        "evaluation": {
+            **evaluation.model_dump(mode="json"),
+            "verdict": "requiere_verificacion",
+        },
+        "status": "requires_verification",
+        "missing_fields": ["price"],
+    }
+    payload = {
+        "configuration_schema": 2,
+        "data": {
+            "pc_id": str(tower.id),
+            "pc_revision": tower.revision,
+            "objective": "gaming",
+            "budget_ars": "2000000.00",
+            "mode": "automatic",
+            "items": [item, unknown],
+            "missing_fields": [],
+            "limitations": ["Reference only"],
+        },
+    }
+    projection = project_tool_result("preview_recommendations", result(payload))
+    data = json.loads(projection.text)["data"]
+    first = data["items"][0]
+    assert first["key"] == "recommended"
+    assert first["evaluation"]["verdict"] == evaluation.verdict
+    assert first["evaluation"]["missing_fields"] == list(evaluation.missing_fields)
+    assert first["evaluation"]["scope"] == evaluation.scope.model_dump(mode="json")
+    assert first["actions"] == item["actions"]
+    assert first["cost"] == item["cost"]
+    assert first["offers"] == [
+        {
+            "amount": "1580050.00",
+            "currency": "ARS",
+            "store": "fixture",
+            "observed_at": "2026-11-06",
+            "source_url": "https://example.org/offer",
+            "price_citation": (
+                "1580050.00 ARS por unidad en fixture, precio visto el 2026-11-06"
+            ),
+        }
+    ]
+    for field in ("unit", "limitations", "source_url", "observed_on"):
+        assert first["benefit"]["source"][0][field] == source[field]
+    assert projection.byte_count <= MAX_TOOL_BYTES
+    assert "data_revision" not in first["evaluation"]
+    assert "raw_sha256" not in projection.text
+    assert first["evaluation"]["coverage"]["failed"] == list(evaluation.coverage.failed)
+    assert first["evaluation"]["coverage"]["unknown"] == list(
+        evaluation.coverage.unknown
+    )
+    assert "passed" not in first["evaluation"]["coverage"]
+
+
 def test_tower_plan_stage_missing_fields_reconstruct_exactly():
     tower, evaluation = tower_and_evaluation("unknown")
     stage_missing = ["stage.only.missing", "shared.missing"]

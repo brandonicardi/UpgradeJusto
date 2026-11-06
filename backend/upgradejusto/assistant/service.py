@@ -6,12 +6,25 @@ import json
 import anyio
 from fastapi.encoders import jsonable_encoder
 
-from .graph import ProviderRateLimited, RoundLimit, ToolFailure, run_turn
+from .graph import (
+    TURN_TIMEOUT_SECONDS,
+    ProviderRateLimited,
+    RoundLimit,
+    ToolFailure,
+    run_turn,
+)
 
 # Cleanup budgets, not increases to provider/turn timeouts. A stalled MCP close
 # must not prevent the independent pending->interrupted transaction.
 CLOSE_SECONDS = 2
 PERSIST_SECONDS = 3
+
+
+def root_failure(exc):
+    """The MCP client's task groups wrap turn failures, hiding their real type."""
+    while isinstance(exc, BaseExceptionGroup):
+        exc = exc.exceptions[0]
+    return exc
 
 
 def consume_task_result(task):
@@ -74,7 +87,7 @@ class AssistantService:
 
         async def produce():
             try:
-                async with asyncio.timeout(90):
+                async with asyncio.timeout(TURN_TIMEOUT_SECONDS):
                     await self.runner(raw, history, emit, identity)
                 if closing:
                     raise asyncio.CancelledError
@@ -97,16 +110,27 @@ class AssistantService:
                     # A teardown failure after disconnect is interruption, not
                     # another visible generation result or a queue write.
                     raise asyncio.CancelledError from None
-                code = (
-                    "round_limit"
-                    if isinstance(exc, RoundLimit)
-                    else "provider_rate_limited"
-                    if isinstance(exc, ProviderRateLimited)
-                    else "tool_output_limit_full_api_required"
-                    if isinstance(exc, ToolFailure)
-                    and str(exc) == "tool_output_limit_full_api_required"
-                    else "generation_failed"
-                )
+
+                def error_code(exc):
+                    if isinstance(exc, RoundLimit):
+                        return "round_limit"
+                    if isinstance(exc, ProviderRateLimited):
+                        return "provider_rate_limited"
+                    if isinstance(exc, ToolFailure):
+                        message = str(exc)
+                        if message == "tool_output_limit_full_api_required":
+                            return "tool_output_limit_full_api_required"
+                        mapping = {
+                            "schema_error_twice": "invalid_tool_call",
+                            "schema_error_after_text": "invalid_tool_call",
+                            "invalid_tool_input": "invalid_tool_call",
+                            "unknown_tool": "invalid_tool_call",
+                            "empty_provider_response": "provider_empty_response",
+                        }
+                        return mapping.get(message, "generation_failed")
+                    return "generation_failed"
+
+                code = error_code(root_failure(exc))
                 try:
                     await asyncio.to_thread(
                         self.repository.finish,

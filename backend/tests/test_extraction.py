@@ -73,6 +73,9 @@ def test_unknown_and_untrusted_text_are_not_selections():
     assert result.proposal.components == []
     assert result.proposal.context.bios_version is None
     assert len(result.evidence) == 6 and result.warnings
+    assert any(
+        "BIOS" in warning and "no se evalúa" in warning for warning in result.warnings
+    )
 
 
 def test_exact_selection_and_explicit_ram_set():

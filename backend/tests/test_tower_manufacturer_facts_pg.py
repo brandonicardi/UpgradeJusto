@@ -206,15 +206,16 @@ def test_real_memory_upgrade_reads_published_capacity(published, pg_engine):
     assert ddr5 and all(i.status == "rejected" for i in ddr5)
 
 
-def test_real_am5_ddr5_tower_with_declared_bios_fits(published, pg_engine):
+def test_real_am5_ddr5_tower_fits_with_any_declared_bios(published, pg_engine):
     parts = {
         **BASE,
         "cpu": "cg-16099",
         "motherboard": "cg-16653",
         "ram": "cg-16112",
     }
+    # Policy 2 never reads the BIOS: 3.01 and an earlier 2.10 both fit.
     assert verdict(pg_engine, parts, "3.01").verdict == "compatible"
-    assert verdict(pg_engine, parts, "2.10").verdict == "incompatible"
+    assert verdict(pg_engine, parts, "2.10").verdict == "compatible"
 
 
 def test_real_graphics_card_above_the_power_supply_does_not_fit(published, pg_engine):
@@ -223,14 +224,14 @@ def test_real_graphics_card_above_the_power_supply_does_not_fit(published, pg_en
     assert set(result.coverage.failed) == {"T05"}
 
 
-def test_real_tower_without_bios_needs_verification(published, pg_engine):
+def test_real_tower_without_bios_is_compatible(published, pg_engine):
     result = verdict(pg_engine, bios=None)
-    assert result.verdict == "requiere_verificacion"
-    assert result.missing_fields == ("cpu_support.installed_bios",)
+    assert result.verdict == "compatible"
+    assert not [field for field in result.missing_fields if "bios" in field.lower()]
 
 
-def test_real_tower_with_a_documented_older_bios_does_not_fit(published, pg_engine):
-    assert verdict(pg_engine, bios="P1.20").verdict == "incompatible"
+def test_real_tower_with_a_documented_older_bios_still_fits(published, pg_engine):
+    assert verdict(pg_engine, bios="P1.20").verdict == "compatible"
 
 
 @pytest.mark.parametrize(

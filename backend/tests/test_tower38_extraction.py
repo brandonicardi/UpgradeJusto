@@ -119,6 +119,10 @@ def test_full_catalog_three_quantities_no_bios_or_notes_or_compatibility():
     assert all(line.line_id is None for line in result.proposal.lines)
     assert result.proposal.context.bios_version is None
     assert result.proposal.context.notes is None
+    assert any(
+        "BIOS" in warning and "no se evalúa" in warning for warning in result.warnings
+    )
+    assert not any("desconocida" in warning for warning in result.warnings)
     assert result.requires_confirmation is True
     assert len(result.evidence) == 9
     assert "verdict" not in result.model_dump()

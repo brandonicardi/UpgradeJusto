@@ -70,6 +70,10 @@ def apply_tower_actions(tower, actions, catalog):
             result = Tower.model_validate(result.model_dump())
         except ValidationError:
             raise PCError(422, "Invalid simulated tower configuration") from None
+    if result.context.assembly_state == "assembled":
+        # A changed/future configuration is an installation to validate; it
+        # never inherits the declaration of the saved, already-working PC.
+        result.context.assembly_state = "new"
     return result
 
 

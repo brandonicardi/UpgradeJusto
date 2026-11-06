@@ -164,7 +164,11 @@ def test_preview_full_catalog_then_explicit_owner_confirmation(
     assert body["requires_confirmation"] is True
     assert len(body["evidence"]) == 9
     assert body["proposal"]["lines"][0]["component_id"] == selected.id
-    assert body["proposal"]["context"] == {"bios_version": None, "notes": None}
+    assert body["proposal"]["context"] == {
+        "bios_version": None,
+        "notes": None,
+        "assembly_state": None,
+    }
     assert pc_count(pg_engine, a[2]) == before
     assert_no_lease(pg_engine, a[2])
     body["proposal"]["name"] = "Edited explicitly confirmed TEST tower"

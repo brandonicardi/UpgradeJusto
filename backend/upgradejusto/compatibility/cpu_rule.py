@@ -1,10 +1,15 @@
-"""R01 pura: socket, identidad/revisión exacta y relación BIOS documentada."""
+"""R01 pura: socket, identidad/revisión exacta y soporte CPU/placa documentado.
+
+La variante ``cpu_support`` conserva la relación BIOS del motor stock. La
+variante ``cpu_support_documented`` no lee ni evalúa la BIOS: exige la misma
+fila exacta con evidencia y nunca falla por una BIOS anterior declarada.
+"""
 
 from .models import Fact, ResolvedConfiguration
 from .rules import _result
 
 
-def cpu_support(config: ResolvedConfiguration):
+def _support(config: ResolvedConfiguration, evaluate_bios: bool):
     data = config.cpu_support
     if data is None:
         categories = {part.category for part in config.parts}
@@ -20,8 +25,9 @@ def cpu_support(config: ResolvedConfiguration):
     facts = [
         Fact(name="cpu_model", value=cpu.model),
         Fact(name="motherboard_model", value=board.model),
-        Fact(name="installed_bios_declared", value=data.installed_bios),
     ]
+    if evaluate_bios:
+        facts.append(Fact(name="installed_bios_declared", value=data.installed_bios))
     refs, missing, observations = [], [], {}
     failed = False
     for name in ("cpu_socket", "motherboard_socket", "applicable_revision"):
@@ -54,29 +60,48 @@ def cpu_support(config: ResolvedConfiguration):
     )
     if len(rows) != 1 or not rows[0].evidence:
         missing.append("cpu_support.exact_support_row")
-        if data.installed_bios is not None:
+        if evaluate_bios and data.installed_bios is not None:
             missing.append("cpu_support.bios_relation")
     else:
         row = rows[0]
         refs.extend(row.evidence)
-        facts.append(Fact(name="minimum_bios", value=row.minimum_bios))
-        if data.installed_bios == row.minimum_bios:
-            facts.append(Fact(name="bios_requirement_met", value=True))
-        elif data.installed_bios in row.earlier_bios:
-            failed = True
-            facts.append(Fact(name="bios_requirement_met", value=False))
-        elif data.installed_bios is not None:
-            missing.append("cpu_support.bios_relation")
-    if data.installed_bios is None:
-        missing.append("cpu_support.installed_bios")
+        if evaluate_bios:
+            facts.append(Fact(name="minimum_bios", value=row.minimum_bios))
+            if data.installed_bios == row.minimum_bios:
+                facts.append(Fact(name="bios_requirement_met", value=True))
+            elif data.installed_bios in row.earlier_bios:
+                failed = True
+                facts.append(Fact(name="bios_requirement_met", value=False))
+            elif data.installed_bios is not None:
+                missing.append("cpu_support.bios_relation")
+    if evaluate_bios:
+        if data.installed_bios is None:
+            missing.append("cpu_support.installed_bios")
+        conditions = (
+            "BIOS instalada declarada por usuario; no es evidencia curada de instalación",
+            "BIOS anterior falla requisito de soporte; no afirma imposibilidad física de POST",
+        )
+    else:
+        conditions = (
+            "Soporte documentado del modelo exacto de CPU en el modelo exacto de placa; "
+            "el socket por sí solo no alcanza",
+            "La versión de BIOS no se evalúa ni cambia este resultado",
+        )
     return _result(
         "R01",
         "fail" if failed else "unknown" if missing else "pass",
         facts,
         refs,
-        (
-            "BIOS instalada declarada por usuario; no es evidencia curada de instalación",
-            "BIOS anterior falla requisito de soporte; no afirma imposibilidad física de POST",
-        ),
+        conditions,
         missing,
     )
+
+
+def cpu_support(config: ResolvedConfiguration):
+    """Stock R01: socket, exact row and documented BIOS relation."""
+    return _support(config, evaluate_bios=True)
+
+
+def cpu_support_documented(config: ResolvedConfiguration):
+    """Essential R01: exact CPU/board support without reading or judging BIOS."""
+    return _support(config, evaluate_bios=False)

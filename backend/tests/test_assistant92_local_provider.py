@@ -66,8 +66,41 @@ def test_extraction_factory_remains_groq_even_when_chat_local(monkeypatch):
             "max_retries": 0,
             "http_async_client": client,
             "temperature": 0,
+            "reasoning_effort": "low",
         }
     ]
+
+
+@pytest.mark.parametrize(
+    "model_name,has_reasoning",
+    [
+        ("openai/gpt-oss-20b", True),
+        ("openai/gpt-oss-120b", True),
+        ("llama-3.3-70b-versatile", False),
+        ("mixtral-8x7b-32768", False),
+    ],
+)
+def test_reasoning_effort_only_for_gpt_oss(monkeypatch, model_name, has_reasoning):
+    isolated_settings(monkeypatch, GROQ_MODEL=model_name)
+    calls = []
+    sentinel, client = object(), object()
+
+    def constructor(**kwargs):
+        calls.append(kwargs)
+        return sentinel
+
+    monkeypatch.setattr(provider, "ChatGroq", constructor)
+    assert provider.model(client) is sentinel
+    expected = {
+        "model": model_name,
+        "timeout": 30,
+        "max_retries": 0,
+        "http_async_client": client,
+        "temperature": 0,
+    }
+    if has_reasoning:
+        expected["reasoning_effort"] = "low"
+    assert calls == [expected]
 
 
 @pytest.mark.parametrize(

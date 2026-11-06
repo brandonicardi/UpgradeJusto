@@ -151,7 +151,7 @@ def stock_published(admin_actors, pg_engine):
             assert resource_snapshot(conn, original) == original_resources
 
 
-def create_tower(actor, selected=None):
+def create_tower(actor, selected=None, context=None):
     selected = selected or groups(True)
     selected_categories = {line["category"] for line in selected}
     data = {
@@ -172,7 +172,8 @@ def create_tower(actor, selected=None):
             )
         },
         "lines": selected,
-        "context": {"bios_version": "P2.30", "notes": "PRIVATE SYNTHETIC ACCOUNT"},
+        "context": context
+        or {"bios_version": "P2.30", "notes": "PRIVATE SYNTHETIC ACCOUNT"},
     }
     response = actor[0].post("/api/towers", headers=actor[1], json=data)
     assert response.status_code == 201, response.text
@@ -215,7 +216,7 @@ def test_tower_http_unknown_negative_and_simulation_never_write(
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["verdict"] == "requiere_verificacion"
-    assert body["scope"]["id"] == "cu05-tower-essential-1"
+    assert body["scope"]["id"] == "cu05-tower-essential-2"
     assert body["coverage"]["required"] == list(ESSENTIAL_REQUIRED)
     assert body["evaluated_configuration"] == tower
     assert response.headers["cache-control"] == "no-store"
@@ -256,6 +257,36 @@ def test_tower_http_unknown_negative_and_simulation_never_write(
     assert ram[0]["line_id"] != ram_id
     assert snapshot(pg_engine, tower) == before
     assert a[0].get(root(tower)).json() == tower
+
+
+def test_tower_assembly_state_round_trip_and_invalid_value(stock_published):
+    a, _, _ = stock_published
+    created = create_tower(
+        a,
+        context={
+            "bios_version": None,
+            "notes": None,
+            "assembly_state": "assembled",
+        },
+    )
+    assert created["context"]["assembly_state"] == "assembled"
+    assert a[0].get(root(created)).json()["context"]["assembly_state"] == "assembled"
+    update = {
+        key: created[key]
+        for key in ("schema_version", "name", "category_status", "lines")
+    }
+    update["revision"] = created["revision"]
+    update["context"] = {**created["context"], "assembly_state": "new"}
+    changed = a[0].put(root(created), headers=a[1], json=update)
+    assert changed.status_code == 200, changed.text
+    assert changed.json()["context"]["assembly_state"] == "new"
+    assert a[0].get(root(created)).json()["context"]["assembly_state"] == "new"
+    invalid = {
+        **update,
+        "revision": changed.json()["revision"],
+        "context": {**update["context"], "assembly_state": "built"},
+    }
+    assert a[0].put(root(created), headers=a[1], json=invalid).status_code == 422
 
 
 def test_tower_http_owner_csrf_auth_revision_and_reject_evidence(stock_published):
@@ -351,7 +382,7 @@ def test_tower_actions_do_not_reinterpret_legacy_plan_share_bytes(stock_publishe
         root(tower) + "/evaluate", headers=a[1], json={"expected_pc_revision": 1}
     )
     assert response.status_code == 200, response.text
-    assert response.json()["scope"]["id"] == "cu05-tower-essential-1"
+    assert response.json()["scope"]["id"] == "cu05-tower-essential-2"
     assert [a[0].get(path).content for path in paths] == before
     assert a[0].get(f"/api/pcs/{legacy['id']}").json() == legacy
 

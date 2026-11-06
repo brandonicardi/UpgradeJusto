@@ -1,6 +1,6 @@
 """Contrato estricto CU03: desconocidos explícitos, RAM conjunto completo."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import (
@@ -37,6 +37,8 @@ class ComponentGroup(InputModel):
 class PCContext(InputModel):
     bios_version: StrictStr | None
     notes: StrictStr | None
+    # Explicit user declaration; never inferred from a saved PC.
+    assembly_state: Literal["assembled", "new"] | None = None
 
     @field_validator("bios_version", "notes")
     @classmethod

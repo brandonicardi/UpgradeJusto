@@ -1,6 +1,7 @@
 """Essential policy proofs on synthetic facts: not hardware certification."""
 
 from copy import deepcopy
+from uuid import UUID
 
 import pytest
 from test_tower38_engine import REF, fixture
@@ -11,7 +12,11 @@ from upgradejusto.compatibility.tower_contract import (
     TowerComponentEvidence,
     TowerTechnicalEvidenceDTO,
 )
-from upgradejusto.compatibility.tower_essential import evaluate_tower_essential
+from upgradejusto.compatibility.tower_essential import (
+    PHYSICAL_SPACE_CHECK_ID,
+    PHYSICAL_SPACE_NOT_EVALUATED,
+    evaluate_tower_essential,
+)
 
 
 def evaluate(tower, fields, support):
@@ -45,8 +50,10 @@ def test_full_positive_with_fixed_essential_coverage_and_versions():
     assert result.coverage.required == ESSENTIAL_REQUIRED
     assert result.coverage.evaluated == ESSENTIAL_REQUIRED
     assert [r.rule_id for r in result.rule_results] == list(ESSENTIAL_REQUIRED)
-    assert result.scope.id == "cu05-tower-essential-1"
-    assert result.rules_version == "cu05-tower-essential-engine-1"
+    assert result.scope.id == "cu05-tower-essential-2"
+    assert result.scope.policy_version == "tower-essential-policy-2"
+    assert result.scope.inventory_version == "tower-essential-inventory-1"
+    assert result.rules_version == "cu05-tower-essential-engine-2"
     assert tower.model_dump() == original
     assert result == evaluate(tower, fields, support)
 
@@ -87,16 +94,10 @@ def test_unknown_cooler_presence_does_not_block_identification():
         ("ram", "memory_type", "T02"),
         ("ram", "capacity_gb", "T02"),
         ("motherboard", "pcie_slot", "T03"),
-        ("gpu", "length_mm", "T04"),
-        ("case", "gpu_limit_mm", "T04"),
         ("psu", "continuous_power_w", "T05"),
         ("gpu", "gpu_power_kind", "T06"),
         ("gpu", "gpu_power_count", "T06"),
         ("psu", "pcie8_count", "T06"),
-        ("motherboard", "form_factor", "T07"),
-        ("case", "board_formats", "T07"),
-        ("psu", "form_factor", "T07"),
-        ("case", "psu_formats", "T07"),
         ("motherboard", "tower_ports", "T08"),
         ("storage", "storage_interface", "T08"),
         ("storage", "storage_form", "T08"),
@@ -179,23 +180,55 @@ def test_same_socket_is_not_enough_without_a_model_support_row():
     assert state(result, "T01") == "unknown"
 
 
-def test_bios_relation_is_kept():
+def test_missing_or_earlier_bios_never_changes_the_new_verdict():
     tower, fields, support = fixture()
-    tower.context.bios_version = "OLD"
-    assert state(evaluate(tower, fields, support), "T01") == "fail"
-    tower.context.bios_version = None
-    result = evaluate(tower, fields, support)
-    assert result.verdict == "requiere_verificacion"
-    assert "cpu_support.installed_bios" in result.missing_fields
+    for bios in (None, "OLD", "EXACT-plus"):
+        tower.context.bios_version = bios
+        result = evaluate(tower, fields, support)
+        # The support row is exact; BIOS is a stored datum, not a decision input.
+        assert result.verdict == "compatible"
+        assert state(result, "T01") == "pass"
+        assert not any("bios" in field.lower() for field in result.missing_fields)
+
+
+def test_new_policy_emits_no_bios_fact_or_missing_field():
+    tower, fields, support = fixture()
+    for bios in (None, "OLD", "EXACT-plus"):
+        tower.context.bios_version = bios
+        result = evaluate(tower, fields, support)
+        facts = [
+            fact.name
+            for rule in result.rule_results
+            for fact in rule.facts
+            if "bios" in fact.name.lower()
+        ]
+        missing = [
+            field
+            for rule in result.rule_results
+            for field in rule.missing_fields
+            if "bios" in field.lower()
+        ]
+        assert facts == [] and missing == []
+        assert not [field for field in result.missing_fields if "bios" in field.lower()]
+
+
+def test_scope_declares_bios_out_of_scope_without_claiming_validation():
+    result = evaluate(*fixture())
+    declared = " ".join(result.scope.excludes).casefold()
+    assert "bios" in declared and "no se evalúa" in declared
+    assert "validada" not in declared
+    assert any(
+        "BIOS" in warning and "no se evalúa" in warning for warning in result.warnings
+    )
 
 
 def test_failure_dominates_and_keeps_missing():
     tower, fields, support = fixture()
     fields["ram"]["memory_type"] = "DDR5"
-    del fields["gpu"]["length_mm"]
+    del fields["psu"]["continuous_power_w"]
     result = evaluate(tower, fields, support)
     assert result.verdict == "incompatible"
-    assert "gpu.length_mm" in result.missing_fields
+    assert "psu.continuous_power_w" in result.missing_fields
 
 
 def test_nvme_does_not_need_sata_power_evidence():
@@ -258,6 +291,164 @@ def test_declared_absence_of_an_essential_category_fails():
     tower, fields, support = fixture()
     tower.category_status["psu"] = "absent"
     assert evaluate(tower, fields, support).verdict == "incompatible"
+
+
+def with_unknown_case(assembly_state=None):
+    tower, fields, support = fixture()
+    tower.lines = [line for line in tower.lines if line.category != "case"]
+    tower.category_status["case"] = "unknown"
+    tower.context.assembly_state = assembly_state
+    return tower, fields, support
+
+
+def assembled_with_unknown_case():
+    tower, fields, support = with_unknown_case("assembled")
+    sata(fields)
+    return tower, fields, support
+
+
+def physical_notice(result):
+    return [
+        check
+        for check in result.additional_checks
+        if check.id == PHYSICAL_SPACE_CHECK_ID
+    ]
+
+
+def test_assembled_pc_with_unknown_case_leaves_physical_checks_unapplied():
+    tower, fields, support = assembled_with_unknown_case()
+    result = evaluate(tower, fields, support)
+    assert result.verdict == "compatible"
+    assert result.coverage.complete
+    assert state(result, "T04") == "not_applicable"
+    assert state(result, "T07") == "not_applicable"
+    assert state(result, "T08") == "not_applicable"
+    assert result.coverage.not_applicable == ("T04", "T07", "T08")
+    assert result.coverage.evaluated == tuple(
+        rule.rule_id for rule in result.rule_results if rule.state in ("pass", "fail")
+    )
+    assert not {"T04", "T07", "T08"} & set(result.coverage.evaluated)
+    for rule in result.rule_results:
+        if rule.rule_id in ("T04", "T07"):
+            assert PHYSICAL_SPACE_NOT_EVALUATED in rule.conditions
+        elif rule.rule_id == "T08":
+            assert any(
+                "ya está armada" in condition
+                and "gabinete no se identificó" in condition
+                for condition in rule.conditions
+            )
+    assert not [
+        field
+        for field in result.missing_fields
+        if field.startswith(("case.", "gpu.length_mm", "case.gpu_limit_mm"))
+    ]
+    assert "case.presence" not in [
+        missing for rule in result.rule_results for missing in rule.missing_fields
+    ]
+    assert PHYSICAL_SPACE_NOT_EVALUATED in result.warnings
+    assert [check.reason for check in physical_notice(result)] == [
+        PHYSICAL_SPACE_NOT_EVALUATED
+    ]
+
+
+def test_pc_without_declaration_also_leaves_physical_checks_unapplied():
+    tower, fields, support = with_unknown_case()
+    result = evaluate(tower, fields, support)
+    assert result.verdict == "compatible"
+    assert result.coverage.complete
+    assert state(result, "T04") == "not_applicable"
+    assert state(result, "T07") == "not_applicable"
+    assert state(result, "T08") == "pass"
+    assert result.coverage.not_applicable == ("T04", "T07")
+    assert "case.presence" not in result.missing_fields
+    assert PHYSICAL_SPACE_NOT_EVALUATED in result.warnings
+    assert len(physical_notice(result)) == 1
+
+
+def test_no_declaration_keeps_t08_unknown_when_it_depends_on_unknown_case():
+    tower, fields, support = assembled_with_unknown_case()
+    tower.context.assembly_state = None
+    result = evaluate(tower, fields, support)
+    assert result.verdict == "requiere_verificacion"
+    assert not result.coverage.complete
+    assert state(result, "T04") == "not_applicable"
+    assert state(result, "T07") == "not_applicable"
+    assert state(result, "T08") == "unknown"
+    assert "case.presence" not in result.missing_fields
+
+
+def test_future_gpu_does_not_inherit_assembled_declaration():
+    from upgradejusto.compatibility.tower_application import apply_tower_actions
+    from upgradejusto.compatibility.tower_http_models import TowerAction
+    from upgradejusto.pcs.tower_models import Tower
+
+    tower, fields, support = assembled_with_unknown_case()
+    saved = Tower.model_validate(
+        {
+            **tower.model_dump(),
+            "id": UUID(int=1),
+            "revision": 1,
+            "origin_schema": 2,
+        }
+    )
+    action = TowerAction(
+        action="replace_category",
+        category="gpu",
+        candidates=[{"declared_model": "Future synthetic GPU", "quantity": 1}],
+    )
+    changed = apply_tower_actions(saved, [action], {})
+    assert changed.context.assembly_state == "new"
+    result = evaluate(changed, fields, support)
+    # T04/T07 are always disclosed as not evaluated without measurements; the
+    # assembled-only T08 treatment is what must not be inherited.
+    assert state(result, "T04") == "not_applicable"
+    assert state(result, "T08") == "unknown"
+
+
+def test_missing_gpu_measurement_does_not_block_t04():
+    tower, fields, support = fixture()
+    del fields["gpu"]["length_mm"]
+    result = evaluate(tower, fields, support)
+    assert result.verdict == "compatible"
+    assert state(result, "T04") == "not_applicable"
+    assert PHYSICAL_SPACE_NOT_EVALUATED in result.warnings
+
+
+@pytest.mark.parametrize(
+    ("change", "rule"),
+    [
+        (lambda fields: fields["gpu"].update(length_mm=400), "T04"),
+        (lambda fields: fields["case"].update(board_formats=["mATX"]), "T07"),
+    ],
+)
+def test_documented_physical_conflict_is_never_hidden(change, rule):
+    tower, fields, support = fixture()
+    change(fields)
+    result = evaluate(tower, fields, support)
+    assert result.verdict == "incompatible"
+    assert state(result, rule) == "fail"
+    assert not physical_notice(result)
+    assert PHYSICAL_SPACE_NOT_EVALUATED not in result.warnings
+
+
+def test_cooler_and_fans_stay_optional_on_an_assembled_pc():
+    tower, fields, support = assembled_with_unknown_case()
+    tower.category_status["cooler"] = "unknown"
+    tower.category_status["fan"] = "absent"
+    result = evaluate(tower, fields, support)
+    assert result.verdict == "compatible"
+    assert not [
+        field for field in result.missing_fields if field.startswith(("cooler", "fan"))
+    ]
+
+
+def test_assembled_never_turns_a_documented_failure_into_not_applicable():
+    tower, fields, support = fixture()
+    tower.context.assembly_state = "assembled"
+    fields["gpu"]["length_mm"] = 400
+    result = evaluate(tower, fields, support)
+    assert result.verdict == "incompatible"
+    assert state(result, "T04") == "fail"
 
 
 def test_absent_gpu_is_not_proof_of_integrated_video():

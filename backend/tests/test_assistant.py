@@ -8,7 +8,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from upgradejusto.assistant.graph import RoundLimit
+from upgradejusto.assistant.graph import ProviderRateLimited, RoundLimit, ToolFailure
 from upgradejusto.assistant.models import ConversationCreate, MessageCreate
 from upgradejusto.assistant.provider import tls_context
 from upgradejusto.assistant.service import AssistantService
@@ -65,6 +65,38 @@ def test_stream_partial_failure_never_success(failure):
     asyncio.run(collect())
 
 
+@pytest.mark.parametrize(
+    "failure,code",
+    [
+        (ProviderRateLimited("rate_limit"), "provider_rate_limited"),
+        (RoundLimit(), "round_limit"),
+        (ToolFailure("schema_error_twice"), "invalid_tool_call"),
+    ],
+)
+def test_failures_wrapped_by_the_mcp_client_keep_their_code(failure, code):
+    """The real MCP client nests task groups; the fake runner must do the same."""
+
+    class FaultRepository:
+        def finish(self, *args):
+            pass
+
+        def interrupt_pending(self, *args):
+            return False
+
+    async def failing(raw, history, emit, conversation_id):
+        raise ExceptionGroup("outer", [ExceptionGroup("inner", [failure])])
+
+    async def collect():
+        stream = AssistantService(FaultRepository(), failing).stream(
+            uuid4(), uuid4(), uuid4(), "opaque", []
+        )
+        return [part async for part in stream]
+
+    frames = asyncio.run(collect())
+    error = next(frame for frame in frames if "event: error" in frame)
+    assert json.loads(error.split("data: ", 1)[1])["code"] == code
+
+
 def test_persistence_failure_cannot_confirm_history():
     class FaultRepository:
         def finish(self, *args):
@@ -86,6 +118,43 @@ def test_persistence_failure_cannot_confirm_history():
         text = "".join(frames)
         assert "history_unavailable" in text and "event: done" not in text
         assert "SQL_PRIVATE" not in text
+
+    asyncio.run(collect())
+
+
+@pytest.mark.parametrize(
+    "raised,expected_code",
+    [
+        (ToolFailure("schema_error_twice"), "invalid_tool_call"),
+        (ToolFailure("schema_error_after_text"), "invalid_tool_call"),
+        (ToolFailure("invalid_tool_input"), "invalid_tool_call"),
+        (ToolFailure("unknown_tool"), "invalid_tool_call"),
+        (ToolFailure("empty_provider_response"), "provider_empty_response"),
+    ],
+)
+def test_tool_failure_codes_map_to_safe_errors(raised, expected_code):
+    class FaultRepository:
+        def finish(self, *args):
+            pass
+
+        def interrupt_pending(self, *args):
+            pass
+
+    async def failing(raw, history, emit, conversation_id):
+        raise raised
+
+    async def collect():
+        frames = [
+            part
+            async for part in AssistantService(FaultRepository(), failing).stream(
+                uuid4(), uuid4(), uuid4(), "opaque", []
+            )
+        ]
+        text = "".join(frames)
+        assert f'"code": "{expected_code}"' in text
+        assert '"retryable": false' in text
+        assert "event: done" not in text
+        assert "SECRET" not in text and "opaque" not in text
 
     asyncio.run(collect())
 

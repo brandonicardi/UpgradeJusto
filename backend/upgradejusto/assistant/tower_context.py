@@ -81,6 +81,8 @@ def load_context(engine, owner, request):
     snapshot = {
         "context_version": 2,
         "configuration_schema": request.configuration_schema,
+        "pc_id": str(request.pc_id),
+        "expected_pc_revision": request.expected_pc_revision,
         "configuration": configuration,
         "catalog_version": catalog.dataset_version,
         "selected_components": {

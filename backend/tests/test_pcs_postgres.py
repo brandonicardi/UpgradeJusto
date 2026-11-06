@@ -110,7 +110,11 @@ def test_crud_replacement_and_unknown_context(actors):
     )
     assert set(pc) == {"id", "name", "revision", "components", "context"}
     assert pc["name"] == "PC manual" and pc["revision"] == 1
-    assert pc["context"] == {"bios_version": "Declarada-0123", "notes": None}
+    assert pc["context"] == {
+        "bios_version": "Declarada-0123",
+        "notes": None,
+        "assembly_state": None,
+    }
     path = f"{BASE}/{pc['id']}"
     assert client.get(path).json() == pc
     listed = client.get(BASE, params={"page_size": 1}).json()
@@ -131,7 +135,11 @@ def test_crud_replacement_and_unknown_context(actors):
     assert updated["components"] == [
         {"category": "cpu", "component_id": "P01", "quantity": 1}
     ]
-    assert updated["context"] == {"bios_version": None, "notes": "Nota declarada"}
+    assert updated["context"] == {
+        "bios_version": None,
+        "notes": "Nota declarada",
+        "assembly_state": None,
+    }
     assert client.get(path).json() == updated
     assert client.delete(path, headers=headers).status_code == 204
     assert client.get(path).status_code == 404

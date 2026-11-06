@@ -7,7 +7,7 @@ never a demo-specific pass.
 from .basic_contract import RULES_VERSION, AdditionalCheck, BasicScope, scope_notices
 from .basic_policy import stock_power
 from .basic_specs import BasicSpecs
-from .cpu_rule import cpu_support
+from .cpu_rule import cpu_support, cpu_support_documented
 from .models import Coverage, EvaluationResult, Fact, RuleResult
 from .resource_rules import front_functions, storage
 
@@ -76,9 +76,9 @@ def _remap(result, identity):
     )
 
 
-def _basic_cpu_support(config, cpu, board):
+def _basic_cpu_support(config, cpu, board, *, evaluate_bios=True):
     """Reconcile independent published socket evidence without masking BIOS fail."""
-    original = cpu_support(config)
+    original = cpu_support(config) if evaluate_bios else cpu_support_documented(config)
     facts, refs, missing = (
         list(original.facts),
         list(original.evidence),
@@ -118,7 +118,9 @@ def _basic_cpu_support(config, cpu, board):
         evidence=tuple(dict.fromkeys(refs)),
         conditions=original.conditions
         + (
-            "Socket: reconciliar soporte CPU y fuentes publicadas; contradicción sin prioridad documental resuelta exige verificación, sin borrar fallos BIOS conocidos",
+            "Socket: reconciliar soporte CPU y fuentes publicadas; contradicción sin "
+            "prioridad documental resuelta exige verificación"
+            + (", sin borrar fallos BIOS conocidos" if evaluate_bios else ""),
         ),
         missing_fields=tuple(dict.fromkeys(missing)),
     )

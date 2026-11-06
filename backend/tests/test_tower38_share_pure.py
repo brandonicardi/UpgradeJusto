@@ -11,11 +11,24 @@ from test_tower38_recommend_pure import NOW, catalog, cpus, part, tower
 
 from upgradejusto.catalog.models import Source
 from upgradejusto.catalog.service import ResolvedCatalog
+from upgradejusto.compatibility.tower_contract import (
+    EssentialScope,
+    EssentialScopeV2,
+    TowerScope,
+)
+from upgradejusto.compatibility.tower_essential import PHYSICAL_SPACE_NOT_EVALUATED
 from upgradejusto.pcs.service import PCError
 from upgradejusto.recommendations.tower_service import replacement
 from upgradejusto.shares.tower_models import TowerPublishRequest
 from upgradejusto.shares.tower_projection import TowerPublicProjection
-from upgradejusto.shares.tower_registry import money, typed_value, url_class
+from upgradejusto.shares.tower_registry import (
+    ESSENTIAL_ORIGIN,
+    EXCLUDES,
+    ORIGIN,
+    money,
+    typed_value,
+    url_class,
+)
 from upgradejusto.shares.tower_service import (
     ProjectionGeneration,
     ReadBudgetExceeded,
@@ -37,6 +50,217 @@ def projection_fixture():
 
 def project(document, sources):
     return ProjectionGeneration().project(document, TITLE, sources, 1, NOW)
+
+
+def recount(evaluation):
+    rules = evaluation["rule_results"]
+    evaluation["coverage"].update(
+        passed=[rule["rule_id"] for rule in rules if rule["state"] == "pass"],
+        failed=[rule["rule_id"] for rule in rules if rule["state"] == "fail"],
+        unknown=[rule["rule_id"] for rule in rules if rule["state"] == "unknown"],
+        not_applicable=[
+            rule["rule_id"] for rule in rules if rule["state"] == "not_applicable"
+        ],
+        evaluated=[
+            rule["rule_id"] for rule in rules if rule["state"] in ("pass", "fail")
+        ],
+    )
+
+
+def mutate_state(evaluation, identity, state, conditions=None):
+    rule = next(
+        rule for rule in evaluation["rule_results"] if rule["rule_id"] == identity
+    )
+    rule["state"] = state
+    if conditions is not None:
+        rule["conditions"] = conditions
+    if state == "not_applicable":
+        rule["missing_fields"] = []
+    recount(evaluation)
+
+
+def as_v1(document):
+    document = deepcopy(document)
+    document["versions"].update(
+        {
+            key: ESSENTIAL_ORIGIN[key]
+            for key in ("scope", "policy", "inventory", "rules")
+        }
+    )
+    for item in document["stages"]:
+        evaluation = item["evaluation"]
+        for rule in evaluation["rule_results"]:
+            if rule["state"] == "not_applicable":
+                # Authentic v1 snapshots never carried n/a.
+                rule["state"] = "unknown"
+                rule["missing_fields"] = ["case.not_evaluated_in_v1"]
+        evaluation["rules_version"] = ESSENTIAL_ORIGIN["rules"]
+        evaluation["scope"] = EssentialScope().model_dump(mode="json")
+        evaluation["warnings"] = list(EssentialScope().excludes)
+        recount(evaluation)
+    return document
+
+
+def as_stock(document):
+    document = as_v1(document)
+    document["versions"].update(
+        {key: ORIGIN[key] for key in ("scope", "policy", "inventory", "rules")}
+    )
+    ids = [f"T{index:02}" for index in range(1, 13)]
+    for item in document["stages"]:
+        item["evaluation"].update(
+            rules_version=ORIGIN["rules"],
+            scope=TowerScope().model_dump(mode="json"),
+            warnings=list(EXCLUDES),
+            additional_checks=[],
+            missing_fields=[],
+            verdict="compatible",
+            rule_results=[
+                {
+                    "rule_id": rule_id,
+                    "family": rule_id,
+                    "state": "pass",
+                    "facts": [],
+                    "evidence": [],
+                    "conditions": [],
+                    "missing_fields": [],
+                }
+                for rule_id in ids
+            ],
+            coverage={
+                "required": ids,
+                "implemented": ids,
+                "evaluated": ids,
+                "passed": ids,
+                "failed": [],
+                "unknown": [],
+                "not_applicable": [],
+                "not_implemented": [],
+                "complete": True,
+            },
+        )
+    return document
+
+
+def test_essential_v2_labels_and_v1_stock_contracts_stay_accepted():
+    document, sources = projection_fixture()
+    v2 = project(document, sources)
+    assert v2["versions"]["scope"] == "cu05-tower-essential-2"
+    assert v2["versions"]["policy"] == "tower-essential-policy-2"
+    assert v2["versions"]["rules"] == "cu05-tower-essential-engine-2"
+    evaluation = v2["stages"][0]["evaluation"]
+    assert evaluation["scope"]["id"] == "cu05-tower-essential-2"
+    assert evaluation["scope"]["excludes"] == list(EssentialScopeV2().excludes)
+    assert evaluation["rule_results"][0]["reason"].startswith("CPU y placa: ")
+    assert not [
+        fact
+        for rule in evaluation["rule_results"]
+        for fact in rule["facts"]
+        if "bios" in json.dumps(fact).lower()
+    ]
+    assert not [
+        missing
+        for rule in evaluation["rule_results"]
+        for missing in rule["missing_fields"]
+        if "bios" in json.dumps(missing).lower()
+    ]
+
+    v1_document = as_v1(document)
+    v1_before = deepcopy(v1_document)
+    v1 = project(v1_document, sources)
+    assert v1_document == v1_before
+    assert v1["versions"]["scope"] == "cu05-tower-essential-1"
+    assert v1["stages"][0]["evaluation"]["scope"]["id"] == "cu05-tower-essential-1"
+    assert v1["stages"][0]["evaluation"]["rule_results"][0]["reason"].startswith(
+        "CPU/placa/BIOS: "
+    )
+    assert v1["stages"][0]["evaluation"]["scope"]["excludes"] == list(
+        EssentialScope().excludes
+    )
+
+    stock_document = as_stock(v1_document)
+    ids = [f"T{index:02}" for index in range(1, 13)]
+    stock_before = deepcopy(stock_document)
+    stock = project(stock_document, sources)
+    assert stock_document == stock_before
+    assert stock["versions"]["scope"] == "cu05-tower-stock-1"
+    assert stock["versions"]["rules"] == "cu05-tower-stock-engine-1"
+    assert [
+        rule["rule_id"] for rule in stock["stages"][0]["evaluation"]["rule_results"]
+    ] == (ids)
+    assert stock["stages"][0]["evaluation"]["scope"]["id"] == "cu05-tower-stock-1"
+    assert stock["stages"][0]["evaluation"]["rule_results"][0]["reason"].startswith(
+        "CPU/placa/BIOS: "
+    )
+
+
+def test_essential_v2_not_applicable_and_physical_warning_are_validated():
+    document, sources = projection_fixture()
+    evaluation = document["stages"][0]["evaluation"]
+    rules = {rule["rule_id"]: rule for rule in evaluation["rule_results"]}
+    assert rules["T04"]["state"] == "not_applicable"
+    assert rules["T07"]["state"] == "not_applicable"
+    assert PHYSICAL_SPACE_NOT_EVALUATED in evaluation["warnings"]
+    public = project(document, sources)
+    projected = public["stages"][0]["evaluation"]
+    states = {rule["rule_id"]: rule for rule in projected["rule_results"]}
+    assert states["T04"]["state"] == "not_applicable"
+    assert states["T07"]["state"] == "not_applicable"
+    assert states["T04"]["reason"].startswith("Largo GPU: no evaluada")
+    assert states["T07"]["reason"].startswith("Formatos y montaje: no evaluada")
+    assert set(projected["coverage"]["not_applicable"]) >= {"T04", "T07"}
+    assert not {"T04", "T07"} & set(projected["coverage"]["evaluated"])
+    # The free-text notice is reserved, never republished verbatim.
+    assert PHYSICAL_SPACE_NOT_EVALUATED not in json.dumps(public)
+
+
+def test_essential_v2_accepts_all_physical_checks_as_not_applicable_with_reason():
+    document, sources = projection_fixture()
+    evaluation = document["stages"][0]["evaluation"]
+    for identity in ("T04", "T07", "T08"):
+        mutate_state(
+            evaluation, identity, "not_applicable", [PHYSICAL_SPACE_NOT_EVALUATED]
+        )
+    public = project(document, sources)
+    projected = public["stages"][0]["evaluation"]
+    assert set(projected["coverage"]["not_applicable"]) == {"T04", "T07", "T08"}
+    assert all(
+        rule["state"] == "not_applicable"
+        for rule in projected["rule_results"]
+        if rule["rule_id"] in ("T04", "T07", "T08")
+    )
+
+
+@pytest.mark.parametrize("identity", ["T01", "T02"])
+def test_essential_v2_rejects_not_applicable_outside_physical_checks(identity):
+    document, sources = projection_fixture()
+    evaluation = document["stages"][0]["evaluation"]
+    mutate_state(evaluation, identity, "not_applicable", ["Synthetic reason"])
+    with pytest.raises(PCError) as error:
+        project(document, sources)
+    assert error.value.status == 422
+
+
+def test_essential_v2_rejects_not_applicable_without_conditions():
+    document, sources = projection_fixture()
+    mutate_state(document["stages"][0]["evaluation"], "T04", "not_applicable", [])
+    with pytest.raises(PCError) as error:
+        project(document, sources)
+    assert error.value.status == 422
+
+
+def test_essential_v1_and_stock_reject_not_applicable():
+    document, sources = projection_fixture()
+    for converted in (as_v1(document), as_stock(document)):
+        mutate_state(
+            converted["stages"][0]["evaluation"],
+            "T04",
+            "not_applicable",
+            ["Synthetic reason"],
+        )
+        with pytest.raises(PCError) as error:
+            project(converted, sources)
+        assert error.value.status == 422
 
 
 def test_all_three_contexts_free_facts_reasons_and_future_keys_never_escape():
@@ -118,6 +342,10 @@ def test_closed_inventory_fail_dominates_without_erasing_missing():
         ]
     rule["state"] = "fail"
     evaluation["coverage"]["failed"].insert(0, "T01")
+    evaluation["coverage"]["evaluated"] = [
+        "T01",
+        *[v for v in evaluation["coverage"]["evaluated"] if v != "T01"],
+    ]
     evaluation["verdict"] = "incompatible"
     public = project(document, sources)
     assert public["status"] == "blocked"

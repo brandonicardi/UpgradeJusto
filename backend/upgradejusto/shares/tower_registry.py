@@ -10,7 +10,7 @@ PROJECTION_VERSION = "tower-share-projection-1"
 VERSIONS = {
     "classification": "tower-share-classification-1",
     "facts": "tower-share-facts-1",
-    "labels": "tower-share-labels-es-1",
+    "labels": "tower-share-labels-es-2",
     "urls": "tower-share-url-policy-1",
 }
 ORIGIN = {
@@ -29,6 +29,14 @@ ESSENTIAL_ORIGIN = {
     "inventory": "tower-essential-inventory-1",
     "rules": "cu05-tower-essential-engine-1",
 }
+ESSENTIAL_ORIGIN_V2 = {
+    **ORIGIN,
+    "scope": "cu05-tower-essential-2",
+    "policy": "tower-essential-policy-2",
+    "inventory": "tower-essential-inventory-1",
+    "rules": "cu05-tower-essential-engine-2",
+}
+ORIGINS = (ORIGIN, ESSENTIAL_ORIGIN, ESSENTIAL_ORIGIN_V2)
 CATEGORIES = {
     "cpu": "CPU",
     "motherboard": "Placa base",
@@ -60,10 +68,13 @@ RULE_LABELS = dict(
         strict=True,
     )
 )
+# Policy 2 leaves the BIOS out of scope: T01 names CPU and board only.
+RULE_LABELS_V2 = {**RULE_LABELS, "T01": "CPU y placa"}
 STATE_LABELS = {
     "pass": "comprobación aprobada dentro del alcance nominal",
     "fail": "incompatibilidad conocida; no ejecutar sin resolver",
     "unknown": "requiere verificación; faltan datos necesarios",
+    "not_applicable": "no evaluada; no aplica al alcance declarado",
 }
 EXCLUDES = (
     "Geometría avanzada e interferencias milimétricas y curvas de cables",

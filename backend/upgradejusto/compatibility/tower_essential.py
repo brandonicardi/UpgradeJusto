@@ -1,9 +1,11 @@
 """Essential household-PC policy: what can stop a common build from working.
 
-Covers CPU/board support, memory generation and limits, GPU interface and length,
-PSU against documented recommendations, power connectors, formats and storage.
-Cooling, fans, memory speeds and ECC are declared out of scope, never approved.
-An unknown in-scope fact stays unknown; a documented failure always dominates.
+Covers documented CPU/board model support (socket alone is not enough), memory
+generation and limits, GPU interface and length, PSU against published
+recommendations, power connectors, formats and storage. BIOS, cooling, fans,
+memory speeds and ECC are declared out of scope, never approved: a missing or
+earlier BIOS neither blocks nor fails a new evaluation. An unknown in-scope fact
+stays unknown; a documented failure always dominates.
 """
 
 from .basic_contract import AdditionalCheck
@@ -13,7 +15,7 @@ from .models import Coverage, Fact, PartInstance, ResolvedConfiguration
 from .tower_contract import (
     ESSENTIAL_REQUIRED,
     ESSENTIAL_RULES_VERSION,
-    EssentialScope,
+    EssentialScopeV2,
     TowerEvaluationResult,
     TowerRuleResult,
 )
@@ -21,6 +23,16 @@ from .tower_engine import EMPTY, LEGACY, Check, _allocate, _validated_specs, res
 
 OUT_OF_SCOPE = frozenset(("cooler", "fan"))
 GPU_INTERFACES = ("PCIe x16", "PCIe x8", "PCIe")
+# Required textual reason: not evaluated, never approved, because the build is
+# declared already assembled and its case was not identified.
+ASSEMBLED_CASE_UNCHECKED = (
+    "No se comprobó porque la PC ya está armada y el gabinete no se identificó."
+)
+# Stable public notice for any PC whose physical space could not be checked.
+PHYSICAL_SPACE_NOT_EVALUATED = (
+    "Espacio físico no evaluado: faltan medidas. Chequeá que entre en tu gabinete."
+)
+PHYSICAL_SPACE_CHECK_ID = "tower_physical_space_not_evaluated"
 # Closed list of published attributes these rules read for each category.
 # The admin dashboard uses it to flag missing data; no rule logic depends on it.
 ESSENTIAL_ATTRIBUTES = {
@@ -53,8 +65,8 @@ ESSENTIAL_ATTRIBUTES = {
 
 
 def _support_rule(config, cpu, board):
-    """Different documented sockets fail even without a curated support row."""
-    result = _basic_cpu_support(config, cpu, board)
+    """Exact model row; the BIOS is neither read nor judged."""
+    result = _basic_cpu_support(config, cpu, board, evaluate_bios=False)
     sockets = cpu.fact("socket"), board.fact("socket")
     if None in sockets or sockets[0] == sockets[1]:
         return result
@@ -302,10 +314,50 @@ def _tower_rule(result, identity=None):
     )
 
 
+def _case_dependent(result, assembled):
+    """Only an unknown caused exclusively by unproven case data becomes n/a.
+
+    A documented failure is never converted, and unrelated missing facts keep
+    the rule unknown instead of hiding them behind the assembled declaration.
+    """
+    if (
+        not assembled
+        or result.state != "unknown"
+        or not result.missing_fields
+        or not all(field.startswith("case.") for field in result.missing_fields)
+    ):
+        return result
+    return result.model_copy(
+        update={
+            "state": "not_applicable",
+            "missing_fields": (),
+            "conditions": (*result.conditions, ASSEMBLED_CASE_UNCHECKED),
+        }
+    )
+
+
+def _physical_space(result):
+    """T04/T07: an unknown physical-space check is disclosed, never approved.
+
+    A documented pass/fail is preserved; only the unknown state becomes
+    not_applicable with a stable user-facing reason.
+    """
+    if result.state != "unknown":
+        return result
+    return result.model_copy(
+        update={
+            "state": "not_applicable",
+            "missing_fields": (),
+            "conditions": (*result.conditions, PHYSICAL_SPACE_NOT_EVALUATED),
+        }
+    )
+
+
 def evaluate_tower_essential(tower, evidence):
     """Tower/TowerCreate duck type; evidence is resolved by a server adapter only."""
     if tower.schema_version != 2 or not evidence.data_revision.strip():
         raise ValueError("Schema2 and pinned evidence revision required")
+    assembled = getattr(tower.context, "assembly_state", None) == "assembled"
     groups, specs, models = {}, {}, {}
     identification = Check("T11")
     for index, line in enumerate(tower.lines):
@@ -320,7 +372,9 @@ def evaluate_tower_essential(tower, evidence):
             or type(item.model) is not str
             or not item.model.strip()
         ):
-            if category not in OUT_OF_SCOPE:
+            # The case is never required: physical space is disclosed through
+            # T04/T07, not by blocking identification.
+            if category not in OUT_OF_SCOPE and category != "case":
                 identification.missing.append(
                     identity + ".identified_versioned_component"
                 )
@@ -330,7 +384,7 @@ def evaluate_tower_essential(tower, evidence):
             models[identity] = item.model
     for category, state in tower.category_status.items():
         category = getattr(category, "value", str(category))
-        if category in OUT_OF_SCOPE:
+        if category in OUT_OF_SCOPE or category == "case":
             continue
         if state == "unknown":
             identification.missing.append(category + ".presence")
@@ -348,12 +402,9 @@ def evaluate_tower_essential(tower, evidence):
             return EMPTY
         return specs[selected[0][0]]
 
+    # The declared BIOS travels inside the resolved evidence as data; policy 2
+    # never reads it to approve, fail or leave a rule unknown.
     support = evidence.cpu_support
-    if support is not None:
-        # Never carry BIOS from an old motherboard or an evidence record.
-        support = support.model_copy(
-            update={"installed_bios": tower.context.bios_version}
-        )
     config = ResolvedConfiguration(
         pc_revision=str(getattr(tower, "revision", 1)),
         data_revision=evidence.data_revision,
@@ -372,53 +423,69 @@ def evaluate_tower_essential(tower, evidence):
         cpu_support=support,
     )
     cpu, board, gpu, psu, case = map(one, ("cpu", "motherboard", "gpu", "psu", "case"))
-    results = [
-        _tower_rule(_support_rule(config, cpu, board), "T01"),
-        *(
-            _tower_rule(rule, f"T{index:02}")
-            for index, rule in enumerate(
-                (
-                    _memory_rule(
-                        cpu,
-                        board,
-                        [
-                            (specs[identity], quantity)
-                            for identity, quantity in groups.get("ram", ())
-                        ],
-                    ),
-                    _interface_rule(board, gpu),
-                    _length_rule(gpu, case),
-                    _power_rule(gpu, psu),
-                    _connector_rule(board, gpu, psu),
-                    _format_rule(board, psu, case),
+    results = [_tower_rule(_support_rule(config, cpu, board), "T01")]
+    for index, rule in enumerate(
+        (
+            _memory_rule(
+                cpu,
+                board,
+                [
+                    (specs[identity], quantity)
+                    for identity, quantity in groups.get("ram", ())
+                ],
+            ),
+            _interface_rule(board, gpu),
+            _length_rule(gpu, case),
+            _power_rule(gpu, psu),
+            _connector_rule(board, gpu, psu),
+            _format_rule(board, psu, case),
+        ),
+        2,
+    ):
+        identity = f"T{index:02}"
+        if identity in ("T04", "T07"):
+            rule = _physical_space(rule)
+        results.append(_tower_rule(rule, identity))
+    results.append(
+        _tower_rule(
+            _case_dependent(
+                _storage_rule(
+                    [
+                        (identity, specs[identity], quantity)
+                        for identity, quantity in groups.get("storage", ())
+                    ],
+                    board,
+                    case,
+                    psu,
                 ),
-                2,
+                assembled,
             )
-        ),
-        _storage_rule(
-            [
-                (identity, specs[identity], quantity)
-                for identity, quantity in groups.get("storage", ())
-            ],
-            board,
-            case,
-            psu,
-        ),
-        identification.result(),
-    ]
+        )
+    )
+    results.append(identification.result())
     missing = tuple(dict.fromkeys(path for r in results for path in r.missing_fields))
 
     def ids(state):
         return tuple(r.rule_id for r in results if r.state == state)
 
-    complete = not missing and not ids("unknown")
-    scope = EssentialScope()
+    applicables = (*ids("pass"), *ids("fail"))
+    complete = not ids("fail") and not ids("unknown")
+    scope = EssentialScopeV2()
     notices = tuple(
         AdditionalCheck(
             id=f"tower_essential_scope_{index}", status="outside_scope", reason=reason
         )
         for index, reason in enumerate(scope.excludes)
     )
+    if {"T04", "T07"} & set(ids("not_applicable")):
+        notices = (
+            *notices,
+            AdditionalCheck(
+                id=PHYSICAL_SPACE_CHECK_ID,
+                status="outside_scope",
+                reason=PHYSICAL_SPACE_NOT_EVALUATED,
+            ),
+        )
     return TowerEvaluationResult(
         verdict="incompatible"
         if ids("fail")
@@ -434,11 +501,11 @@ def evaluate_tower_essential(tower, evidence):
         coverage=Coverage(
             required=ESSENTIAL_REQUIRED,
             implemented=ESSENTIAL_REQUIRED,
-            evaluated=ESSENTIAL_REQUIRED,
+            evaluated=applicables,
             passed=ids("pass"),
             failed=ids("fail"),
             unknown=ids("unknown"),
-            not_applicable=(),
+            not_applicable=ids("not_applicable"),
             not_implemented=(),
             complete=complete,
         ),

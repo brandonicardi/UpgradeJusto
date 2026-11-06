@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from upgradejusto.compatibility.tower_contract import (
     ESSENTIAL_REQUIRED,
     EssentialScope,
+    EssentialScopeV2,
 )
 from upgradejusto.pcs.service import PCError
 from upgradejusto.pcs.tower_models import Tower
@@ -17,11 +18,13 @@ from .tower_registry import (
     CATEGORIES,
     ENUMS,
     ESSENTIAL_ORIGIN,
+    ESSENTIAL_ORIGIN_V2,
     EXCLUDES,
     FACTS,
-    ORIGIN,
+    ORIGINS,
     PROJECTION_VERSION,
     RULE_LABELS,
+    RULE_LABELS_V2,
     STATE_LABELS,
     VERSIONS,
     money,
@@ -100,18 +103,28 @@ class TowerPublicProjection:
         self.origin = next(
             (
                 origin
-                for origin in (ORIGIN, ESSENTIAL_ORIGIN)
+                for origin in ORIGINS
                 if all(versions.get(k) == v for k, v in origin.items())
             ),
             None,
         )
         require(self.origin is not None)
-        essential = self.origin is ESSENTIAL_ORIGIN
+        essential = self.origin in (ESSENTIAL_ORIGIN, ESSENTIAL_ORIGIN_V2)
         self.rule_ids = list(ESSENTIAL_REQUIRED if essential else RULE_LABELS)
-        self.excludes = EssentialScope().excludes if essential else EXCLUDES
+        if self.origin is ESSENTIAL_ORIGIN_V2:
+            scope = EssentialScopeV2()
+        elif self.origin is ESSENTIAL_ORIGIN:
+            scope = EssentialScope()
+        else:
+            scope = None
+        # Each contract keeps its own labels and declared exclusions.
+        self.rule_labels = (
+            RULE_LABELS_V2 if self.origin is ESSENTIAL_ORIGIN_V2 else RULE_LABELS
+        )
+        self.excludes = scope.excludes if scope else EXCLUDES
         self.scope_label = (
-            EssentialScope().label
-            if essential
+            scope.label
+            if scope
             else "Torre stock: asignación nominal, no certificación física"
         )
         require(private["versions"].get("catalog") == sources.version)
@@ -494,17 +507,39 @@ class TowerPublicProjection:
         for key in keys[:-1]:
             require(
                 type(coverage[key]) is list
-                and all(v in RULE_LABELS for v in coverage[key])
+                and all(v in self.rule_labels for v in coverage[key])
             )
         require(coverage["required"] == self.rule_ids)
         for state, key in (
             ("pass", "passed"),
             ("fail", "failed"),
             ("unknown", "unknown"),
+            ("not_applicable", "not_applicable"),
         ):
             require(
                 coverage[key] == [r["rule_id"] for r in rules if r["state"] == state]
             )
+        not_applicable = [
+            rule for rule in rules if rule.get("state") == "not_applicable"
+        ]
+        if self.origin is ESSENTIAL_ORIGIN_V2:
+            # Policy 2 permits n/a only for the physical checks that can be
+            # honestly disclosed as unmeasured, and only with a reason.
+            require(
+                all(
+                    rule["rule_id"] in ("T04", "T07", "T08")
+                    and bool(rule.get("conditions"))
+                    for rule in not_applicable
+                )
+            )
+            # Policy 2 counts only pass/fail as evaluated; n/a is explicit.
+            require(
+                coverage["evaluated"]
+                == [r["rule_id"] for r in rules if r["state"] in ("pass", "fail")]
+            )
+        else:
+            # Stock and essential v1 never carry not_applicable.
+            require(not not_applicable)
         require(
             data.get("verdict")
             in ("compatible", "incompatible", "requiere_verificacion")
@@ -540,7 +575,7 @@ class TowerPublicProjection:
                     "rule_id": rule["rule_id"],
                     "family": rule["rule_id"],
                     "state": rule["state"],
-                    "reason": RULE_LABELS[rule["rule_id"]]
+                    "reason": self.rule_labels[rule["rule_id"]]
                     + ": "
                     + STATE_LABELS[rule["state"]],
                     "facts": self.facts(

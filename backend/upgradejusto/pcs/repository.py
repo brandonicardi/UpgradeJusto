@@ -38,7 +38,11 @@ class PCRepository:
             name=row["name"],
             revision=row["revision"],
             components=[dict(group) for group in groups],
-            context={"bios_version": row["bios_version"], "notes": row["notes"]},
+            context={
+                "bios_version": row["bios_version"],
+                "notes": row["notes"],
+                "assembly_state": row["assembly_state"],
+            },
         )
 
     def get(self, owner, identity):

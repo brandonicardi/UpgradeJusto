@@ -302,7 +302,7 @@ def normalize_proposal(raw, text, parts, revision):
         warnings=[
             "Propuesta no guardada: revisar identidades, cantidades y ausencias antes de confirmar.",
             "Etiquetas y ofertas no son atributos técnicos ni un veredicto de compatibilidad.",
-            "BIOS instalada desconocida; no se infiere del modelo ni del texto libre.",
+            "La BIOS no se evalúa ni se infiere del modelo ni del texto libre.",
         ],
         catalog_revision=revision,
     )

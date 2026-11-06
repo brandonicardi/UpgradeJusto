@@ -77,7 +77,8 @@ class ExtractionService:
         proposal.context.bios_version = None
         proposal.context.notes = None
         warnings = [
-            "Propuesta no guardada. Revisar componentes, cantidades y BIOS instalada antes de confirmar."
+            "Propuesta no guardada. Revisar componentes y cantidades antes de confirmar. "
+            "La BIOS no se evalúa ni se infiere."
         ]
         for category in Category:
             if category not in LEGACY_CATEGORIES:

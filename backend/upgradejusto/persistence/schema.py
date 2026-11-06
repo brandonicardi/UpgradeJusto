@@ -96,6 +96,7 @@ pcs = sa.Table(
     sa.Column("revision", sa.Integer, nullable=False),
     sa.Column("bios_version", sa.Text, nullable=True),
     sa.Column("notes", sa.Text, nullable=True),
+    sa.Column("assembly_state", sa.Text, nullable=True),
     sa.CheckConstraint("revision > 0", name="ck_pc_revision"),
     sa.CheckConstraint("length(name) BETWEEN 1 AND 100", name="ck_pc_name"),
     sa.CheckConstraint(
@@ -104,6 +105,10 @@ pcs = sa.Table(
     ),
     sa.CheckConstraint(
         "notes IS NULL OR length(notes) BETWEEN 1 AND 1000", name="ck_pc_notes"
+    ),
+    sa.CheckConstraint(
+        "assembly_state IS NULL OR assembly_state IN ('assembled', 'new')",
+        name="ck_pc_assembly_state",
     ),
 )
 

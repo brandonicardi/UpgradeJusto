@@ -173,6 +173,21 @@ def normal_share_scenario(ctx):
             "anonymous_read",
         )
         require(not anonymous.cookies, "anonymous_still_no_cookie")
+        published = frozen.json()
+        require(
+            published["versions"]["scope"] == "cu05-tower-essential-2"
+            and published["versions"]["policy"] == "tower-essential-policy-2"
+            and published["versions"]["rules"] == "cu05-tower-essential-engine-2",
+            "v2_published_contract",
+        )
+        require(
+            published["stages"][0]["evaluation"]["scope"]["id"]
+            == "cu05-tower-essential-2"
+            and published["stages"][0]["evaluation"]["rule_results"][0][
+                "reason"
+            ].startswith("CPU y placa: "),
+            "v2_read_contract",
+        )
         require(
             not any(
                 value.encode() in frozen.content

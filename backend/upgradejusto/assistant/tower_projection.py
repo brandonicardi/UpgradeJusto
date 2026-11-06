@@ -35,6 +35,54 @@ WRAPPERS = {
 }
 
 
+REDUNDANT_SOURCE_FIELDS = (
+    "raw_sha256",
+    "raw_url",
+    "method_url",
+    "identity_version",
+    "identity_kind",
+    "identity_source_url",
+    "matched_mpn",
+)
+REDUNDANT_COVERAGE_FIELDS = ("implemented", "evaluated", "passed")
+REDUNDANT_OFFER_FIELDS = ("offer_id", "variant_key", "product_id")
+
+
+def _compact_preview_item(item):
+    """Keep what the model must explain; every proposal is billed by provider tokens.
+
+    Verdict, missing fields, scope, failed/unknown rules, actions, cost, offers,
+    source, unit and limitations stay. `reglas_ok` already counts passed rules.
+    """
+    evaluation = item["evaluation"]
+    # Base PC is in the turn context; actions describe the replacement.
+    evaluation.pop("evaluated_configuration", None)
+    # Opaque revision hashes: the model can neither explain nor use them.
+    evaluation.pop("data_revision", None)
+    item.pop("versions", None)
+    for field in REDUNDANT_COVERAGE_FIELDS:
+        evaluation["coverage"].pop(field, None)
+    if evaluation.get("warnings") == evaluation["scope"].get("excludes"):
+        evaluation.pop("warnings")
+    for source in item["benefit"].get("source", []):
+        if isinstance(source, dict):
+            for field in REDUNDANT_SOURCE_FIELDS:
+                source.pop(field, None)
+    for offer in item["offers"]:
+        for field in REDUNDANT_OFFER_FIELDS:
+            offer.pop(field, None)
+        # Ready-made: small models drop the date when they must compose it.
+        if all(
+            offer.get(key) for key in ("amount", "currency", "store", "observed_at")
+        ):
+            offer["price_citation"] = (
+                f"{offer['amount']} {offer['currency']} por unidad en {offer['store']}, "
+                f"precio visto el {offer['observed_at'][:10]}"
+            )
+    for line in item["cost"].get("lines", []):
+        line.pop("offer_id", None)
+
+
 def project_tower(name, raw):
     # Local import avoids a module cycle; only called after common payload bounds.
     from .tool_projection import (
@@ -65,14 +113,21 @@ def project_tower(name, raw):
     else:
         if len(data["items"]) > 20:
             raise ToolFailure("tool_output_limit_full_api_required")
-        items = _sort_by_verdict(data["items"], ["evaluation", "verdict"])
-        for count in range(len(items), 0, -1):
+        # Automatic service order already ranks useful proposals. Reordering by
+        # verdict would show an unpriced alternative before the recommended one.
+        items = (
+            data["items"]
+            if data["mode"] == "automatic"
+            else _sort_by_verdict(data["items"], ["evaluation", "verdict"])
+        )
+        for count in range(len(items), -1 if not items else 0, -1):
             candidate = copy.deepcopy(data)
             candidate["items"] = copy.deepcopy(items[:count])
             candidate_evidence, candidate_urls = [], []
             for item in candidate["items"]:
                 _evaluation(item["evaluation"], candidate_evidence, candidate_urls)
                 item["evaluation"] = _summarize_tower_evaluation(item["evaluation"])
+                _compact_preview_item(item)
             _set_mas_resultados(candidate, len(items) - count)
             projected = {
                 "projection_version": "2",

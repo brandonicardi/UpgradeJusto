@@ -81,7 +81,11 @@ class TowerRepository:
             origin_schema=origin,
             category_status=states,
             lines=selected,
-            context={"bios_version": row["bios_version"], "notes": row["notes"]},
+            context={
+                "bios_version": row["bios_version"],
+                "notes": row["notes"],
+                "assembly_state": row["assembly_state"],
+            },
         )
 
     def get(self, owner, identity):

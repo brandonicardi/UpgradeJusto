@@ -279,7 +279,7 @@ def test_actual_seven_mcp_tools_tower_owner_revision_services_and_revocation(
             assert not simulation.is_error
             assert (
                 simulation.structured_content["data"]["scope"]["id"]
-                == "cu05-tower-essential-1"
+                == "cu05-tower-essential-2"
             )
             preview = await client.call_tool(
                 "preview_recommendations",
