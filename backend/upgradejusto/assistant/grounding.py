@@ -136,6 +136,14 @@ _NUMBER_RE = re.compile(
     r"(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+[.,]\d+|\d+)"
     r"(?![A-Za-z0-9])"
 )
+# No source here measures frames: any such figure is invented by definition.
+_FPS_RE = re.compile(r"\d[\d.,]*\s*(?:fps|cuadros|fotogramas)\b", re.IGNORECASE)
+_INDEX_WORDS_RE = re.compile(r"\b(?:indice|puntaje|mejora|rinde|rendimiento)\b")
+# The PC itself as subject: a proposal for one of its parts proves nothing about it.
+_PC_SUBJECT_RE = re.compile(
+    r"\btu\s+(?:pc|equipo|configuracion)\s+(?:actual\s+)?"
+    r"(?:es|son|esta|encaja|funciona|anda)\b"
+)
 _LIST_MARK_RE = re.compile(r"(?<![^\n])\d{1,2}[.)]\s")
 _CODE_RE = re.compile(r"\bcg-[A-Za-z0-9-]+\b", re.IGNORECASE)
 # "RTX 5060" names a product; its digits are not a claim about anything.
@@ -167,7 +175,10 @@ _VERDICT_RE = re.compile(
     r"|\bva(?:n)?\s+a\s+(?:funcionar|andar)\b"
     r"|\bfunciona(?:n|ra|ran)?\s+(?:bien|sin\s+problemas)\b"
     r"|\balcanza(?:n|ra)?\s+para\s+(?:esa|ese|esta|este|tu|la|el)\b"
-    r"|\bte\s+(?:sirve|va\s+a\s+servir)\s+(?:para|con)\s+(?:tu|esa|ese|esta|este)\b)"
+    r"|\bte\s+(?:sirve|va\s+a\s+servir)\s+(?:para|con|la|el|esa|ese|esta|este|tu)\b"
+    r"|\bentran?\s+en\s+(?:el|tu|ese|este)\s+gabinete\b"
+    r"|\bsoportan?\s+(?:ese|esa|este|esta|tu)\b"
+    r"|\bno\s+hay\s+problema\s+con\b)"
 )
 
 _REVISION_RE = re.compile(r"\brevisi[oó]n\s+(\d+)\b|\brev\.?\s*(\d+)\b", re.IGNORECASE)
@@ -523,7 +534,13 @@ def _piece_ids_in_text(evidence, text):
         for identity, piece in evidence.pieces.items()
         if piece.normalized_name and piece.normalized_name in norm
     }
-    return exact or _loose_piece_ids(evidence, text)
+    loose = _loose_piece_ids(evidence, text)
+    settled = {evidence.pieces[identity].category for identity in exact}
+    return exact | {
+        identity
+        for identity in loose
+        if evidence.pieces[identity].category not in settled
+    }
 
 
 def _loose_piece_ids(evidence, text):
@@ -737,12 +754,19 @@ def _scan_reasons(evidence, text, norm, inherited=frozenset()):
 
     blocked.extend((start, end) for start, end, _ in _spans(_MODEL_RE, text))
 
-    piece_ids = _piece_ids_in_text(evidence, text) or inherited
+    own_subject = _PC_SUBJECT_RE.search(norm) is not None
+    piece_ids = _piece_ids_in_text(evidence, text) or (
+        frozenset() if own_subject else inherited
+    )
     negative, positive, quantity = _stock_claims(norm)
 
-    for _, amount, currency in money_tokens:
-        # Repeating the budget the person just typed is not a price claim.
-        if amount in evidence.stated_amounts:
+    if _FPS_RE.search(text):
+        reasons.append("uncovered_number")
+
+    for (start, _), amount, currency in money_tokens:
+        # Only as their budget: a typed figure never becomes a piece's price.
+        lead = _norm(text[max(0, start - 40) : start])
+        if amount in evidence.stated_amounts and "presupuesto" in lead:
             continue
         if not _price_supported(evidence, amount, currency, norm, dates, piece_ids):
             reasons.append("uncovered_amount")
@@ -784,7 +808,9 @@ def _same_url(left, right):
 def _number_supported(evidence, value, norm, piece_ids=()):
     if value is None:
         return False
-    if value in evidence.stated_amounts or value in evidence.reference_figures:
+    if "presupuesto" in norm and value in evidence.stated_amounts:
+        return True
+    if value in evidence.reference_figures and _INDEX_WORDS_RE.search(norm):
         return True
     # "8 GB" next to a named piece repeats its own catalog name.
     if value == value.to_integral_value():

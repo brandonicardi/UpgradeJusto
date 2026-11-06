@@ -46,7 +46,7 @@ async def publish(evidence, draft, emit, repair=None):
         elif not used_repair:
             parts.extend(repaired)
             used_repair = True
-    omitted = len(failed) if failed and not repaired else 0
+    omitted = max(len(failed) - len(repaired), 0)
     if not parts:
         await emit("delta", {"text": NOTHING_VERIFIED})
         return len(results)

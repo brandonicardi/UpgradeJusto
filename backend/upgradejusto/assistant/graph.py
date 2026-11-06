@@ -131,6 +131,7 @@ def _compact_schema(value, *, name=None):
     return _prune_defs(value)
 
 
+MAX_NAMED_PIECES = 40
 MIN_REPAIR_SECONDS = 8
 MAX_REPAIR_SECONDS = 25
 POLICY = """Sos UpgradeJusto: usá las herramientas de solo lectura y nunca confirmés ni guardés nada en nombre de la persona.
@@ -253,18 +254,22 @@ class State(TypedDict):
 
 def catalog_names(identities):
     """Public names only; without them a piece just cannot be matched by name."""
+    names = {}
     try:
         service = CatalogService(PostgresCatalogRepository())
-        found = {identity: service.get_component(identity) for identity in identities}
+        for identity in identities[:MAX_NAMED_PIECES]:
+            part = service.get_component(identity)
+            if part is not None:
+                names[identity] = part.name
     except Exception:  # noqa: BLE001 - validation stays stricter, never looser
-        return {}
-    return {key: part.name for key, part in found.items() if part is not None}
+        pass
+    return names
 
 
 def stated_amounts(history):
     """Whole amounts in the last user message, with or without thousands dots."""
-    rows = [row["content"] for row in history[-8:] if row["role"] == "user"]
-    if not rows:
+    rows = [row.get("content") for row in history[-8:] if row.get("role") == "user"]
+    if not rows or not isinstance(rows[-1], str):
         return frozenset()
     found = re.findall(r"\d{1,3}(?:\.\d{3})+|\d+", rows[-1])
     return frozenset(Decimal(value.replace(".", "")) for value in found)

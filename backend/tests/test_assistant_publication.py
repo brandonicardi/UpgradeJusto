@@ -96,10 +96,36 @@ def test_list_stays_with_the_line_that_opens_it():
 def test_list_numbers_and_the_typed_budget_are_not_claims():
     evidence = TurnEvidence(None)
     evidence.stated_amounts = frozenset({Decimal(1500000)})
-    phrase = "Para tu PC con $1.500.000 podés:\n1. Buscar\n2. Comparar"
+    phrase = "Con tu presupuesto de $1.500.000 podés:\n1. Buscar\n2. Comparar"
     assert not validate_candidate(evidence, phrase)[0].failed
 
 
 def test_a_verdict_never_inherits_proof_it_does_not_have():
     draft = "Mirá esta memoria.\n\nVeredicto: Encaja con tu PC."
     assert validate_candidate(TurnEvidence(None), draft)[1].failed
+
+
+def typed(*amounts):
+    evidence = TurnEvidence(None)
+    evidence.stated_amounts = frozenset(Decimal(amount) for amount in amounts)
+    return evidence
+
+
+def test_a_typed_amount_never_becomes_a_price():
+    assert validate_candidate(typed(100000), "Cuesta $100.000 en la tienda.")[0].failed
+
+
+def test_frames_are_never_supported():
+    evidence = typed(60)
+    evidence.reference_figures = {Decimal(100)}
+    for phrase in ("Vas a tener 60 FPS.", "El índice da 100 fps."):
+        assert validate_candidate(evidence, phrase)[0].failed, phrase
+
+
+def test_index_figure_needs_to_be_spoken_of_as_an_index():
+    evidence = TurnEvidence(None)
+    evidence.reference_figures = {Decimal(25384)}
+    assert not validate_candidate(evidence, "Tu PC pasa a un índice de 25384.")[
+        0
+    ].failed
+    assert validate_candidate(evidence, "Tu PC consume 25384.")[0].failed

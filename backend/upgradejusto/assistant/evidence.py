@@ -410,6 +410,8 @@ class TurnEvidence:
                     after = Decimal(str(benefit.get("after")))
                 except InvalidOperation:
                     continue
+                if not (before.is_finite() and after.is_finite()):
+                    continue
                 self.reference_figures |= {before, after}
                 if before > 0:
                     # The screen says "cerca de 50 %": the same exact derivation.
