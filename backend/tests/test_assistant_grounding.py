@@ -645,9 +645,7 @@ def test_revision_requires_matching_evaluation():
 
 def test_general_spec_advice_with_16gb_passes():
     evidence = evidence_with()
-    results = validate_candidate(
-        evidence, "Para jugar conviene tener 16 GB de RAM."
-    )
+    results = validate_candidate(evidence, "Para jugar conviene tener 16 GB de RAM.")
     assert results[0].failed is False, results[0].reasons
 
 
@@ -664,11 +662,7 @@ def test_price_of_piece_a_with_offer_of_piece_b_fails():
         make_component(
             "ram-other",
             "Otra Memoria X",
-            offers=(
-                make_offer(
-                    "ram-other", amount="120000.00", store="venex"
-                ),
-            ),
+            offers=(make_offer("ram-other", amount="120000.00", store="venex"),),
         ),
     )
     evidence = evidence_with(catalog=catalog)
@@ -707,9 +701,7 @@ def test_pc_verdict_requires_direct_evaluation_not_a_preview():
 
 
 def test_evidence_entries_is_stable_and_ordered():
-    evidence = evidence_with(
-        catalog=catalog_payload(), evaluation=evaluation_payload()
-    )
+    evidence = evidence_with(catalog=catalog_payload(), evaluation=evaluation_payload())
     entries = evidence_entries(evidence)
     assert entries[0] is evidence.evaluations[0]
     assert entries[1] is evidence.offers[0]

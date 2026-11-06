@@ -17,6 +17,18 @@ export type TowerRecommendationItem = {
 export type TowerRecommendationPreview = { pc_id: string; pc_revision: number | string; objective: RecommendationObjective; budget_ars: string; mode: "automatic" | "manual_comparison"; items: TowerRecommendationItem[]; missing_fields: string[]; limitations: string[] };
 export type RecommendationDraft = { objective: RecommendationObjective; budget_ars: string; price_condition: "cash" | "list"; workload: "blender-cpu" | null; thermal_available: boolean };
 export type TowerRecommendationInput = { expected_pc_revision: number; objective: RecommendationObjective; budget_ars: string; price_condition: "cash" | "list"; mode: "automatic" | "manual_comparison"; workload: "blender-cpu" | null; materials: { kind: "thermal_compound"; state: "available_confirmed"; confirmed: true }[]; alternatives: { key: string; actions: TowerAction[] }[] };
+export type RecommendationAdvice = { key: string | null; reason: string | null; source: "local_model" | "rules" };
+/** La IA local elige entre propuestas ya verificadas. Si falla, no pasa nada: queda el orden de siempre. */
+export async function recommendationAdvice(pc: Tower, draft: RecommendationDraft, signal?: AbortSignal): Promise<RecommendationAdvice | null> {
+  try {
+    const csrf = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", signal });
+    const token = csrf.ok ? await csrf.json() : null;
+    if (typeof token?.csrf_token !== "string") return null;
+    const response = await fetch(`/api/towers/${pc.id}/recommendations/advice`, { method: "POST", credentials: "same-origin", cache: "no-store", signal, headers: { "Content-Type": "application/json", "X-CSRF-Token": token.csrf_token }, body: JSON.stringify(recommendationInput(pc, draft)) });
+    return response.ok ? await response.json() as RecommendationAdvice : null;
+  } catch { return null; }
+}
+
 export function recommendationInput(pc: Tower, draft: RecommendationDraft, mode: TowerRecommendationInput["mode"] = "automatic", alternatives: TowerRecommendationInput["alternatives"] = []): TowerRecommendationInput {
   const budget = draft.budget_ars.trim();
   if (!Number.isInteger(pc.revision) || pc.revision < 1 || !["general", "gaming", "productivity"].includes(draft.objective) || !["cash", "list"].includes(draft.price_condition) || !["automatic", "manual_comparison"].includes(mode) || (draft.workload !== null && draft.workload !== "blender-cpu") || typeof draft.thermal_available !== "boolean") throw new Error("Revisá objetivo, condición de precio y contexto explícito.");

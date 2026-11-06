@@ -47,15 +47,15 @@
 .assistant-workspace.is-compact { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 0; }
 .is-compact .assistant-thread { flex: 1 1 auto; min-height: 0; border-radius: 0; box-shadow: none; grid-template-rows: minmax(0, 1fr) auto; }
 .is-compact .assistant-messages { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-4); }
-.is-compact .assistant-composer-area { flex: none; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); border-top: 1px solid var(--linea); max-height: 45%; overflow-y: auto; overscroll-behavior: contain; }
+.is-compact .assistant-composer-area { flex: none; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); border-top: 1px solid var(--linea);  }
 .is-compact .assistant-composer-area > * { margin: 0; }
 .is-compact .assistant-suggest > div { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 .is-compact .assistant-suggest button { flex: none; }
 .is-compact .assistant-privacy-note { text-align: left; font-size: 12px; line-height: 16px; }
 .is-compact .assistant-composer { border-radius: var(--radius-pill); }
-.assistant-manage { flex: none; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--linea); }
-.assistant-manage .assistant-conversations { padding-top: var(--space-3); }
-.assistant-manage .assistant-conversations { max-height: 170px; overflow-y: auto; overscroll-behavior: contain; }
+.assistant-manage { flex: none; position: relative; padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--linea); }
+/* Se abre encima de la charla: nunca empuja la caja de escribir. */
+.assistant-manage-body { position: absolute; z-index: 2; inset: 100% 0 auto; display: grid; gap: var(--space-3); max-height: 340px; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-3) var(--space-4); background: var(--papel-alto); border-bottom: 1px solid var(--linea); box-shadow: var(--sombra-2); }
 .assistant-manage summary { cursor: pointer; font-weight: 700; }
 /* Pantalla del asistente según su maqueta */
 .assistant-workspace:not(.is-compact) { grid-template-columns: 260px minmax(0, 1fr) 300px; padding-top: var(--space-4); }

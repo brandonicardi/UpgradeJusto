@@ -53,11 +53,29 @@ def local_model_name():
     return name
 
 
+def llamacpp_model(_client):
+    """llama-server on loopback only: its OpenAI dialect, without a real key."""
+    from langchain_openai import ChatOpenAI
+
+    return ChatOpenAI(
+        model=os.environ.get("UJ_LLAMACPP_MODEL", "local"),
+        base_url="http://127.0.0.1:8081/v1",
+        api_key="local-llamacpp",
+        temperature=0,
+        max_tokens=1024,
+        timeout=60,
+        max_retries=0,
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+    )
+
+
 def chat_model(client):
     """CU08 only; extraction keeps model(client), without silent provider fallback."""
     selected = os.environ.get("UJ_CHAT_PROVIDER", "groq")
     if selected == "groq":
         return model(client, max_tokens=800)
+    if selected == "llamacpp":
+        return llamacpp_model(client)
     if selected != "ollama":
         raise ValueError("Invalid chat provider")
     if os.environ.get("UJ_OLLAMA_BASE_URL", "http://127.0.0.1:11434") != (

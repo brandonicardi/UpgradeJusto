@@ -21,6 +21,7 @@ dependencies = [
     "pydantic==2.14.1",
     "sqlalchemy==2.1.5",
     "uvicorn==0.54.0",
+    "langchain-openai>=1.7.4",
 ]
 
 [dependency-groups]

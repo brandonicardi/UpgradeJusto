@@ -57,6 +57,12 @@ class TowerPreviewRequest(EvaluateRequest):
         return self
 
 
+class TowerAdviceResponse(InputModel):
+    key: str | None
+    reason: str | None
+    source: Literal["local_model", "rules"]
+
+
 class TowerPreviewItem(InputModel):
     key: str
     actions: list

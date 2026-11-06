@@ -15,6 +15,7 @@ from upgradejusto.compatibility.tower_http_models import (
 )
 from upgradejusto.pcs.service import PCError
 
+from .advisor import advise
 from .tower_cost import classify, incremental_cost, select_offer
 from .tower_models import TowerPreviewItem, TowerPreviewResponse
 from .tower_references import (
@@ -426,10 +427,47 @@ def preview_snapshot(tower, catalog, version, request, now):
     )
 
 
+def advice_options(result, catalog):
+    """Verified proposals only, one per performance level: real alternatives."""
+    options, seen = [], set()
+    for item in result.items:
+        gain = gain_percent(item.benefit)
+        level = item.benefit.get("after")
+        if item.status != "recommended" or gain is None or level in seen:
+            continue
+        seen.add(level)
+        component_id = item.actions[0]["candidates"][0]["component_id"]
+        options.append(
+            {
+                "key": item.key,
+                "name": catalog[component_id].name,
+                "price": str(int(Decimal(item.cost["total_ars"]))),
+                "gain": str(round(gain)),
+            }
+        )
+    return options
+
+
 class TowerRecommendationService:
     def __init__(self, repository, clock=None):
         self.repository = repository
         self.clock = clock or (lambda: datetime.now(UTC))
+
+    def advice(self, owner, identity, request):
+        """Same server preview, then the model outside any database lock."""
+        if request.mode != "automatic":
+            raise PCError(422, "Advice applies to automatic proposals")
+        options = self.repository.preview(
+            owner,
+            identity,
+            request.expected_pc_revision,
+            lambda tower, catalog, version: advice_options(
+                preview_snapshot(tower, catalog, version, request, self.clock()),
+                catalog,
+            ),
+        )
+        chosen = advise(options, request.objective, request.budget_ars)
+        return chosen or {"key": None, "reason": None, "source": "rules"}
 
     def preview(self, owner, identity, request):
         if request.workload is not None and request.objective != "productivity":

@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "upgradejusto": {
+      "command": "backend/.venv/Scripts/python.exe",
+      "args": ["-m", "upgradejusto.assistant.mcp_server"],
+      "cwd": "backend"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "github": {
+      "command": "pwsh",
+      "args": ["-NoLogo", "-NoProfile", "-NonInteractive", "-File", ".opencode/scripts/github-mcp.ps1"]
+    }
+  }
+}

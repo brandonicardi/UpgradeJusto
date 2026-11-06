@@ -12,7 +12,7 @@ import { altLabel, benefitLine, budgetState, categoryNames, chooseMain, conviene
 import { goalByKey, type GoalKey } from "../../lib/home-goals";
 import { proposalTitle } from "../../lib/recommendation-card-presentation";
 import { towerEssentialNote } from "../../lib/tower-compatibility";
-import { createTowerRecommendations, type RecommendationState, type TowerRecommendationItem } from "../../lib/tower-recommendations";
+import { createTowerRecommendations, recommendationAdvice, type RecommendationAdvice, type RecommendationState, type TowerRecommendationItem } from "../../lib/tower-recommendations";
 import type { TowerPlanDraft, TowerPlanRead } from "../../lib/tower-plans";
 import { towerRequest, type Tower, type TowerPage } from "../../lib/towers";
 
@@ -71,6 +71,19 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
     return () => { unsubscribe(); loader.dispose(); };
   }, [result, pc]);
   const names = metadata?.result === result && metadata ? metadata.snapshot : sinDatos;
+  // La IA local elige entre lo ya verificado, después de mostrar la página. Sin ella, queda el orden del servidor.
+  const [advised, setAdvised] = useState<{ result: unknown; answer: RecommendationAdvice } | null>(null);
+  const advice = advised?.result === result ? advised.answer : null;
+  useEffect(() => {
+    if (!result || !pc || !draft) return;
+    const controller = new AbortController();
+    void recommendationAdvice(pc, draft, controller.signal).then(answer => {
+      if (controller.signal.aborted || !answer?.key) return;
+      setAdvised({ result, answer });
+      setChosenKey(previous => previous ?? answer.key);
+    });
+    return () => controller.abort();
+  }, [result, pc, draft]);
 
   const groups = useMemo(() => groupProposals(result?.items ?? []), [result]);
   const closest = useMemo(() => closestOverBudget(result?.items ?? []), [result]);
@@ -113,12 +126,12 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
     {!working && !failed && pcState.phase === "none" && <div className="cv-status"><Notice tono="info" titulo="Todavía no cargaste tu PC">Para decirte qué te conviene necesitamos saber qué piezas tiene. Cargala y volvé: la comparamos con lo que pediste.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/pcs">Cargar mi PC</Link></div></div>}
 
     {!working && !failed && pc && !main && result && result.items.length === 0 && <div className="cv-status"><Notice tono="info" titulo="No hubo propuestas para tu PC">{noProposalsReason(result)}</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link><Link className="cv-btn cv-btn-secundario" href="/pcs">Completar mi PC</Link></div></div>}
-    {!working && !failed && pc && !main && result && result.items.length > 0 && <div className="cv-status"><Notice tono="no" titulo="Todas las propuestas se descartaron">Ninguna encaja con tu PC tal como está. Abajo te contamos el motivo de cada una.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link><Link className="cv-btn cv-btn-secundario" href="/pcs">Completar mi PC</Link></div></div>}
+    {!working && !failed && pc && !main && !closest && result && result.items.length > 0 && <div className="cv-status"><Notice tono="no" titulo="Todas las propuestas se descartaron">Ninguna encaja con tu PC tal como está. Abajo te contamos el motivo de cada una.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link><Link className="cv-btn cv-btn-secundario" href="/pcs">Completar mi PC</Link></div></div>}
 
     {main && swap && <section className="cv-main" aria-label="Sugerencia principal">
       <article className="cv-upgrade">
         <div className="cv-upgrade-head">
-          <div><div className="cv-kind">{main === groups.principal ? "Lo que más te conviene" : "La que elegiste"}</div><h2 className="cv-upgrade-title">{proposalTitle(main.actions)}</h2></div>
+          <div><div className="cv-kind">{main === groups.principal || main.key === advice?.key ? "Lo que más te conviene" : "La que elegiste"}</div><h2 className="cv-upgrade-title">{proposalTitle(main.actions)}</h2></div>
           <Verdict estado={main.evaluation.verdict} />
         </div>
         <div className="cv-swap">
@@ -126,7 +139,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
           <ArrowRight className="cv-icon" aria-label="se cambia por" />
           <div className="cv-swap-side is-new"><div className="cv-swap-label">Pasás a</div><div className="cv-part-name">{swap.nueva}</div></div>
         </div>
-        <ul className="cv-why">{whyReasons(main).map(text => <li key={text}><Check className="cv-icon" aria-hidden="true" /><span>{text}</span></li>)}</ul>
+        <ul className="cv-why">{main.key === advice?.key && advice.reason && <li><Check className="cv-icon" aria-hidden="true" /><span>{advice.reason} <span className="cv-tech">Lo eligió la IA local entre opciones que ya encajan.</span></span></li>}{whyReasons(main).map(text => <li key={text}><Check className="cv-icon" aria-hidden="true" /><span>{text}</span></li>)}</ul>
         {unknown.length > 0 && <Notice tono="revisar" titulo="Falta un dato para estar seguros">{`No pudimos confirmar: ${joinLabels(unknown)}. Completá esos datos en Mi PC y lo volvemos a revisar.`}</Notice>}
         {checkRows(main).length > 0 && <details className="cv-more">
           <summary>{main.evaluation.verdict === "compatible" ? "Qué revisamos para decir que encaja" : "Qué revisamos"}</summary>
@@ -186,7 +199,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
       })}</div>
     </section>}
 
-    {!working && !failed && !main && closest && <div className="cv-status"><Notice tono="info" titulo="Con este presupuesto no llega">{`La mejora real más cercana es ${swapSides(closest, pc, names).nueva}, por ${formatearMonto(closest.cost.total_ars ?? "")}. ${benefitLine(closest)}`}</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link></div></div>}
+    {!working && !failed && !main && closest && <div className="cv-status"><Notice tono="info" titulo="Con este presupuesto no llega">{`La mejora real más cercana es ${swapSides(closest, pc, names).nueva}, por ${formatearMonto((closest.cost.total_ars ?? "").split(".")[0])}. ${benefitLine(closest)}`}</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link></div></div>}
 
     {groups.descartadas.length > 0 && <details className="cv-ruled" open={!main}>
       <summary><X className="cv-icon" aria-hidden="true" style={{ width: 20, height: 20 }} />{groups.descartadas.length === 1 ? "Descartamos 1 opción" : `Descartamos ${groups.descartadas.length} opciones`}</summary>

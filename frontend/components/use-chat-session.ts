@@ -103,9 +103,20 @@ export function useChatSession() {
     });
   }
   async function send(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (!selected || busy || conflict || sending.current || operationLock.current) return;
+    event.preventDefault(); if (busy || conflict || sending.current || operationLock.current) return;
+    let target = selected;
+    if (!target) {
+      // Como cualquier chat: la charla nace con el primer mensaje, nunca al abrir el panel.
+      const first = content.trim();
+      if (!first) return;
+      try { target = await (await request("", "POST", { title: first.slice(0, 60) })).json() as Conversation; }
+      catch { setError("No pudimos crear la charla. Tu pregunta sigue escrita: probá de nuevo."); return; }
+      currentConversation.current = target.id; clearContext();
+      setSelected(target); setHistory({ items: [], total: 0, page: 1, page_size: 20 }); setDeleting(false); lastRequest.current = null;
+      void loadList(1);
+    }
     if (turnContext.current.invalid) { setError("Revisá o recargá la PC y los criterios, o elegí Ninguna antes de enviar."); return; }
-    const ticket = epoch.current, conversationId = selected.id, text = content.trim();
+    const ticket = epoch.current, conversationId = target.id, text = content.trim();
     const signature = JSON.stringify({ content: text, context: turnContext.current.value });
     if (!lastRequest.current || lastRequest.current.conversationId !== conversationId || lastRequest.current.signature !== signature) lastRequest.current = { conversationId, signature, id: crypto.randomUUID() };
     let body: ReturnType<typeof messageInput>;

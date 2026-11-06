@@ -1,7 +1,9 @@
 """Entrada HTTP CU04; no escrituras ni decisiones CU05."""
 
 import json
-from typing import Annotated
+from datetime import UTC, datetime
+from decimal import Decimal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import StringConstraints
@@ -14,6 +16,7 @@ from upgradejusto.catalog.models import (
 from upgradejusto.catalog.postgres import PostgresCatalogRepository
 from upgradejusto.catalog.service import CatalogService, CatalogSort
 from upgradejusto.compatibility.reference_knowledge import public_reference_facts
+from upgradejusto.recommendations.first_build import first_build
 
 router = APIRouter(prefix="/api/catalog/components", tags=["catalog"])
 
@@ -46,7 +49,23 @@ def list_components(
         category=category, q=q, page=page, page_size=page_size, sort=sort
     )
     return page_result.model_copy(
-        update={"items": [with_reference(item) for item in page_result.items]}
+        update={"items": tuple(with_reference(item) for item in page_result.items)}
+    )
+
+
+@router.get("/first-build")
+def propose_first_build(
+    objective: Literal["general", "gaming", "productivity"],
+    budget_ars: Annotated[Decimal, Query(gt=0, max_digits=14, decimal_places=2)],
+    svc=Depends(service),
+):
+    """Public and read-only: nothing is saved until the person confirms it."""
+    return first_build(
+        svc.resolution_snapshot(),
+        svc.repository.dataset_version,
+        objective,
+        budget_ars,
+        datetime.now(UTC),
     )
 
 

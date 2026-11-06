@@ -38,7 +38,7 @@ export function signedProxyHeaders(ipValue: unknown, method: string, pathname: s
   const googlePath = (pathname === "/api/auth/google/config" && method === "GET") || (["/api/auth/google/attempts", "/api/auth/google"].includes(pathname) && method === "POST");
   const towerEvaluationPath = method === "POST" && /^\/api\/towers\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\/(evaluate|simulate)$/.test(pathname);
   const towerExtractionPath = method === "POST" && ["/api/towers/extract", "/api/towers/extract/confirm"].includes(pathname);
-  const towerRecommendationsPath = method === "POST" && /^\/api\/towers\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\/recommendations\/preview$/.test(pathname);
+  const towerRecommendationsPath = method === "POST" && /^\/api\/towers\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\/recommendations\/(?:preview|advice)$/.test(pathname);
   const towerPlanRoot = "\\/api\\/tower-plans\\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
   const towerSharePath = (new RegExp(`^${towerPlanRoot}/shares$`).test(pathname) && ["GET", "POST"].includes(method)) || (new RegExp(`^${towerPlanRoot}/shares/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`).test(pathname) && method === "DELETE");
   const publicTowerSharePath = method === "GET" && /^\/api\/shared-tower-plans\/[A-Za-z0-9_-]{1,128}$/.test(pathname);

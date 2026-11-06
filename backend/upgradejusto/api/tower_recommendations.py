@@ -8,6 +8,7 @@ from upgradejusto.api.pcs import owner
 from upgradejusto.api.proxy_ip import client_ip
 from upgradejusto.api.towers import service as tower_service
 from upgradejusto.recommendations.tower_models import (
+    TowerAdviceResponse,
     TowerPreviewRequest,
     TowerPreviewResponse,
 )
@@ -27,6 +28,16 @@ def service(towers=Depends(tower_service)):
             towers.repository.engine, towers.repository.dataset_version
         )
     )
+
+
+@router.post("/advice", response_model=TowerAdviceResponse)
+def advice(
+    pc_id: UUID,
+    data: TowerPreviewRequest,
+    identity=Depends(owner),
+    svc=Depends(service),
+):
+    return svc.advice(identity, pc_id, data)
 
 
 @router.post("/preview", response_model=TowerPreviewResponse)

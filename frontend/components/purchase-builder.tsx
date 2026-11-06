@@ -20,6 +20,8 @@ import HardwareArt from "./hardware-art";
 import { Field } from "./uj/field";
 import { GoalPicker } from "./uj/goal-picker";
 import { BUILD_OBJECTIVES, emptyBuildCriteria, isBuildObjective, withBudget, withObjective, withWorkload } from "../lib/build-criteria";
+import { Notice } from "./uj/notice";
+import { firstBuildRequest, loadFirstBuild } from "../lib/first-build";
 import "./purchase-builder.css";
 
 const SELECCION = "block w-full min-h-12 rounded-sm border-[1.5px] border-solid border-linea-fuerte bg-papel-alto px-space-4 py-space-3 text-cuerpo text-tinta font-sans-uj focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
@@ -46,6 +48,27 @@ export default function PurchaseBuilder() {
   const [preparation, setPreparation] = useState(0);
   const lock = useRef(false), alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  // Viene de Inicio con objetivo y presupuesto: arranca con una PC completa que ya encaja, editable.
+  const [auto, setAuto] = useState<{ state: "working" | "ready" | "none" | "error"; notices: string[] } | null>(null);
+  useEffect(() => {
+    const wanted = firstBuildRequest(window.location.search);
+    if (!wanted) return;
+    const controller = new AbortController();
+    async function start(goal: NonNullable<typeof wanted>) {
+      await Promise.resolve();
+      if (controller.signal.aborted) return;
+      setAuto({ state: "working", notices: [] });
+      setCriteria(current => withBudget(withObjective(current, goal.objective), goal.budget));
+      try {
+        const { proposal, lines: proposed } = await loadFirstBuild(goal.objective, goal.budget, controller.signal);
+        if (controller.signal.aborted) return;
+        setLines(proposed);
+        setAuto({ state: proposal.status === "proposed" ? "ready" : "none", notices: proposal.notices });
+      } catch { if (!controller.signal.aborted) setAuto({ state: "error", notices: [] }); }
+    }
+    void start(wanted);
+    return () => controller.abort();
+  }, []);
   function changeLines(next: PurchaseLine[]) { setLines(next); setConfirmed(false); setError(""); }
   function changeCriteria(next: RecommendationDraft) { setCriteria(next); setConfirmed(false); }
   async function save(event: React.FormEvent<HTMLFormElement>) {
@@ -67,8 +90,13 @@ export default function PurchaseBuilder() {
   return <section className="build-screen" aria-label="Armado desde cero">
     <header className="build-hero">
       <h1>Armemos una PC nueva</h1>
-      <p>Contanos para qué la querés y cuánto querés gastar. Después elegí las piezas que pensás comprar. Elegir no guarda nada ni revisa si encajan: eso viene después de guardar.</p>
+      <p>{auto?.state === "ready" ? "Esta es la PC que te proponemos. Nada se guarda hasta que vos lo confirmes." : "Contanos para qué la querés y cuánto querés gastar. Después elegí las piezas que pensás comprar. Elegir no guarda nada ni revisa si encajan: eso viene después de guardar."}</p>
     </header>
+
+    {auto?.state === "working" && <div role="status"><Notice tono="info" titulo="Estamos armando tu PC">Buscamos las piezas que mejor rinden con tu presupuesto y revisamos que encajen.</Notice></div>}
+    {auto?.state === "ready" && <Notice tono="encaja" titulo="Te armamos una PC completa que encaja">Revisamos que las piezas encajen según datos de referencia. Podés cambiar cualquiera más abajo. Chequeá stock antes de comprar.</Notice>}
+    {auto?.state === "none" && <Notice tono="info" titulo="Con este presupuesto no llegamos a una PC completa">Probá con un monto mayor o elegí las piezas a mano.</Notice>}
+    {auto?.state === "error" && <Notice tono="revisar" titulo="No pudimos armar la propuesta">Podés elegir las piezas a mano.</Notice>}
 
     <fieldset disabled={busy || !!saved} className="build-ask">
       <legend className="sr-only">Para qué la querés y cuánto querés gastar</legend>

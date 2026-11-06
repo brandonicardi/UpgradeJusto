@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { benefitReasons, budgetBarPercent, cheapestFirst, checkRows, discardReason, groupProposals, isDiscarded, proposalOffer } from "../../lib/conviene-presentation";
+import { closestOverBudget, benefitReasons, budgetBarPercent, cheapestFirst, checkRows, discardReason, groupProposals, isDiscarded, proposalOffer } from "../../lib/conviene-presentation";
 import type { TowerRecommendationItem } from "../../lib/tower-recommendations";
 
 type Partial2 = { key: string; status?: string; verdict?: string; total?: string | null; rules?: [string, "pass" | "fail" | "unknown"][]; benefit?: Partial<TowerRecommendationItem["benefit"]>; offers?: unknown[] };
@@ -61,5 +61,16 @@ describe("propuestas de «Lo que te conviene»", () => {
     expect(budgetBarPercent(null, "400000.00")).toBeNull();
     expect(budgetBarPercent("100.00", "0.00")).toBeNull();
     expect(budgetBarPercent("abc", "400000.00")).toBeNull();
+  });
+});
+
+describe("closestOverBudget", () => {
+  const item = (changes: object) => ({ status: "rejected", evaluation: { verdict: "compatible" }, cost: { within_budget: false, total_ars: "877100.00" }, benefit: { status: "supported", before: "100", after: "122" }, ...changes });
+  it("elige la primera mejora real que solo falla por precio", () => {
+    const leve = item({ benefit: { status: "supported", before: "100", after: "105" } }), real = item({});
+    expect(closestOverBudget([leve, real])).toBe(real);
+  });
+  it("no sugiere lo que no encaja ni lo que entra en el presupuesto", () => {
+    expect(closestOverBudget([item({ evaluation: { verdict: "incompatible" } }), item({ cost: { within_budget: true, total_ars: "1" } })])).toBeNull();
   });
 });

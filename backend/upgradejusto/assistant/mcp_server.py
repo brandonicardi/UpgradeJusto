@@ -163,7 +163,7 @@ def build_server():
         query: Annotated[str, StringConstraints(min_length=1, max_length=500)],
         top_k: Annotated[int, Field(ge=1, le=5)] = 3,
     ) -> dict[str, Any]:
-        """Evidencia documental pública, NO un veredicto de compatibilidad."""
+        """Documentos públicos y conocimiento general de hardware (zócalos, DDR, consumo). NO es un veredicto de compatibilidad."""
         owner()
         from .rag import search
 
