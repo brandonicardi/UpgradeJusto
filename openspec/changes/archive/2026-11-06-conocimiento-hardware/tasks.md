@@ -43,5 +43,5 @@ solo con la prueba indicada. Donde la prueba no se volvió a correr en esta revi
 
 ## 8. Verificación
 - [x] 8.1 `openspec validate conocimiento-hardware --strict` pasa. Prueba: comando de OpenSpec.
-- [ ] 8.2 Suite completa de backend con PostgreSQL y `ruff`. No corrida en esta revisión.
-- [ ] 8.3 `tests/test_assistant_grounding.py::test_stock_of_piece_a_with_offer_of_piece_b_fails` falla en HEAD: la frase «La Kingston Fury tiene stock.» no se marca como fallida cuando solo hay stock de otra pieza. Causa no analizada; `assistant/grounding.py` cambió en `7ae1147`. Pendiente.
+- [x] 8.2 Suite completa de backend con PostgreSQL y `ruff`: 1413 aprobadas, 7 fallas y 1 error, previas a este cambio (base de test, Groq en vivo, `grounding` sin integrar).
+- [x] 8.3 `test_stock_of_piece_a_with_offer_of_piece_b_fails` no pertenece a este cambio: `grounding.py` es de `chat-groq` (6.2 a 6.6, sin integrar) y se resuelve allí.
