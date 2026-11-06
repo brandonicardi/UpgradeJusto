@@ -73,7 +73,8 @@ def permitted_query(request: Request) -> bool:
     path = request.scope["raw_path"]
     admin_list = path == b"/api/admin/revisions" or bool(
         re.fullmatch(
-            rb"/api/admin/revisions/(?:sprint31b-a-v1|revision-[0-9a-f]{32})/"
+            rb"/api/admin/revisions/"
+            rb"(?:sprint31b-a-v1|revision-[0-9a-f]{32}|retail-[0-9a-f]{64})/"
             rb"(?:components|prices|sources|cpu_support)",
             path,
         )

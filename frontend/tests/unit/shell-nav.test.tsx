@@ -43,12 +43,21 @@ describe("Shell", () => {
     expect(s).toContain("UpgradeJusto");
     expect(s).toContain('class="skip-link"');
     const hrefs = enlaces(s).map(e => e[0]);
-    for (const h of ["/pcs", "/tower-plans", "/chat", "/catalog", "/account"]) expect(hrefs).toContain(h);
+    for (const h of ["/pcs", "/tower-plans", "/", "/catalog", "/account"]) expect(hrefs).toContain(h);
     expect(s).not.toContain('href="/admin"');
     expect(s).toMatch(/aria-current="page"[^>]*>Catálogo</);
     expect(s).toContain('aria-expanded="false"');
-    expect(s).toContain("Precios guardados, no reservas");
-    expect(s).toContain("<footer>");
+    expect(s).not.toContain("Precios guardados, no reservas");
+    expect(s).not.toContain("<footer>");
+    expect(html("/pcs")).toContain("<footer>");
+    const detail = html("/catalog/pieza");
+    expect(detail).toContain("catalog-shell");
+    expect(detail).not.toContain("Precios guardados, no reservas");
+    expect(detail).not.toContain("<footer>");
+    expect(enlaces(detail).map(e => e[0])).toEqual(hrefs);
+    expect(detail).toMatch(/aria-current="page"[^>]*>Catálogo</);
+    expect(html("/catalogo")).not.toContain("catalog-shell");
+    expect(html("/catalogo")).toContain("<footer>");
   });
   it("trata / como Mi PC", () => {
     expect(html("/")).toMatch(/href="\/pcs"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/pcs"/);

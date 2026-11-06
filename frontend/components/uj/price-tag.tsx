@@ -7,6 +7,8 @@ export type PriceTagProps = {
   enlace?: string | null;
   /** Versión más chica para usar dentro de una tarjeta. */
   compacto?: boolean;
+  /** Sin enlace para una tarjeta que ya es un enlace completo. */
+  catalogo?: boolean;
 };
 
 const SIMBOLOS: Record<string, string> = { ARS: "$", USD: "US$" };
@@ -36,7 +38,7 @@ function enlaceSeguro(enlace: string | null): string | null {
   return enlace && /^https?:\/\//i.test(enlace) ? enlace : null;
 }
 
-export function PriceTag({ monto, moneda, condicion, fecha, tienda, enlace, compacto = false }: PriceTagProps) {
+export function PriceTag({ monto, moneda, condicion, fecha, tienda, enlace, compacto = false, catalogo = false }: PriceTagProps) {
   const cantidad = montoValido(monto);
   const codigo = texto(moneda);
   const dia = fechaLegible(texto(fecha));
@@ -47,7 +49,7 @@ export function PriceTag({ monto, moneda, condicion, fecha, tienda, enlace, comp
     return (
       <div className="grid gap-[2px] font-sans-uj">
         <span className="text-[20px] leading-6 font-bold text-tinta-suave">Sin precio</span>
-        <span className={metaClase}>No tenemos un precio reciente de esta pieza.</span>
+        <span className={metaClase}>{catalogo ? "No lo vimos en los últimos días" : "No tenemos un precio reciente de esta pieza."}</span>
       </div>
     );
   }
@@ -62,11 +64,11 @@ export function PriceTag({ monto, moneda, condicion, fecha, tienda, enlace, comp
       >
         <small className="mr-[4px] text-[16px] font-semibold text-tinta-suave">{codigo}</small>
         {simbolo ? `${simbolo} ` : ""}
-        {formato.format(cantidad)}
+        {typeof monto === "string" && /^\d+\.\d{2}$/.test(monto) ? monto.split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (monto.endsWith(".00") ? "" : `,${monto.split(".")[1]}`) : formato.format(cantidad)}
       </span>
       <span className={metaClase}>
-        {motivo ? `${motivo} · visto el ${dia} en ` : `Visto el ${dia} en `}
-        {url ? (
+        {catalogo ? `${dia.slice(0, 5)} · ` : motivo ? `${motivo} · visto el ${dia} en ` : `Visto el ${dia} en `}
+        {url && !catalogo ? (
           <a
             href={url}
             target="_blank"

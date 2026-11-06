@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "sequence": 1,
+      "role": "user",
+      "content": "¿Me conviene cambiar la placa de video o el procesador para jugar en 1080p?",
+      "status": "completed",
+      "citations": [],
+      "created_at": "2026-01-01T12:00:00Z"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "sequence": 2,
+      "role": "assistant",
+      "content": "Depende de qué te esté frenando. Algunas pautas generales:\n\n## Cómo decidir\n\n1. **Placa de video**: suele marcar la diferencia en juegos.\n2. **Procesador**: importa más si ves tirones aunque la placa no llegue al límite.\n\n- Revisá primero qué piezas tenés hoy.\n- Después comprobá si la nueva *encaja* en tu PC.\n\n> Es un ejemplo de muestra: no refleja datos reales del catálogo.\n\nPodés ver más en `Catálogo`.",
+      "status": "completed",
+      "citations": [],
+      "created_at": "2026-01-01T12:00:05Z"
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "page_size": 20
+}

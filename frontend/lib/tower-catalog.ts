@@ -15,6 +15,8 @@ export type RetailOffer = {
 export type TowerComponent = Omit<Component, "category" | "image"> & {
   category: TowerCategory; image?: string | null;
   image_evidence?: ImageEvidence | null; offers?: RetailOffer[];
+  /** Oferta marcada «El más bajo» por el servidor; el cliente no la calcula. */
+  lowest_offer_id?: string | null;
 };
 export type TowerCatalogPage = { items: TowerComponent[]; total: number; page: number; page_size: number; dataset_version: string };
 export async function remoteCatalog<T>(suffix: string, signal?: AbortSignal): Promise<T> {

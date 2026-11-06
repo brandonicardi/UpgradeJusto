@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 import { renderToStaticMarkup } from "react-dom/server";
 import { categories, parseQuery } from "../../lib/catalog";
 import { catalogBoundOffers, parseCatalogTowerComponent, parseCatalogTowerPage, parseTowerCatalogQuery, towerQueryString } from "../../lib/catalog-tower-consumer";
@@ -37,9 +38,9 @@ describe("catalog tower consumer functional integration, not visual approval", (
   it("renders the same actual variant in the comparable row and contextual detail, without synthesizing a quote", () => {
     const item = parseCatalogTowerComponent(part());
     const html = renderToStaticMarkup(<CatalogWorkbench data={{ items: [item], total: 1, page: 1, page_size: 12, dataset_version: "synthetic" }} />);
-    expect(html).toContain('class="v0-catalog-workbench"'); expect(html).toContain('aria-label="Ficha de la pieza seleccionada"');
-    expect(html).toContain('data-component-id="synthetic-fan"'); expect(html).toContain('data-selected="true"');
-    expect(html).toContain(item.name); expect(html).toContain("ARS 900.719.925.474.099.300,19");
+    expect(html).toContain('class="catalog-piece-grid"'); expect(html).not.toContain('aria-label="Ficha de la pieza seleccionada"');
+    expect(html).toContain('data-component-id="synthetic-fan"'); expect(html).not.toContain('data-selected="true"');
+    expect(html).toContain(item.name); expect(html).toContain("Sin precio");
     expect(html).toContain('href="/catalog/synthetic-fan"'); expect(html).not.toContain("389.900");
   });
   it("shows stale exact ARS amount, source/condition/dates, not foreign dataset substitution", () => {

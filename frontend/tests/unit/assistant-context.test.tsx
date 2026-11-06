@@ -48,7 +48,7 @@ describe("CU08 optional per-turn context, structural validation not authorizatio
     const tower = pc(); tower.category_status.storage = "absent"; tower.category_status.ram = "present"; tower.context.notes = "PRIVATE_SENTINEL";
     tower.lines = [{ line_id: null, category: "ram", component_id: null, declared_model: "MODEL_SENTINEL", quantity: 2 }];
     const html = renderToStaticMarkup(<TowerChatSummary pc={tower} />);
-    expect(html).toContain("revisión 1"); expect(html.match(/<li>/g)).toHaveLength(9); expect(html).toContain("No sé / por confirmar"); expect(html).toContain("No tengo (declarado)"); expect(html).toContain("2 módulos; capacidad no calculada"); expect(html).not.toContain("PRIVATE_SENTINEL"); expect(html).not.toContain("MODEL_SENTINEL");
+    expect(html).toContain("Torre sintética"); expect(html).not.toMatch(/revisión \d/i); expect(html.match(/<li>/g)).toHaveLength(9); expect(html).toContain("No sé / por confirmar"); expect(html).toContain("No tengo (declarado)"); expect(html).toContain("2 módulos; capacidad no calculada"); expect(html).not.toContain("PRIVATE_SENTINEL"); expect(html).not.toContain("MODEL_SENTINEL");
     expect(JSON.stringify(towerTurnContext(tower, emptyTurnCriteria()))).not.toMatch(/SENTINEL|quantity|notes|models/);
   });
   it("starts with no chosen context, explains transient selection and never sends on mount", () => {

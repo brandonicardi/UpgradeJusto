@@ -10,7 +10,7 @@ export async function towerCatalogProxy(request: Request, id?: string): Promise<
   } else {
     for (const key of input.keys()) if (!["q", "category", "page", "page_size", "sort"].includes(key) || input.getAll(key).length !== 1) return fail(422);
     const sort = input.get("sort");
-    if (sort !== null && sort !== "retail_first" && sort !== "id") return fail(422);
+    if (sort !== null && !["retail_first", "id", "price_asc", "price_desc"].includes(sort)) return fail(422);
     if (sort !== null) query.set("sort", sort);
     const category = input.get("category"), q = (input.get("q") ?? "").trim();
     if ((category && !towerKeys.includes(category as typeof towerKeys[number])) || q.length > 100) return fail(422);

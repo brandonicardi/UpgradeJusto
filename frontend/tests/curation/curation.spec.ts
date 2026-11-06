@@ -186,7 +186,7 @@ test("CU10 PG real + una extracción Groq CU02, confirmación y aislamiento", as
       await expect(detail).toHaveAttribute("aria-busy", "false", { timeout: 10000 });
       collectionMatches = await select.inputValue({ timeout: 5000 }) === item.collection;
       mark(`${phase}Row`);
-      const rowButton = detail.getByRole("button", { name: `Ver fila ${item.row.id}`, exact: true });
+      const rowButton = detail.locator(`[data-row-id="${item.row.id}"]`);
       rowButtonCount = await rowButton.count();
       await rowButton.click({ timeout: 5000 });
       const editor = detail.getByRole("textbox", { name: "Datos JSON de la fila", exact: true });
@@ -215,11 +215,11 @@ test("CU10 PG real + una extracción Groq CU02, confirmación y aislamiento", as
       await expect(detail).toHaveAttribute("aria-busy", "false", { timeout: 10000 });
       await expect(admin.getByRole("main").getByRole("status")).toContainText("Fila guardada", { timeout: 5000 });
     }
-    mark("publish"); await admin.getByLabel("Confirmo publicar revisión inmutable con la activa esperada", { exact: true }).check();
+    mark("publish"); await admin.getByLabel("Confirmo publicar este borrador; después no se puede editar", { exact: true }).check();
     const publishResponse = admin.waitForResponse(r => r.url().endsWith(`/${id}/publish`) && r.request().method() === "POST");
-    await admin.getByRole("button", { name: "Publicar revisión", exact: true }).click();
+    await admin.getByRole("button", { name: "Publicar borrador", exact: true }).click();
     const publishReply = await publishResponse; check([200], [publishReply.status()]); published = (await publishReply.json()).dataset_version;
-    await expect(admin.getByRole("status")).toContainText("publicada e inmutable");
+    await expect(admin.getByRole("status")).toContainText("Publicación confirmada");
     await expect(admin.getByRole("button", { name: "Guardar fila en borrador", exact: true })).toHaveCount(0);
     mark("immutableOldPrices"); expect((await api(admin, `/api/admin/revisions/${old.id}/prices?limit=25&offset=0`)).data).toEqual(oldPrices.data);
     mark("immutableOldSources"); expect((await api(admin, `/api/admin/revisions/${old.id}/sources?limit=25&offset=0`)).data).toEqual(oldSources.data);

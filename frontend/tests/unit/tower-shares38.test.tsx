@@ -1,4 +1,6 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { mount, unmountAll, click, button } from "./support/dom";
 import { renderToStaticMarkup } from "react-dom/server";
 import { parseCreatedShare, parsePublicTowerShare, parseShareList, shareCreateInput } from "../../lib/tower-share-dto";
 import { boundedShareJSON, towerShareProxy, towerShareRoute } from "../../lib/tower-share-proxy";
@@ -6,12 +8,94 @@ import { signedProxyHeaders } from "../../lib/gateway";
 import { shareCreateUncertain, shareStateLabel, TowerShareError } from "../../lib/tower-share-client";
 import PublicTowerShareView from "../../components/public-tower-share-view";
 import TowerShareManager from "../../components/tower-share-manager";
+import SharedNotFound from "../../app/shared-tower-plans/[token]/not-found";
 import { syntheticPublicShare } from "../support/tower-share-fixture";
 
-afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(async () => { await unmountAll(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 const id = "12345678-1234-1234-1234-123456789abc", root = `/api/tower-plans/${id}/shares`, now = "2026-10-26T10:00:00Z";
 const meta = { id, plan_revision: 1, title: "Plan de mejora de torre", projection_version: "tower-share-projection-1", created_at: now, revoked_at: null };
 describe("CU09 tower shares: synthetic unit data, not real API evidence", () => {
+  it("offers a way home for an unavailable link without a private lookup", () => {
+    const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+    const html = renderToStaticMarkup(<SharedNotFound />);
+    expect(html).toContain('href="/"'); expect(html).toContain("Ir al inicio"); expect(fetcher).not.toHaveBeenCalled();
+  });
+  it("keeps the newly created token only in local response state and never recovers it on reopening", async () => {
+    const bearer = "a".repeat(43), storage = vi.spyOn(Storage.prototype, "setItem"), cookie = vi.spyOn(document, "cookie", "set");
+    let created = false;
+    vi.stubGlobal("fetch", vi.fn(async (path: string, init?: RequestInit) => {
+      if (path.includes("csrf")) return Response.json({ csrf_token: "synthetic" });
+      if (init?.method === "POST") { created = true; return Response.json({ ...meta, token: bearer }, { status: 201 }); }
+      if (path === root) return Response.json({ items: created ? [{ ...meta, effective_state: "active" }] : [] });
+      return Response.json({ kind: "tower_plan", id, revision: 1 });
+    }));
+    const host = await mount(<TowerShareManager planId={id} />);
+    await click(host.querySelector('input[type="checkbox"]'));
+    await click(button(host, "Crear enlace público una vez"));
+    expect(host.querySelector<HTMLInputElement>('input[readonly]')?.value).toContain(bearer);
+    expect(storage).not.toHaveBeenCalled(); expect(cookie).not.toHaveBeenCalled();
+    await unmountAll();
+    const reopened = await mount(<TowerShareManager planId={id} />);
+    expect(reopened.innerHTML).not.toContain(bearer); expect(button(reopened, /Copiar/)).toBeNull();
+  });
+  it("invalidates consent when switching links and Cancelar never revokes", async () => {
+    const second = "22345678-1234-1234-1234-123456789abc";
+    const fetcher = vi.fn(async (path: string, init?: RequestInit) => { if (path.includes("csrf")) return Response.json({ csrf_token: "synthetic" }); if (init?.method === "DELETE") return new Response(null, { status: 204 }); return Response.json(path === root ? { items: [meta, { ...meta, id: second }].map(item => ({ ...item, effective_state: "active" })) } : { kind: "tower_plan", id, revision: 1 }); });
+    vi.stubGlobal("fetch", fetcher);
+    const host = await mount(<TowerShareManager planId={id} />);
+    await click(button(host, "Preparar revocación del enlace 1"));
+    await click(host.querySelector('form[aria-label="Confirmar revocación de torre"] input'));
+    await click(button(host, "Preparar revocación del enlace 2"));
+    expect(host.querySelector<HTMLInputElement>('form[aria-label="Confirmar revocación de torre"] input')?.checked).toBe(false);
+    expect(button(host, "Revocar enlace")?.disabled).toBe(true);
+    await click(button(host, "Cancelar revocación"));
+    expect(host.querySelector('form[aria-label="Confirmar revocación de torre"]')).toBeNull();
+    expect(fetcher.mock.calls.every(call => call.length === 1 || (call[1] as RequestInit)?.method !== "DELETE")).toBe(true);
+    await click(button(host, "Preparar revocación del enlace 2"));
+    await click(host.querySelector('form[aria-label="Confirmar revocación de torre"] input'));
+    await click(button(host, "Revocar enlace"));
+    const deletes = fetcher.mock.calls.filter(call => call[1]?.method === "DELETE");
+    expect(deletes).toHaveLength(1); expect(deletes[0][0]).toBe(`${root}/${second}`);
+    expect(JSON.parse(String(deletes[0][1]?.body))).toEqual({ expected_plan_revision: 1 });
+  });
+  it("places the historical evidence reservation beside the main state", () => {
+    const data = parsePublicTowerShare(syntheticPublicShare());
+    data.stages[0].evaluation.verdict = "compatible";
+    const html = renderToStaticMarkup(<PublicTowerShareView data={data} />);
+    expect(html).toContain('aria-label="Estado de esta copia"');
+    expect(html).toContain("no confirma compatibilidad actual");
+    expect(html).toContain("Encajaba según la evaluación guardada");
+    expect(html).not.toContain("Ya la tiene");
+  });
+  it("un plan bloqueado se muestra como no confirmado, nunca como No encaja, y no expone códigos técnicos", () => {
+    const data = parsePublicTowerShare(syntheticPublicShare());
+    data.status = "blocked" as typeof data.status;
+    data.stages[0].status = "blocked" as typeof data.stages[0]["status"];
+    data.stages[0].evaluation.verdict = "requiere_verificacion";
+    data.stages[0].evaluation.rule_results = [];
+    data.stages[0].evaluation.coverage.failed = [];
+    data.missing_fields = [{ code: "public_evidence_withheld", count: 2 }] as typeof data.missing_fields;
+    const html = renderToStaticMarkup(<PublicTowerShareView data={data} />);
+    expect(html).toContain("No se pudo confirmar");
+    expect(html).toContain("Veredicto del motor conservado: Falta un dato");
+    expect(html).not.toContain("No encaja");
+    expect(html).toContain("Evidencia pública reservada: 2 datos.");
+    expect(html).not.toContain("public_evidence_withheld");
+  });
+  it("el resumen público de cada comprobación usa nombres humanos y deja los códigos dentro del detalle", () => {
+    const data = parsePublicTowerShare(syntheticPublicShare());
+    const rule = data.stages[0].evaluation.rule_results[0];
+    expect(rule).toBeDefined();
+    rule.rule_id = "T01";
+    const host = document.createElement("div");
+    host.innerHTML = renderToStaticMarkup(<PublicTowerShareView data={data} />);
+    const summaries = [...host.querySelectorAll("summary")].map(item => item.textContent ?? "").join("\n");
+    expect(summaries).not.toContain("T01"); expect(summaries).not.toContain("Cobertura");
+    expect(summaries).toContain("CPU y BIOS"); expect(summaries).toContain("Detalle de lo comprobado");
+    expect(host.textContent).not.toContain("Cobertura"); expect(host.textContent).toContain("Qué pudimos comprobar");
+    const detail = [...host.querySelectorAll("details")].find(item => item.querySelector(":scope > summary")?.textContent?.includes("CPU y BIOS"));
+    expect(detail?.textContent).toContain("Código interno: T01");
+  });
   it("projects only public DTO keys and rejects schema1, invalid money and unresolved component refs", () => {
     const source = syntheticPublicShare(), before = JSON.stringify(source);
     const parsed = parsePublicTowerShare({ ...source, notes: "PRIVATE_SENTINEL", pc_id: id, token: "PRIVATE_SENTINEL" });

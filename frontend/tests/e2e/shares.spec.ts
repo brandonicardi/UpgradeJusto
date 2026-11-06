@@ -66,7 +66,7 @@ test("CU09 H: publicación confirmada, proyección anónima, aislamiento y revoc
     const panel = a.getByRole("region", { name: "Publicaciones del plan", exact: true });
     const publicationTitle = "Publicación técnica de prueba";
     await panel.getByLabel("Título público de publicación", { exact: true }).fill(publicationTitle);
-    const publish = panel.getByRole("button", { name: "Publicar revisión confirmada", exact: true }); await expect(publish).toBeDisabled();
+    const publish = panel.getByRole("button", { name: "Publicar esta versión", exact: true }); await expect(publish).toBeDisabled();
     await panel.getByRole("form", { name: "Publicar snapshot", exact: true }).getByRole("checkbox").check();
     const waiting = a.waitForResponse(response => response.url().endsWith(`/api/plans/${plan.id}/shares`) && response.request().method() === "POST");
     await publish.click(); const published = await waiting; expect(published.status()).toBe(201);

@@ -17,6 +17,7 @@ omitieron lo que la maqueta mostraba sin contrato real; esa decisión no fue de 
 
 ## Impact
 
-- `frontend/` y sus pruebas. Sin cambios de backend: `/simulate` y los planes ya existen.
+- `frontend/` y sus pruebas. `/simulate` y los planes ya existen. El backend suma solo la marca de la
+  oferta más baja y el orden por precio, que la maqueta muestra y la API no tenía.
 - Los datos de ejemplo de la maqueta se reemplazan por datos reales; no se inventan frases de uso,
   medidas ni precios. Lo técnico de hoy no se pierde: queda accesible en un desplegable.

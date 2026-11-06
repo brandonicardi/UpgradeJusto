@@ -54,6 +54,17 @@ class Component(ReadModel):
         default=None, exclude_if=lambda v: v is None
     )
     offers: tuple[Offer, ...] = Field(default=(), exclude_if=lambda v: not v)
+    # Calculated on reads, never stored: excluded when absent so persisted
+    # snapshots keep the exact same shape and hashes.
+    lowest_offer_id: str | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+
+class CatalogComponent(Component):
+    """HTTP read model: null is explicit so clients never compare prices."""
+
+    lowest_offer_id: str | None = None
 
 
 class ComponentPage(ReadModel):
@@ -62,3 +73,7 @@ class ComponentPage(ReadModel):
     total: int
     page: int
     page_size: int
+
+
+class CatalogComponentPage(ComponentPage):
+    items: tuple[CatalogComponent, ...]

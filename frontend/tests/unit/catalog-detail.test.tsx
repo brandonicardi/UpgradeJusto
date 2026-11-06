@@ -20,11 +20,12 @@ describe("ficha de la pieza", () => {
     const html = renderToStaticMarkup(await Detail({ params: Promise.resolve({ id: "ficha-1" }) }));
     expect(html).toContain("Ventilador de prueba");
     expect(html).toContain("Sin foto · ilustración");
-    expect(html).toContain("Desconocido (sin evidencia documentada)");
-    expect(html).toContain("Oferta histórica: plazo vencido; no es precio vigente");
+    expect(html).toContain("Falta un dato");
+    expect(html).toContain("puede estar viejo · no es precio vigente");
     expect(html).not.toContain("Dentro del plazo registrado");
-    expect(html).toContain('href="/pcs"');
-    expect(html).not.toMatch(/Encaja|No encaja|Falta un dato/);
+    expect(html).not.toContain('class="piece-verdict"');
+    expect(html).not.toContain("El más bajo");
+    expect(html).toContain("Sin precio");
     expect(fetchSpy.mock.calls.filter(([, init]) => init?.method && init.method !== "GET")).toHaveLength(0);
   });
 });

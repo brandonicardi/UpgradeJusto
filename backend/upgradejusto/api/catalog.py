@@ -5,7 +5,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import StringConstraints
 
-from upgradejusto.catalog.models import Category, Component, ComponentPage
+from upgradejusto.catalog.models import (
+    CatalogComponent,
+    CatalogComponentPage,
+    Category,
+)
 from upgradejusto.catalog.postgres import PostgresCatalogRepository
 from upgradejusto.catalog.service import CatalogService, CatalogSort
 
@@ -16,7 +20,7 @@ def service():
     return CatalogService(PostgresCatalogRepository())
 
 
-@router.get("", response_model=ComponentPage)
+@router.get("", response_model=CatalogComponentPage)
 def list_components(
     category: Annotated[Category | None, Query()] = None,
     q: Annotated[
@@ -26,14 +30,14 @@ def list_components(
     page_size: Annotated[int, Query(ge=1, le=50)] = 12,
     sort: Annotated[CatalogSort, Query()] = "id",
     svc=Depends(service),
-) -> ComponentPage:
+) -> CatalogComponentPage:
     return svc.list_components(
         category=category, q=q, page=page, page_size=page_size, sort=sort
     )
 
 
-@router.get("/{component_id}", response_model=Component)
-def get_component(component_id: str, svc=Depends(service)) -> Component:
+@router.get("/{component_id}", response_model=CatalogComponent)
+def get_component(component_id: str, svc=Depends(service)) -> CatalogComponent:
     component = svc.get_component(component_id)
     if component is None:
         raise HTTPException(status_code=404, detail="Component not found")

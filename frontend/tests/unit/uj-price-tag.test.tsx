@@ -14,6 +14,14 @@ const html = (props: Record<string, unknown>) => renderToStaticMarkup(<PriceTag 
 const texto = (props: Record<string, unknown>) => html(props).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 
 describe("PriceTag", () => {
+  it("en catálogo usa fecha corta, no anida enlaces y conserva centavos sin redondear", () => {
+    const salida = html({ ...completo, monto: "123456.19", catalogo: true });
+    expect(salida).toContain("123.456,19");
+    expect(salida).toContain("28/10 · ");
+    expect(salida).not.toContain("28/10/2026");
+    expect(salida).not.toContain("<a ");
+    expect(html({ catalogo: true })).toContain("No lo vimos en los últimos días");
+  });
   it("muestra el precio completo con moneda, fecha y tienda con enlace", () => {
     const salida = html(completo);
     expect(salida).toContain("ARS");

@@ -68,8 +68,10 @@ def test_defaults_and_contract(client):
             "sources",
             "prices",
             "image",
+            "lowest_offer_id",
         }
         assert item["image"] is None
+        assert item["lowest_offer_id"] is None
         assert all(v is None or isinstance(v, str) for v in item["attributes"].values())
         assert item["sources"]
         for source in item["sources"]:

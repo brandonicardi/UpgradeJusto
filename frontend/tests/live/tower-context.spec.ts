@@ -41,7 +41,7 @@ test("@tower-chat-live CU08 contexto schema2 por turno, MCP/SSE/historia reales"
     const created = await creating; expect(created.status()).toBe(201); conversationId = (await created.json() as Conversation).id;
     const panel = a.getByRole("region", { name: "Conversación seleccionada", exact: true });
     phase = "select-context";
-    await a.getByLabel("Torre propia para este turno", { exact: true }).selectOption({ label: `${input.name} · revisión 1` });
+    await a.getByLabel("Torre propia para este turno", { exact: true }).selectOption({ label: input.name });
     await expect(a.getByRole("region", { name: "Torre seleccionada para este turno", exact: true })).toBeVisible();
     a.on("request", request => { const path = new URL(request.url()).pathname; if (request.method() === "POST" && path === `/api/conversations/${conversationId}/messages`) posts++; if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && (path.startsWith("/api/towers") || path.startsWith("/api/pcs"))) pcWrites++; });
     // Avoid fill call logs containing message bodies, even for own synthetic data.

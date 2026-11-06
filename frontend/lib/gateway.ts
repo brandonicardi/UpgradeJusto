@@ -69,7 +69,7 @@ export function signedProxyHeaders(ipValue: unknown, method: string, pathname: s
 
 export function adminGatewayPath(pathname: string, method: string): boolean {
   // Backend generates these IDs; only components retain the fourteen seed IDs.
-  const revision = "(?:sprint31b-a-v1|revision-[0-9a-f]{32})";
+  const revision = "(?:sprint31b-a-v1|revision-[0-9a-f]{32}|retail-[0-9a-f]{64})";
   const row = "row-[0-9a-f]{32}";
   const root = "/api/admin/revisions";
   if (pathname === root) return ["GET", "POST"].includes(method);

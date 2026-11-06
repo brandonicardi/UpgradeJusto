@@ -23,6 +23,8 @@ Store = Literal["compragamer", "venex"]
 
 # Single source of truth for how long an observed reference price stays valid.
 REFERENCE_PRICE_VALIDITY = timedelta(days=30)
+# A price is only eligible for "lowest offer" while the observation is recent.
+LOWEST_OFFER_MAX_AGE = timedelta(days=7)
 
 
 class Closed(BaseModel):
@@ -224,3 +226,16 @@ def usable_offers(offers, condition, now=None):
         and quoted.availability == "in_stock"
         and quoted.amount is not None
     )
+
+
+def lowest_usable_offer(offers, now=None):
+    """Cheapest recent cash offer, or None. Ties go to the smallest offer_id."""
+    now = now or datetime.now(timezone.utc)
+    recent = tuple(
+        offer
+        for offer in usable_offers(offers, "cash", now)
+        if now - offer.observed_at <= LOWEST_OFFER_MAX_AGE
+    )
+    if not recent:
+        return None
+    return min(recent, key=lambda offer: (Decimal(offer.amount), offer.offer_id))

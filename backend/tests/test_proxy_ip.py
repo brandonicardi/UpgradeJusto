@@ -128,6 +128,7 @@ def test_partial_and_duplicate_headers(configured):
 
 
 ADMIN_DRAFT = "/api/admin/revisions/revision-" + "a" * 32
+ADMIN_RETAIL = "/api/admin/revisions/retail-0337bf42" + "0" * 56
 ADMIN_LISTS = (
     ["/api/admin/revisions"]
     + [
@@ -135,6 +136,7 @@ ADMIN_LISTS = (
         for collection in ("components", "prices", "sources", "cpu_support")
     ]
     + ["/api/admin/revisions/sprint31b-a-v1/components"]
+    + [f"{ADMIN_RETAIL}/{collection}" for collection in ("components", "prices")]
 )
 
 
@@ -145,6 +147,23 @@ def test_admin_pagination_direct_and_signed(configured, path, signed):
     assert client_ip(
         request(headers, method="GET", path=path, query=b"limit=25&offset=0")
     ) == (IP if signed else "127.0.0.1")
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/admin/revisions/retail-abc/components",
+        f"/api/admin/revisions/retail-{'0' * 63}/components",
+        f"/api/admin/revisions/retail-{'0' * 65}/components",
+        f"/api/admin/revisions/retail-{'0' * 64}/unknown",
+    ],
+)
+@pytest.mark.parametrize("signed", [False, True])
+def test_admin_retail_revision_requires_64_hex(configured, path, signed):
+    headers = signed_headers(method="GET", path=path) if signed else {}
+    with pytest.raises(AuthError) as error:
+        client_ip(request(headers, method="GET", path=path, query=b"limit=25&offset=0"))
+    assert error.value.status == 403
 
 
 @pytest.mark.parametrize(

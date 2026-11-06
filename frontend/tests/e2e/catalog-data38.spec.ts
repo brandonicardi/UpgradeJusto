@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { test } from "./fixtures";
 import { parseCatalogTowerComponent, parseCatalogTowerPage, catalogBoundOffers } from "../../lib/catalog-tower-consumer";
 import { cardPrice } from "../../lib/catalog-offers";
-import { displayImage, referencePriceLabel, retailSourceURL } from "../../lib/retail-presentation";
+import { displayImage, displayRetailDate, formatRetailARS, offerDisplayStatus, retailSourceURL } from "../../lib/retail-presentation";
 test.use({ trace: "off", video: "off", screenshot: "off" });
 
 function envelope(value: unknown) {
@@ -49,12 +49,12 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
   let apiAttempted = false, raw: unknown;
   const observed: { navigation_status: number | null; same_application_origin: boolean; catalog_heading: boolean; h1_count: number; dom: "unknown" | "catalog_loaded" | "catalog_failure" | "not_found" | "other"; category_comboboxes: number; category_options: number; api_status: number | null; api_json: boolean; envelope: ReturnType<typeof envelope> | null; contract_path: string | null; api_raw_items_count: number; item_count: number; image_candidates: number; offer_candidates: number; combined_candidates: number } = { navigation_status: null, same_application_origin: false, catalog_heading: false, h1_count: 0, dom: "unknown", category_comboboxes: 0, category_options: 0, api_status: null, api_json: false, envelope: null, contract_path: null, api_raw_items_count: 0, item_count: 0, image_candidates: 0, offer_candidates: 0, combined_candidates: 0 };
   async function domProbe() {
-    observed.catalog_heading = await page.getByRole("heading", { level: 1, name: "Catálogo de componentes", exact: true }).count() === 1;
+    observed.catalog_heading = await page.getByRole("heading", { level: 1, name: "Todas las piezas", exact: true }).count() === 1;
     observed.h1_count = await page.getByRole("heading", { level: 1 }).count();
     const failure = await page.getByRole("heading", { name: "No se pudo cargar el catálogo", exact: true }).count() > 0;
     const notFound = await page.getByRole("heading", { name: "This page could not be found.", exact: true }).count() > 0;
     observed.dom = failure ? "catalog_failure" : observed.catalog_heading ? "catalog_loaded" : notFound ? "not_found" : "other";
-    const category = page.getByRole("combobox", { name: "Categoría", exact: true }); observed.category_comboboxes = await category.count(); observed.category_options = await category.locator('option:not([value=""])').count();
+    const category = page.getByRole("navigation", { name: "Tipo de pieza", exact: true }); observed.category_comboboxes = await category.count(); observed.category_options = await category.locator('a').count() - 1;
   }
   async function apiProbe() {
     apiAttempted = true;
@@ -64,18 +64,40 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
     const record = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string, unknown> : null;
     observed.api_raw_items_count = Array.isArray(record?.items) ? record.items.length : 0;
   }
+  // Tabla «Dónde la vimos y a cuánto» de la ficha: una fila por oferta ARS de la pieza, con tienda, condición, importe, fecha y enlace.
+  // Una oferta vencida o sin importe se muestra marcada como no vigente; una vigente, sin esa marca.
+  async function expectOffersTable(part: ReturnType<typeof parseCatalogTowerComponent>) {
+    const section = page.locator("section.piece-block").filter({ has: page.getByRole("heading", { name: "Dónde la vimos y a cuánto", exact: true }) });
+    await expect(section).toBeVisible();
+    const offers = catalogBoundOffers(part), flat = (text: string | null) => (text ?? "").replace(/\s+/g, " ");
+    await expect(section.locator("tbody tr")).toHaveCount(offers.length);
+    if (!offers.length) await expect(section).toContainText("Sin precio");
+    for (const [index, offer] of offers.entries()) {
+      const row = section.locator("tbody tr").nth(index), cells = row.locator("td");
+      const store = offer.store === "compragamer" ? "Compra Gamer" : "Venex", source = retailSourceURL(offer.source_url);
+      expect(flat(await cells.nth(0).textContent())).toContain(store);
+      expect(await cells.nth(0).textContent()).toContain(offer.condition === "cash" ? "Contado" : "Lista");
+      if (source) await expect(cells.nth(0).getByRole("link", { name: store, exact: true })).toHaveAttribute("href", source);
+      else await expect(cells.nth(0).getByRole("link")).toHaveCount(0);
+      expect(flat(await cells.nth(1).textContent())).toBe(flat(formatRetailARS(offer.amount)));
+      expect(flat(await cells.nth(2).textContent())).toContain(flat(displayRetailDate(offer.observed_at)));
+      const vigente = offerDisplayStatus(offer, Date.now()) === "fresh" && formatRetailARS(offer.amount) !== "Importe no disponible";
+      if (vigente) await expect(row).not.toContainText("no es precio vigente");
+      else await expect(row).toContainText("no es precio vigente");
+    }
+  }
   try {
     const navigation = await page.goto("/catalog?page=1&page_size=12&sort=retail_first");
     observed.navigation_status = navigation?.status() ?? null;
     observed.same_application_origin = new URL(page.url()).origin === "http://127.0.0.1:3000";
     phase = "catalog-navigation-status"; expect(observed.navigation_status).toBe(200); expect(observed.same_application_origin).toBe(true);
-    phase = "catalog-wait-heading"; await expect(page.getByRole("heading", { level: 1, name: "Catálogo de componentes", exact: true })).toBeVisible({ timeout: 5000 });
-    const category = page.getByRole("combobox", { name: "Categoría", exact: true });
+    phase = "catalog-wait-heading"; await expect(page.getByRole("heading", { level: 1, name: "Todas las piezas", exact: true })).toBeVisible({ timeout: 5000 });
+    const category = page.getByRole("navigation", { name: "Tipo de pieza", exact: true });
     phase = "catalog-wait-combobox"; await expect(category).toBeVisible({ timeout: 5000 });
     phase = "catalog-9filters";
-    await expect(category.locator('option:not([value=""])')).toHaveCount(9, { timeout: 5000 }); await domProbe();
+    await expect(category.locator('a')).toHaveCount(10, { timeout: 5000 }); await domProbe();
     expect(observed.category_comboboxes).toBe(1); expect(observed.category_options).toBe(9);
-    await expect(page.getByRole("combobox", { name: "Orden", exact: true })).toHaveValue("retail_first");
+    await expect(page.getByRole("combobox", { name: "Ordenar", exact: true })).toHaveValue("retail_first");
     phase = "catalog-api-fetch"; await apiProbe();
     phase = "catalog-api-status"; expect(observed.api_status).toBe(200); expect(observed.api_json).toBe(true);
     phase = "catalog-api-parse"; const data = parseCatalogTowerPage(raw);
@@ -90,39 +112,35 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
     phase = "bound-retail-row";
     const row = page.locator("article[data-component-id]").filter({ has: page.locator(`a[href="/catalog/${candidate.id}"]`) });
     // Tarjeta de la grilla (PartCard): nombre en el enlace a la ficha, precio con tienda y condición, y foto.
-    await expect(row.locator(`a[href="/catalog/${candidate.id}"]`)).toHaveText(candidate.name);
+    await expect(row.locator("h2")).toHaveText(candidate.name);
     const shown = cardPrice(candidate), rowText = (await row.textContent()) ?? "";
     if (shown.monto) {
       // Sólo una oferta vigente se muestra como precio; si no, la tarjeta dice «Sin precio», nunca un importe vencido.
-      expect(rowText.replace(/\s/g, " ")).toContain(new Intl.NumberFormat("es-AR").format(Number(shown.monto)));
-      expect(rowText).toContain(`${shown.condicion} · visto el `); expect(rowText).toContain(shown.tienda ?? "");
-      if (shown.enlace) await expect(row.locator(`a[href="${shown.enlace}"]`)).toHaveCount(1);
+      // La tarjeta del catálogo muestra el importe exacto de la API (puntos de miles, coma decimal salvo «,00»), día/mes y tienda.
+      const [entero, decimales] = shown.monto.split(".");
+      expect(rowText.replace(/\s/g, " ")).toContain(entero.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (decimales === "00" ? "" : `,${decimales}`));
+      expect(rowText).toContain(shown.tienda ?? "");
+      expect(rowText).toContain(shown.fecha!.slice(0, 10).split("-").reverse().slice(0, 2).join("/"));
+      await expect(row.locator("a")).toHaveCount(1);
     } else expect(rowText).toContain("Sin precio");
     await row.scrollIntoViewIfNeeded(); const cardPhoto = row.locator("img");
     await expect(cardPhoto).toHaveCount(1);
     await expect.poll(() => cardPhoto.evaluate(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)).toBe(true);
     expect((await cardPhoto.getAttribute("src")) === displayImage(candidate)).toBe(true);
-    // Panel «Ver al lado»: todas las ofertas de la pieza, con su fuente, y la foto.
-    await row.getByRole("button", { name: /Ver al lado/ }).click();
-    const panel = page.getByRole("complementary", { name: "Ficha de la pieza seleccionada", exact: true });
-    await expect(panel.getByRole("heading", { level: 2 })).toHaveText(candidate.name);
-    await expect(row).toHaveAttribute("data-selected", "true");
-    const panelText = (await panel.textContent()) ?? "";
-    for (const offer of catalogBoundOffers(candidate)) {
-      expect(panelText.includes(referencePriceLabel(offer))).toBe(true);
-      expect(panelText.includes(offer.condition === "cash" ? "Contado" : "Lista (no cuotas)")).toBe(true);
-      const source = retailSourceURL(offer.source_url);
-      if (source) expect(await panel.locator("[data-retail-offer] a").evaluateAll((links, url) => links.some(link => link.getAttribute("href") === url), source)).toBe(true);
-    }
-    await panel.scrollIntoViewIfNeeded(); const photo = panel.locator(".tower-product-photo img");
+    // La tarjeta completa abre la ficha; la evidencia de todas las ofertas sigue allí.
+    await row.locator("a").click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(candidate.name);
+    await expectOffersTable(candidate);
+    const hero = page.locator(".piece-hero");
+    await hero.scrollIntoViewIfNeeded(); const photo = hero.locator(".tower-product-photo img");
     await expect.poll(() => photo.evaluateAll(images => images.some(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
     expect((await photo.first().getAttribute("src")) === displayImage(candidate)).toBe(true);
     phase = "sort-preserves-access-to-all-records";
     const ordinaryReply = await page.evaluate(async () => { const response = await fetch("/api/catalog/components?page=1&page_size=12&sort=id", { cache: "no-store" }); return { status: response.status, data: await response.json() }; });
     expect(ordinaryReply.status).toBe(200); const ordinary = parseCatalogTowerPage(ordinaryReply.data); expect(ordinary.total).toBe(data.total);
-    await page.getByRole("combobox", { name: "Orden", exact: true }).selectOption("id");
-    await page.getByRole("button", { name: "Aplicar filtros", exact: true }).click();
-    await expect(page.getByRole("combobox", { name: "Orden", exact: true })).toHaveValue("id");
+    await page.goto("/catalog");
+    await page.getByRole("combobox", { name: "Ordenar", exact: true }).selectOption("id");
+    await expect(page.getByRole("combobox", { name: "Ordenar", exact: true })).toHaveValue("id");
     await expect(page.locator("article[data-component-id]").first()).toHaveAttribute("data-component-id", ordinary.items[0].id);
     expect(new URL(page.url()).searchParams.get("sort")).toBe("id");
     if (ordinary.total > ordinary.page_size) {
@@ -130,16 +148,15 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
       const href = await next.getAttribute("href"); expect(href !== null && new URL(href, page.url()).searchParams.get("sort") === "id").toBe(true);
     }
     for (const current of ["fan", "storage", "cooler"]) {
-      phase = `filter-${current}`; await page.goto(`/catalog?category=${current}&page=1&page_size=6&sort=retail_first`); await expect(page.getByRole("combobox", { name: "Categoría", exact: true })).toHaveValue(current); await expect(page.locator("article[data-component-id]").first()).toBeVisible(); expect(await page.locator('img[alt*="undefined"]').count()).toBe(0);
+      phase = `filter-${current}`; await page.goto(`/catalog?category=${current}&page=1&page_size=12&sort=retail_first`); await expect(page.getByRole("navigation", { name: "Tipo de pieza" }).locator('a[aria-current="page"]')).toHaveAttribute("href", new RegExp(`category=${current}`)); await expect(page.locator("article[data-component-id]").first()).toBeVisible(); expect(await page.locator('img[alt*="undefined"]').count()).toBe(0);
     }
     for (const id of data.items.slice(0, 2).map(part => part.id)) {
       phase = "detail-resource-proof";
       const raw = await page.evaluate(async id => { const response = await fetch(`/api/catalog/components/${id}`, { cache: "no-store" }); if (!response.ok) throw new Error("Part unavailable"); return response.json(); }, id);
       expect(Object.hasOwn(raw, "image_evidence") && Object.hasOwn(raw, "offers")).toBe(true);
       const part = parseCatalogTowerComponent(raw); await page.goto(`/catalog/${id}`); await expect(page.getByRole("heading", { level: 1 })).toHaveText(part.name);
-      const summary = page.getByRole("region", { name: "Resumen del componente", exact: true }); expect(await summary.locator("[data-retail-offer]").count()).toBe(catalogBoundOffers(part).length);
+      await expectOffersTable(part);
       expect(await page.locator('img[alt*="undefined"]').count()).toBe(0);
-      for (const offer of catalogBoundOffers(part)) expect((await summary.textContent())?.includes(referencePriceLabel(offer))).toBe(true);
     }
     phase = "complete";
   } catch (error) {

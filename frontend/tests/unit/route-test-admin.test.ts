@@ -1,8 +1,37 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createElement } from "react";
+import Administration from "../../app/admin/page";
+import { mount, unmountAll, click, button, byLabel } from "./support/dom";
 import { spawnSync } from "node:child_process";
 import { assertRouteAdminTestEnvironment, bootstrapOwnRouteAdmin } from "../support/route-test-admin";
 
 vi.mock("node:child_process", () => ({ spawnSync: vi.fn(() => ({ status: 0 })) }));
+afterEach(async () => { await unmountAll(); vi.unstubAllGlobals(); });
+it("admin distinguishes draft from published and requires explicit publication without unsupported metrics", async () => {
+  const active = { id: "active", base_version: null, status: "published", active: true };
+  const draft = { id: "draft", base_version: "active", status: "draft", active: false };
+  let published = false;
+  const fetcher = vi.fn(async (path: string, init?: RequestInit) => {
+    if (path.includes("csrf")) return Response.json({ csrf_token: "synthetic" });
+    if (path.endsWith("/publish")) { published = true; return Response.json({ dataset_version: "draft" }); }
+    if (init?.method === "POST") return Response.json(draft, { status: 201 });
+    if (path.includes("/sources?")) return Response.json({ items: [], total: 0, offset: 0, limit: 25 });
+    return Response.json({ items: published ? [{ ...draft, status: "published", active: true }] : [active, draft], total: 2, offset: 0, limit: 100 });
+  });
+  vi.stubGlobal("fetch", fetcher);
+  const host = await mount(createElement(Administration));
+  expect(host.textContent).not.toMatch(/PCs afectadas|Precios viejos|Publicar precio|Sin precio de los últimos/);
+  await click(button(host, "Crear borrador desde activa"));
+  expect(host.textContent).toContain("Guardado en borrador");
+  expect(host.querySelectorAll("#admin-collection option")).toHaveLength(4);
+  expect(button(host, "Publicar borrador")?.disabled).toBe(true);
+  expect(published).toBe(false);
+  await click(byLabel(host, "Confirmo publicar este borrador"));
+  await click(button(host, "Publicar borrador"));
+  expect(published).toBe(true); expect(host.textContent).toContain("Publicado · solo lectura");
+  expect(button(host, "Guardar fila en borrador")).toBeNull();
+});
 const email = "routes-12345678-1234-1234-1234-123456789abc@example.test";
 const testDatabase = "postgresql+psycopg://upgradejusto_test_app@127.0.0.1:55433/upgradejusto_test";
 describe("route admin TEST-only bootstrap guard", () => {

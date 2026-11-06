@@ -1,0 +1,23 @@
+.admin-screen { color: var(--tinta); min-width: 0; }
+.admin-screen .page-heading { padding-block: var(--space-6); display: grid; gap: var(--space-2); }
+.admin-screen h1 { font: 700 44px/48px var(--font-display); margin: 0; }
+.admin-screen .page-heading p { font-size: 18px; line-height: 28px; margin: 0; color: var(--tinta-suave); }
+.admin-screen .admin-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); min-width: 0; }
+.admin-screen .admin-detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 420px; align-items: start; gap: var(--space-6); }
+.admin-screen .admin-detail-grid > div { min-width: 0; }
+.admin-screen .admin-editor { background: var(--papel); padding: var(--space-5); border: 1px solid var(--linea); border-radius: var(--radius-lg); position: sticky; top: var(--space-5); }
+.admin-screen .revision-list { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; padding: 0; }
+.admin-screen .surface { min-width: 0; padding: var(--space-5); background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); }
+.admin-screen .surface + .surface { padding: var(--space-6); border-radius: var(--radius-lg); box-shadow: var(--sombra-2); }
+.admin-screen h2 { font: 650 22px/28px var(--font-display); }
+.admin-screen :is(details, .table-scroll, pre) { max-width: 100%; min-width: 0; overflow: auto; }
+.admin-screen :is(select, textarea) { width: 100%; min-width: 0; max-width: 100%; background: var(--papel); color: var(--tinta); border: 1px solid var(--linea-fuerte); border-radius: var(--radius-sm); padding: var(--space-3); }
+.admin-screen textarea { white-space: pre; overflow: auto; }
+.admin-screen pre { white-space: pre; overflow-wrap: normal; }
+.admin-screen :is(button, p) { overflow-wrap: anywhere; }
+.admin-screen nav { flex-wrap: wrap; }
+.admin-screen th, .admin-screen td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--linea); }
+.admin-screen th { background: var(--papel-hundido); color: var(--tinta-suave); }
+.admin-screen :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+@media (max-width: 1100px) { .admin-screen .admin-detail-grid { grid-template-columns: minmax(0, 1fr); } .admin-screen .admin-editor { position: static; } }
+@media (max-width: 700px) { .admin-screen h1 { font-size: 34px; line-height: 38px; } .admin-screen .surface + .surface { padding: var(--space-4); } .admin-screen table { min-width: 560px; } }

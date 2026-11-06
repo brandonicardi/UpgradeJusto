@@ -1,35 +1,23 @@
 import Link from "next/link";
 import { catalogTowerPage, parseTowerCatalogQuery, towerQueryString, type TowerCatalogQuery } from "../../lib/catalog-tower-consumer";
-import { towerCategories } from "../../lib/towers";
 import type { TowerCatalogPage } from "../../lib/tower-catalog";
-import { EmptyResults, Failure } from "./presentation";
+import { Failure } from "./presentation";
 import CatalogWorkbench from "../../components/catalog-workbench";
-
+import "./catalog.css";
 export const dynamic = "force-dynamic";
-
 export default async function Catalog({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   let query: TowerCatalogQuery;
-  try { query = parseTowerCatalogQuery(await searchParams); } catch { return <><h1 className="text-3xl font-bold">Catálogo de componentes</h1><Failure invalid /></>; }
+  try { query = parseTowerCatalogQuery(await searchParams); } catch { return <><h1>Todas las piezas</h1><Failure invalid /></>; }
   let data: TowerCatalogPage | null = null;
-  try { data = await catalogTowerPage(`?${towerQueryString(query)}`); } catch { /* Accessible failure, no fallback dataset. */ }
-  return <>
-    <header className="page-heading"><p className="eyebrow">EXPLORÁ TUS OPCIONES</p><h1>Catálogo de componentes</h1><p className="muted">Piezas documentadas para comparar. La compatibilidad se comprueba con tu PC.</p></header>
-    <form action="/catalog" method="get" className="surface catalog-filters" aria-label="Filtros del catálogo">
-      <label className="space-y-2"><span className="block font-bold">Nombre</span><input name="q" maxLength={100} defaultValue={query.q} placeholder="Buscar por nombre" /></label>
-      <div className="space-y-2 catalog-category-field"><label htmlFor="category" className="block font-bold">Categoría</label><select id="category" name="category" defaultValue={query.category}><option value="">Todas las categorías</option>{Object.entries(towerCategories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></div>
-      <label className="space-y-2 catalog-page-size"><span className="block font-bold">Por página</span><select name="page_size" defaultValue={String(query.page_size)}>{[...new Set([6, 12, 24, 50, query.page_size])].sort((a,b) => a-b).map(size => <option key={size} value={size}>{size}</option>)}</select></label>
-      <label className="space-y-2"><span className="block font-bold">Orden</span><select name="sort" defaultValue={query.sort}><option value="retail_first">Con fotos y precios primero</option><option value="id">Orden habitual</option></select></label>
-      <div className="flex flex-wrap items-center gap-4 catalog-filter-actions"><button type="submit">Aplicar filtros</button><Link href="/catalog">Limpiar</Link></div>
-    </form>
-    <p className="compact-help">El orden no garantiza precio vigente, stock ni compatibilidad. Todas las piezas siguen disponibles.</p>
-    <nav className="category-tabs" aria-label="Categorías del catálogo"><Link href={`/catalog?${towerQueryString({ ...query, category: "" }, 1)}`} aria-current={!query.category ? "page" : undefined}>Todas</Link>{Object.entries(towerCategories).map(([category, label]) => <Link key={category} href={`/catalog?${towerQueryString({ ...query, category }, 1)}`} aria-current={query.category === category ? "page" : undefined}>{label}</Link>)}</nav>
-    {!data ? <Failure retryHref={`/catalog?${towerQueryString(query)}`} /> : <>
-      <p role="status" className="results-count">{data.total} componentes · Página {data.page} · Datos curados del catálogo</p>
-      {data.items.length ? <CatalogWorkbench data={data} /> : <EmptyResults filtered={Boolean(query.q || query.category) && data.total === 0} firstPageHref={`/catalog?${towerQueryString(query, 1)}`} />}
-      <nav aria-label="Paginación" className="catalog-pagination">
-        {data.page > 1 && <Link href={`/catalog?${towerQueryString(query, data.page - 1)}`}>Página anterior</Link>}
-        {data.page < 10000 && data.page * data.page_size < data.total && <Link href={`/catalog?${towerQueryString(query, data.page + 1)}`}>Página siguiente</Link>}
-      </nav>
-    </>}
-  </>;
+  try { data = await catalogTowerPage(`?${towerQueryString(query)}`); } catch { /* Sin datos de ejemplo. */ }
+  return <div className="catalog-screen">
+    <header className="catalog-head"><h1>Todas las piezas</h1><p>Buscá por lo que necesitás o por el nombre. Si elegís tu PC, te mostramos al lado de cada una si encaja.</p></header>
+    {data ? <CatalogWorkbench key={towerQueryString(query)} data={data} query={query} /> : <Failure retryHref={`/catalog?${towerQueryString(query)}`} />}
+    {data && <nav aria-label="Paginación" className="catalog-pagination">
+      {data.page > 1 && <Link className="secondary" href={`/catalog?${towerQueryString(query, data.page - 1)}`}>Página anterior</Link>}
+      <span>Página {data.page}</span>
+      {data.page < 10000 && data.page * data.page_size < data.total && <Link className="secondary" href={`/catalog?${towerQueryString(query, data.page + 1)}`}>Página siguiente</Link>}
+    </nav>}
+    <footer className="catalog-foot"><span>Precios en pesos de tiendas argentinas, con la fecha en que los vimos. Las piezas sin precio reciente quedan al final con el orden de fotos y precios. Precios guardados, no reservas: comprobá disponibilidad antes de comprar.</span><Link href="/">¿No sabés qué buscar? Mirá lo que te conviene</Link></footer>
+  </div>;
 }

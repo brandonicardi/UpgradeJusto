@@ -21,10 +21,14 @@ Agente `backend`. Nada de reintentos ni de fragmentos que no sean literales del 
       sin `strict` (HTTP 400 `json_validate_failed`).
 
 ## 4. Verificación
-- [ ] 4.1 `pytest`, `ruff check` y `tower-extraction38.spec.ts`.
-      `pytest` 934 aprobadas y 263 salteadas; `ruff check` limpio. Falta el e2e.
+- [x] 4.1 `pytest`, `ruff check` y `tower-extraction38.spec.ts`.
+      `pytest` 959 aprobadas y 263 salteadas (1 aviso); `ruff check` limpio y `ruff format --check`
+      solo deja 4 archivos preexistentes ajenos a esta tanda. E2E: el primer intento dio 502 del
+      proveedor y el reintento pasó (3,5 s).
 - [x] 4.2 Medición en vivo de tres textos, con líneas propuestas y motivo de cada falla.
       Antes de 2.3, 9 llamadas: 8 respondieron y 1 dio 502 (`json_validate_failed`). Texto con comas:
       2 líneas correctas en 3 de 3. Texto del e2e: 0 líneas, correcto porque no nombra modelos. Texto
       «Tengo una placa madre…»: 0 líneas en 2 corridas, 2.3 ataca la que venía sin cantidad.
-- [ ] 4.3 Revisor: citas literales, identidad exacta y cantidad explícita sin aflojar.
+- [x] 4.3 Revisor: citas literales, identidad exacta y cantidad explícita sin aflojar.
+      Un importante, corregido: una intención de compra o negación ahora cubre los segmentos
+      siguientes de la misma oración. Prueba: `test_wish_or_negation_covers_later_segments_of_the_sentence`.

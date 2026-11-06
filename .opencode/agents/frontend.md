@@ -3,7 +3,7 @@ description: Implementa tareas de interfaz (Next.js, componentes, estilos, prueb
 mode: subagent
 model: claude-agent/sonnet#medium
 color: "#db2777"
-steps: 40
+steps: 100
 permissions:
   - action: "*"
     resource: "*"

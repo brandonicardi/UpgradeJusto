@@ -3,7 +3,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import CatalogWorkbench from "../../components/catalog-workbench";
 import { cardPrice } from "../../lib/catalog-offers";
 import { parseCatalogTowerComponent } from "../../lib/catalog-tower-consumer";
-import { button, click, mount, unmountAll } from "./support/dom";
+import { mount, unmountAll } from "./support/dom";
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 // Datos sintéticos de prueba: no son ofertas ni productos publicados.
 function part(id: string, amount: string | null = "1500.00", verified = false) {
@@ -41,23 +42,23 @@ describe("grilla del catálogo", () => {
   it("muestra una tarjeta por pieza, sin veredicto y con ícono si no hay foto verificada", async () => {
     const host = await mount(<CatalogWorkbench data={page("a", "b")} />);
     expect(host.querySelectorAll("article[data-component-id]")).toHaveLength(2);
-    expect(host.textContent).not.toMatch(/Encaja|No encaja|Falta un dato/);
+    expect(host.querySelector("article")?.textContent).not.toMatch(/Encaja|No encaja|Falta un dato/);
     expect(host.querySelector("article img")).toBeNull();
     expect(host.querySelector("article svg")).not.toBeNull();
-    expect(host.textContent).toContain("Contado · visto el 25/10/2026 en Venex");
+    expect(host.textContent).toContain("25/10 · Venex");
   });
   it("sin importe usable la tarjeta dice «Sin precio», nunca cero", () => {
     expect(cardPrice(parseCatalogTowerComponent(part("a", null)))).toEqual({});
     expect(cardPrice(parseCatalogTowerComponent(part("a", "900719925474099300.19")))).toEqual({});
     expect(cardPrice(parseCatalogTowerComponent(part("a")))).toMatchObject({ monto: "1500.00", tienda: "Venex" });
   });
-  it("«Ver al lado» muestra siempre la variante elegida en último lugar", async () => {
+  it("cada tarjeta completa abre la ficha, sin panel lateral ni enlaces anidados", async () => {
     const first = page("a", "b");
     const host = await mount(<CatalogWorkbench data={first} />);
-    await click(button(host, /Ver al lado: Ventilador b/));
-    expect(host.querySelector("aside h2")?.textContent).toBe("Ventilador b");
-    expect(host.querySelector('[data-component-id="b"]')?.getAttribute("data-selected")).toBe("true");
-    await click(button(host, /Ver al lado: Ventilador a/));
-    expect(host.querySelector("aside h2")?.textContent).toBe("Ventilador a");
+    expect(host.querySelector("aside")).toBeNull();
+    expect(host.textContent).not.toContain("Ver al lado");
+    expect(host.querySelectorAll("article > a")).toHaveLength(2);
+    expect(host.querySelector("article a a")).toBeNull();
+    expect(host.querySelector('[data-component-id="b"] > a')?.getAttribute("href")).toBe("/catalog/b");
   });
 });

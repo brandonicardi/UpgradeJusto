@@ -9,6 +9,7 @@ import { adminGatewayPath, signedProxyHeaders } from "../../lib/gateway";
 import { curationProxy } from "../../lib/curation-proxy";
 import { CurationError, curationError, curationRequest, parseAdminData } from "../../lib/curation";
 const id = "revision-11111111111141118111111111111111";
+const retail = `retail-${"0337bf42".repeat(8)}`;
 const row = "row-22222222222242228222222222222222";
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 describe("CU02/CU10 contrato cerrado", () => {
@@ -17,7 +18,7 @@ describe("CU02/CU10 contrato cerrado", () => {
     for (const path of ["/api/pcs/extract", "/api/pcs/extract/confirm"]) {
       expect(sign(path, "POST")).not.toBeNull(); expect(sign(path, "GET")).toBeNull(); expect(sign(path + "/extra", "POST")).toBeNull();
     }
-    for (const revision of ["sprint31b-a-v1", id]) {
+    for (const revision of ["sprint31b-a-v1", id, retail]) {
       for (const collection of ["components", "prices", "sources", "cpu_support"]) {
         const path = `/api/admin/revisions/${revision}/${collection}`;
         for (const method of ["GET", "POST"]) expect(sign(path, method)).not.toBeNull();
@@ -38,6 +39,9 @@ describe("CU02/CU10 contrato cerrado", () => {
       "/api/admin/revisions/11111111-1111-4111-8111-111111111111/prices",
       "/api/admin/revisions/sprint31b-a-v2/prices",
       "/api/admin/revisions/revision-abc/prices",
+      "/api/admin/revisions/retail-abc/prices",
+      `/api/admin/revisions/retail-${"0337bf42".repeat(8).slice(1)}/prices`,
+      `/api/admin/revisions/${retail}0/prices`,
       `${root}/components/P00`, `${root}/components/P15`, `${root}/components/P1`,
       ...["prices", "sources", "cpu_support"].map(collection => `${root}/${collection}/P01`),
       `${root}/sources/${id}`, `${root}/sources/row-abc`,
