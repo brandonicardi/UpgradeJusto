@@ -32,6 +32,20 @@ function rowLabel(row: Row, collection: Collection, index: number): string {
 
 const SELECT = "block w-full min-h-12 rounded-sm border-[1.5px] border-solid border-linea-fuerte bg-papel-alto px-space-4 py-space-3 text-tinta text-cuerpo font-sans-uj focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
 
+const PAGE_SIZE = 10;
+
+function Pager({ total, offset, shown, busy, onPage }: { total: number; offset: number; shown: number; busy: boolean; onPage: (next: number) => void }) {
+  if (total <= PAGE_SIZE) return null;
+  const from = shown ? offset + 1 : 0, to = offset + shown, page = Math.floor(offset / PAGE_SIZE);
+  return (
+    <nav className="admin-pager" aria-label="Páginas del listado">
+      <span>Mostrando {from}–{to} de {total}</span>
+      <Button peso="secundario" chico type="button" disabled={busy || offset === 0} onClick={() => onPage(page - 1)}>Anteriores</Button>
+      <Button peso="secundario" chico type="button" disabled={busy || offset + PAGE_SIZE >= total} onClick={() => onPage(page + 1)}>Siguientes</Button>
+    </nav>
+  );
+}
+
 type PieceOption = { id: string; name: string; store: string; category: DashboardCategory };
 
 function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void }) {
@@ -39,6 +53,12 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"datos" | "precios">("datos");
+  // Fila elegida: se resalta con lima hasta que se empieza otra acción.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Cada listado se pide de a PAGE_SIZE filas al servidor, que ya pagina.
+  const [pages, setPages] = useState({ datos: 0, precios: 0 });
+  const [view, setView] = useState<{ tab: "datos" | "precios"; page: number; result: AdminDashboard } | null>(null);
+  const page = pages[tab];
 
   // Formulario de carga de precio.
   const [pieceId, setPieceId] = useState("");
@@ -58,6 +78,25 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
       .finally(() => { if (mounted) setBusy(false); });
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    if (!data) return;
+    let mounted = true;
+    dashboardRequest(PAGE_SIZE, page * PAGE_SIZE)
+      .then((result) => { if (mounted) setView({ tab, page, result }); })
+      .catch((failure) => { if (mounted) setError(failure instanceof Error ? failure.message : "No se pudo consultar el tablero."); });
+    return () => { mounted = false; };
+  }, [data, tab, page]);
+
+  function goTo(next: number) {
+    setPages((current) => ({ ...current, [tab]: Math.max(0, next) }));
+  }
+
+  // Mientras llega la página pedida se sigue mostrando la anterior de la misma solapa.
+  const sameTab = view?.tab === tab;
+  const shownPage = sameTab ? view!.page : 0;
+  const viewBusy = !sameTab || view!.page !== page;
+  const listing = (sameTab ? view!.result : data) as AdminDashboard | null;
 
   const pieces = useMemo<PieceOption[]>(() => {
     const seen = new Set<string>();
@@ -79,8 +118,14 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
   }
 
   function fillPrice(item: { component_id: string }) {
+    setSelectedId(item.component_id);
     setPieceId(item.component_id); setConfirmed(false); setPriceError(""); setPriceNotice("");
     document.getElementById("precio-monto")?.focus();
+  }
+
+  function completePiece(item: MissingDataItem) {
+    setSelectedId(item.component_id);
+    onComplete(item);
   }
 
   async function submitPrice(event: FormEvent<HTMLFormElement>) {
@@ -128,8 +173,8 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
           <div className="admin-body">
             <div className="admin-lists">
               <div className="admin-tabs" role="tablist" aria-label="Listados del tablero">
-                <button className="admin-tab" role="tab" aria-selected={tab === "datos"} onClick={() => setTab("datos")}>Datos faltantes<span className="n">{data.missing_data.total}</span></button>
-                <button className="admin-tab" role="tab" aria-selected={tab === "precios"} onClick={() => setTab("precios")}>Precios viejos<span className="n">{data.old_prices.total}</span></button>
+                <button className="admin-tab" role="tab" aria-selected={tab === "datos"} onClick={() => { setTab("datos"); setSelectedId(null); }}>Datos faltantes<span className="n">{data.missing_data.total}</span></button>
+                <button className="admin-tab" role="tab" aria-selected={tab === "precios"} onClick={() => { setTab("precios"); setSelectedId(null); }}>Precios viejos<span className="n">{data.old_prices.total}</span></button>
               </div>
 
               {tab === "datos" && (
@@ -137,26 +182,27 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
                   <table>
                     <thead><tr><th>Pieza</th><th>Le falta</th><th>Afecta a</th><th></th></tr></thead>
                     <tbody>
-                      {data.missing_data.items.map((item) => (
-                        <tr key={item.component_id}>
+                      {listing!.missing_data.items.map((item) => (
+                        <tr key={item.component_id} className={selectedId === item.component_id ? "is-selected" : undefined} aria-selected={selectedId === item.component_id}>
                           <td>{item.name}<span className="sub">{dashboardCategoryLabels[item.category]}</span></td>
                           <td>{item.missing.map((attribute) => <span key={attribute} className="miss">{missingAttributeLabel(attribute)}</span>)}</td>
                           <td>{affectedPcsLabel(item.affected_pcs)}</td>
-                          <td><Button peso="quieto" chico type="button" onClick={() => onComplete(item)}>Completar</Button></td>
+                          <td><Button peso="quieto" chico type="button" onClick={() => completePiece(item)}>Completar</Button></td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
+              {tab === "datos" && <Pager total={data.missing_data.total} offset={shownPage * PAGE_SIZE} shown={listing!.missing_data.items.length} busy={viewBusy} onPage={goTo} />}
 
               {tab === "precios" && (
                 <div className="admin-table" role="tabpanel">
                   <table>
                     <thead><tr><th>Pieza</th><th>Último precio</th><th>Visto el</th><th></th></tr></thead>
                     <tbody>
-                      {data.old_prices.items.map((item) => (
-                        <tr key={item.component_id}>
+                      {listing!.old_prices.items.map((item) => (
+                        <tr key={item.component_id} className={selectedId === item.component_id ? "is-selected" : undefined} aria-selected={selectedId === item.component_id}>
                           <td>{item.name}<span className="sub">{dashboardCategoryLabels[item.category]}</span></td>
                           <td>{oldPriceAmountLabel(item.amount)}<span className="sub">{storeLabel(item.store)}</span></td>
                           <td className="old">{oldPriceDateLabel(item.observed_at, item.days)}</td>
@@ -167,6 +213,7 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
                   </table>
                 </div>
               )}
+              {tab === "precios" && <Pager total={data.old_prices.total} offset={shownPage * PAGE_SIZE} shown={listing!.old_prices.items.length} busy={viewBusy} onPage={goTo} />}
             </div>
 
             <form className="admin-form" onSubmit={submitPrice} noValidate>

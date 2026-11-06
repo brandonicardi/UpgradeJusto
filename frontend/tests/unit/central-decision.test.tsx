@@ -24,7 +24,8 @@ describe("central decision presentation, no domain inference", () => {
   it("keeps unknown declarations distinct from absent and never diagnoses a BIOS version", () => {
     const pc: Tower = { ...emptyTower(), id: "12345678-1234-1234-1234-123456789abc", revision: 1, origin_schema: 2 };
     expect(configurationNextSteps(pc)[0]).toContain("Confirmá qué tenés"); expect(configurationNextSteps(pc)[0]).not.toContain("Elegí");
-    expect(missingLabel("context.bios_version")).toContain("Confirmá la BIOS instalada");
+    expect(missingLabel("context.bios_version")).toContain("no se evalúa");
+    expect(missingLabel("context.bios_version")).not.toMatch(/Confirmá|Revisá/);
     expect(missingLabel("context.bios_version:guessed")).toContain("pendiente");
   });
   it("does not manufacture pending hardware when the server has no pending entries", () => {

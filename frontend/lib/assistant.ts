@@ -6,7 +6,7 @@ export type PageOf<T> = { items: T[]; total: number; page: number; page_size: nu
 export type Citation = { source_id: string; url: string; title: string; locator: string; excerpt: string };
 export type Message = { id: string; sequence: number; role: "user" | "assistant"; content: string; status: "pending" | "completed" | "failed" | "interrupted"; citations: Citation[]; created_at: string };
 export type StreamEvent = { type: "start" | "delta" | "tool_status" | "citation" | "done" | "error"; data: Record<string, unknown> };
-const defaultErrorText = "El turno falló. Puede haber contenido parcial; no hay éxito confirmado. Cuota, credenciales, timeout o persistencia requieren diagnóstico, no cambio automático de proveedor.";
+const defaultErrorText = "No pude terminar esta respuesta y lo que ves puede estar incompleto. Tu PC no cambió. Probá de nuevo en un rato.";
 const errorTexts: Record<string, string> = { provider_rate_limited: "El asistente está ocupado. Probá de nuevo en un minuto." };
 export function streamErrorText(data: Record<string, unknown>): string {
   return typeof data.code === "string" && Object.hasOwn(errorTexts, data.code) ? errorTexts[data.code] : defaultErrorText;

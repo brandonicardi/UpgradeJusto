@@ -41,3 +41,24 @@ Agente `frontend`. Rearmar desde `preview.html`, no retocar lo viejo.
       saber» queda en una tarjeta sin datos y hay desplegables extra de procedencia y versión.
 - [x] 3.3 Revisor: fidelidad contra la maqueta, veredicto solo del servidor y precios sin inventar.
       (Revisor independiente: bloqueante de privacidad y «compatible» contradictorio corregidos y revalidados.)
+
+## 4. Filtro «Encaja en mi PC + solo mejoras» (PLANIFICADO, NO IMPLEMENTAR AÚN)
+Brandon pidió planificarlo y revisarlo juntos antes de programar. No empezar esta sección hasta su OK.
+- [ ] 4.1 Contrato: consulta de catálogo con una PC elegida, identidad y propiedad resueltas en el
+      servidor (nunca `user_id` del cliente/modelo). Sin PC, la consulta general sigue igual.
+- [ ] 4.2 Compatibilidad determinística: por cada candidata se simula el reemplazo de su categoría
+      sobre una copia de la PC; solo pasan las que el motor da `compatible`. `unknown` e `incompatible`
+      se excluyen del modo estricto y se explican por separado; incompatibilidad documentada nunca se
+      presenta como «Encaja».
+- [ ] 4.3 Mejora con evidencia: solo se incluye una pieza si existe evidencia publicada y curada de
+      mejora para el objetivo relevante (`tower_references`), nunca por nombre, precio, VRAM ni
+      ranking inventado. La misma pieza instalada y las alternativas equivalentes sin evidencia se
+      excluyen. Sin evidencia: estado vacío con motivo accionable, no una etiqueta falsa.
+- [ ] 4.4 Alcance físico y BIOS: el aviso «Chequeá que entre en tu gabinete» se conserva cuando el
+      espacio físico no se evaluó; no se usa como prueba de encaje. La BIOS sigue fuera del alcance y
+      no se pide.
+- [ ] 4.5 UI: el selector de PC afecta de verdad la consulta y el filtro (no badges decorativos);
+      cambiar o quitar la PC descarta respuestas viejas; se distingue «no encaja» de «no sabemos».
+      Prueba: PC seleccionada, cambio de PC y sin PC; misma GPU excluida; incompatibles excluidos;
+      evidencia insuficiente explicada. No modifica la PC de la persona.
+- [ ] 4.6 Revisión con Brandon antes de implementar y, después, revisor independiente.

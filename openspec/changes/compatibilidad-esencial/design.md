@@ -23,15 +23,19 @@ sin fuente; reescribir evaluaciones guardadas.
 - **Mismos identificadores.** T01–T08 y T11 conservan su significado, así la interfaz y las etiquetas no
   cambian. T09, T10 y T12 no se emiten: no son `pass` ni `not_applicable` sino fuera de alcance, y lo dice
   `additional_checks`.
-- **Soporte por modelo y BIOS.** Igual sockets no alcanza: hace falta la fila exacta de CPU y placa, si no
-  queda desconocido. BIOS sin declarar queda desconocido. BIOS anterior documentada falla.
+- **Soporte por modelo, sin BIOS.** Igual sockets no alcanza: hace falta la fila exacta de CPU y placa
+  (más la revisión aplicable), si no queda desconocido. La BIOS no se consulta, no se exige y no puede
+  volver desconocida ni fallida una evaluación nueva. La versión declarada se conserva solo como dato.
 - **Fuente.** `continuous_power_w ≥ max(recomendaciones publicadas)`. Sin ninguna recomendación queda
   desconocido, nunca cero. No se suman TDP ni se agrega reserva.
 - **Almacenamiento.** Puerto por interfaz y forma; bahía y alimentación solo para SATA. Las exclusiones de
   a pares documentadas se respetan; los presupuestos compartidos quedan fuera.
 - **Opcional no es ignorado.** Lo que deja de ser obligatorio se sigue leyendo: si está y choca, falla.
-- **Compartir.** `tower_registry` acepta los dos orígenes y la proyección valida cada uno contra su propia
-  lista de reglas, sin aflojar el viejo.
+- **Compartir.** `tower_registry` acepta el contrato stock, la política esencial 1 y la política esencial 2;
+  la proyección valida cada evaluación contra su propia lista de reglas, etiquetas y alcance, sin aflojar
+  ninguna. Las instantáneas viejas se leen tal como se guardaron: no se recalculan ni se reescriben.
+- **Fuera de alcance no es aprobación.** La evaluación nueva declara que la BIOS no se evaluó junto con
+  refrigeración, ventiladores, velocidades de memoria y ECC; nunca dice que la BIOS esté validada.
 
 ## Risks / Trade-offs
 

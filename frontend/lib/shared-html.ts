@@ -21,13 +21,15 @@ function stageCard(value: JsonValue, index: number): string {
   const identity = typeof scope.id === "string" && typeof scope.operating_regime === "string" ? { id: scope.id, operating_regime: scope.operating_regime } : undefined;
   const headline = centralEvaluationLabel({ verdict: typeof evaluation.verdict === "string" ? evaluation.verdict : "", scope: identity });
   const rules = Array.isArray(evaluation.rule_results) ? evaluation.rule_results : [];
-  const blockers = rules.map(object).filter(rule => rule.state !== "pass").map(rule => {
+  // `not_applicable` lo declaró el servidor fuera de alcance: no es un dato faltante ni un fallo.
+  const blockers = rules.map(object).filter(rule => rule.state !== "pass" && rule.state !== "not_applicable").map(rule => {
     const check = typeof rule.rule_id === "string" ? componentChecks[rule.rule_id] : undefined;
     return `<p class="warning"><strong>${escape(check?.label ?? "Comprobación guardada")}: ${rule.state === "fail" ? "No cumple" : "Falta información"}.</strong> ${escape(check?.action ?? "Revisá los datos necesarios de esta etapa.")}</p>`;
   }).join("");
+  const notEvaluated = rules.map(object).filter(rule => rule.state === "not_applicable").map(rule => `<p class="muted"><strong>No evaluado.</strong> ${escape(typeof rule.reason === "string" && rule.reason.trim() ? rule.reason : "No se evaluó dentro del alcance publicado.")}</p>`).join("");
   const warnings = Array.isArray(evaluation.warnings) ? evaluation.warnings.filter((warning): warning is string => typeof warning === "string") : [];
   const additional = Array.isArray(evaluation.additional_checks) ? evaluation.additional_checks.map(object).flatMap(check => typeof check.id === "string" && typeof check.reason === "string" && typeof check.status === "string" ? [{ id: check.id, reason: check.reason, status: check.status }] : []) : [];
-  return `<section class="card"><p class="eyebrow">ETAPA ${index + 1}</p><h2>${text(stage.name, "Mejora planificada")}</h2><p class="badge">${escape(headline)}</p><p class="muted">${escape(evaluationBrief({ scope: identity }))}</p>${blockers}${installationActions(warnings, additional).map(action => `<p class="warning">${escape(action)}</p>`).join("")}<details><summary>Componentes, costes y comprobación de esta etapa</summary>${render(value)}</details></section>`;
+  return `<section class="card"><p class="eyebrow">ETAPA ${index + 1}</p><h2>${text(stage.name, "Mejora planificada")}</h2><p class="badge">${escape(headline)}</p><p class="muted">${escape(evaluationBrief({ scope: identity }))}</p>${blockers}${notEvaluated}${installationActions(warnings, additional).map(action => `<p class="warning">${escape(action)}</p>`).join("")}<details><summary>Componentes, costes y comprobación de esta etapa</summary>${render(value)}</details></section>`;
 }
 export function sharedHtml(snapshot: Record<string, JsonValue> | null, unavailable = false): string {
   const fields = ["title", "objective", "budget_ars", "currency", "status", "components", "stages", "cost", "benefit", "missing_fields", "limitations", "warnings", "scope", "additional_checks", "published_at", "plan_revision"];

@@ -4,6 +4,9 @@ export type AssistantContext = Readonly<{ context_version: 2; configuration_sche
 export type TurnCriteria = { objective: AssistantContext["objective"]; budget: string; price_condition: "cash" | "list"; workload: "blender-cpu" | null };
 export const emptyTurnCriteria = (): TurnCriteria => ({ objective: null, budget: "", price_condition: "cash", workload: null });
 // Event-time invalidation closes the gap before the next effect cleanup runs.
+/** La PC elegida sigue para las repreguntas; un 409 o 404 avisa que cambió o ya no está y hay que volver a elegirla. */
+export const keepsTurnContext = (status?: number) => status !== 409 && status !== 404;
+
 export function createContextRequestEpoch() {
   let epoch = 0;
   return { current: () => epoch, advance: () => ++epoch, isCurrent: (ticket: number) => ticket === epoch };

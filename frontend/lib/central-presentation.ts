@@ -24,7 +24,7 @@ function recognizedMissingLabel(value: string): string | null {
     "offer:unidentified_component": "Componente sin identificar; falta cotización",
     "offer.missing": "Falta una cotización",
     "cpu.socket": "Falta confirmar el socket del procesador",
-    "context.bios_version": "Confirmá la BIOS instalada con la placa y su documentación; no se deduce del nombre",
+    "context.bios_version": "La versión de BIOS guardada es solo un dato: no se evalúa ni bloquea la revisión",
     "search:bounded_not_exhaustive": "Búsqueda acotada; no se evaluaron todas las combinaciones",
   };
   return Object.hasOwn(labels, value) ? labels[value] : null;

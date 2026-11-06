@@ -12,7 +12,9 @@ describe("mensajes de error del chat", () => {
   it("otros códigos o datos inválidos usan el mensaje general", () => {
     for (const data of [{ code: "generation_failed", retryable: false }, { code: "round_limit" }, {}, { code: 5 }]) {
       const text = streamErrorText(data);
-      expect(text).toContain("El turno falló");
+      expect(text).toContain("No pude terminar esta respuesta");
+      expect(text).toContain("Tu PC no cambió");
+      expect(text).not.toMatch(/credenciales|timeout|persistencia|proveedor/);
       expect(text).not.toContain("ocupado");
     }
   });

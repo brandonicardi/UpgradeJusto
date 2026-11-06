@@ -1,6 +1,7 @@
 import { Agent, createServer, request, type IncomingHttpHeaders } from "node:http";
 import { randomInt } from "node:crypto";
-import type { Socket } from "node:net";
+import { connect } from "node:net";
+import type { Duplex } from "node:stream";
 
 export const applicationOrigin = "http://127.0.0.1:3000";
 
@@ -19,14 +20,14 @@ function upstreamHeaders(incoming: IncomingHttpHeaders): IncomingHttpHeaders {
   return headers;
 }
 
-export async function createSocketProxy() {
+export async function createSocketProxy(options: { allowDevHmr?: boolean } = {}) {
   // Test-owned transport address. Never disclose it or replace product identity headers.
   const source = `127.${randomInt(1, 255)}.${randomInt(1, 255)}.${randomInt(1, 255)}`;
   const agent = new Agent({ keepAlive: false });
-  const sockets = new Set<Socket>();
+  const sockets = new Set<Duplex>();
   const stats = { forwarded: 0, connected: 0, sourceVerified: true, closed: false,
     rejectedApplicationConnect: 0, rejectedOtherConnect: 0, rejectedHmrUpgrade: 0, rejectedOtherUpgrade: 0 };
-  const track = (socket: Socket) => { sockets.add(socket); socket.once("close", () => sockets.delete(socket)); };
+  const track = (socket: Duplex) => { sockets.add(socket); socket.once("close", () => sockets.delete(socket)); };
   const server = createServer((incoming, outgoing) => {
     const target = allowedProxyTarget(incoming.url, incoming.headers.host);
     if (!target || incoming.method === "CONNECT") {
@@ -58,7 +59,24 @@ export async function createSocketProxy() {
     incoming.pipe(upstream);
   });
   server.on("connection", track);
-  server.on("connect", (incoming, socket) => {
+  server.on("connect", (incoming, socket, head) => {
+    // Next dev necesita su WebSocket de HMR para hidratar. Solo en el servidor de
+    // desarrollo se tunela el CONNECT a la aplicación con el mismo socket de origen;
+    // en producción (E2E real) se sigue rechazando.
+    if (options.allowDevHmr && incoming.url === "127.0.0.1:3000") {
+      const upstream = connect({ host: "127.0.0.1", port: 3000, localAddress: source });
+      track(upstream); track(socket);
+      upstream.once("connect", () => {
+        stats.forwarded++;
+        stats.connected++;
+        stats.sourceVerified = stats.sourceVerified && upstream.localAddress === source;
+        socket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+        if (head.length) upstream.write(head);
+        socket.pipe(upstream); upstream.pipe(socket);
+      });
+      upstream.once("error", () => socket.destroy());
+      return;
+    }
     if (incoming.url === "127.0.0.1:3000") stats.rejectedApplicationConnect++;
     else stats.rejectedOtherConnect++;
     socket.end("HTTP/1.1 405 Method Not Allowed\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");

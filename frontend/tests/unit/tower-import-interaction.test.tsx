@@ -31,72 +31,98 @@ function stubApi() {
   vi.stubGlobal("fetch", fetchMock);
   return { fetchMock, posts: (path: string) => fetchMock.mock.calls.filter(call => String(call[0]) === path) };
 }
-afterEach(async () => { await unmountAll(); vi.unstubAllGlobals(); });
+afterEach(async () => { await unmountAll(); vi.unstubAllGlobals(); window.location.hash = ""; });
 
-const textarea = (host: HTMLElement) => byLabel(host, "Texto de la PC") as HTMLTextAreaElement;
+const textarea = (host: HTMLElement) => byLabel(host, "Tu lista") as HTMLTextAreaElement;
 const heading = () => document.activeElement?.textContent;
 async function toStep2(host: HTMLElement) {
   await type(textarea(host), text);
-  await click(button(host, "Extraer propuesta")); await settle();
+  await click(button(host, "Ordenar mi lista")); await settle();
 }
-const confirmForm = (host: HTMLElement) => host.querySelector('form[aria-label="Guardar tu PC"]') as HTMLFormElement;
-const saveButton = (host: HTMLElement) => button(confirmForm(host), "Confirmar y guardar mi torre") as HTMLButtonElement;
-const consent = (host: HTMLElement) => byLabel(confirmForm(host), "Revisé esta propuesta") as HTMLInputElement;
+const panel = (host: HTMLElement, id: string) => host.querySelector(`#${id}`) as HTMLElement;
+const saveButton = (host: HTMLElement) => button(panel(host, "p3"), "Sí, guardar mi PC") as HTMLButtonElement;
 
 describe("Agregar por lista: interacción real", () => {
-  it("extraer muestra la propuesta editable en el paso 2 y no envía ninguna confirmación", async () => {
-    const api = stubApi(); const host = await mount(createElement(ImportTower));
+  it("al empezar sólo el paso 1 está abierto y «Ordenar mi lista» espera a que haya texto", async () => {
+    stubApi(); const host = await mount(createElement(ImportTower));
     expect(host.querySelector('li[aria-current="step"]')?.textContent).toContain("Pegá tu lista");
-    await toStep2(host);
-    expect(host.querySelector('form[aria-label="Propuesta editable de torre"]')).not.toBeNull();
+    expect(panel(host, "p2").classList.contains("is-locked")).toBe(true); expect(panel(host, "p3").classList.contains("is-locked")).toBe(true);
+    expect(panel(host, "p2").querySelector("button")).toBeNull();
+    expect((button(host, "Ordenar mi lista") as HTMLButtonElement).disabled).toBe(true);
+    await type(textarea(host), text); expect((button(host, "Ordenar mi lista") as HTMLButtonElement).disabled).toBe(false);
+  });
+  it("«Probar con un ejemplo» sólo completa el texto: no extrae ni guarda", async () => {
+    const api = stubApi(); const host = await mount(createElement(ImportTower));
+    await click(button(host, "Probar con un ejemplo"));
+    expect(textarea(host).value).toContain("Procesador AMD Ryzen 5 5600");
+    expect(api.fetchMock).not.toHaveBeenCalled();
+  });
+  it("ordenar muestra la revisión con una fila por pieza y no envía ninguna confirmación", async () => {
+    const api = stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);
     expect(host.querySelector('li[aria-current="step"]')?.textContent).toContain("Revisá lo que entendimos");
-    expect(host.textContent).toContain("Paso 2 de 3"); expect(host.textContent).toContain("Todavía no se guardó nada");
-    expect(host.querySelectorAll("section[aria-label='Evidencia de extracción de torre'] h3")).toHaveLength(9);
-    expect(byLabel(host, "Nombre de PC")).toBeNull();
-    expect(api.posts(confirmPath)).toHaveLength(0); expect(host.querySelector('section[aria-label="Torre guardada"]')).toBeNull();
+    expect(panel(host, "p2").classList.contains("is-locked")).toBe(false);
+    expect(host.querySelectorAll(".imp-row")).toHaveLength(9);
+    expect(host.textContent).toContain("Todavía no guardamos nada"); expect(host.textContent).toContain("De tu texto:");
+    expect(host.textContent).toContain("0 las leímos bien"); expect(host.textContent).toContain("1 para revisar"); expect(host.textContent).toContain("8 no estaban");
+    expect(api.posts(confirmPath)).toHaveLength(0); expect(host.querySelector(".imp-saved")).toBeNull();
     expect(heading()).toBe("Revisá lo que entendimos");
   });
-  it("sin marcar la casilla el botón está deshabilitado y no se envía nada", async () => {
+  it("«Está bien, seguir» abre el paso 3, pero tampoco guarda: falta «Sí, guardar mi PC»", async () => {
     const api = stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);
-    await click(button(host, "Seguir al paso 3"));
-    expect(host.textContent).toContain("Paso 3 de 3"); expect(heading()).toBe("Guardala");
-    expect(consent(host).checked).toBe(false); expect(saveButton(host).disabled).toBe(true);
-    expect(host.textContent).toContain("Marcá la confirmación para guardar");
-    await click(saveButton(host));
-    await act(async () => { confirmForm(host).requestSubmit(); }); await settle();
-    expect(api.posts(confirmPath)).toHaveLength(0); expect(host.querySelector('section[aria-label="Torre guardada"]')).toBeNull();
+    expect(panel(host, "p3").classList.contains("is-locked")).toBe(true);
+    await click(button(host, "Está bien, seguir"));
+    expect(panel(host, "p3").classList.contains("is-locked")).toBe(false); expect(heading()).toBe("Guardala");
+    expect(saveButton(host).disabled).toBe(false);
+    expect(api.posts(confirmPath)).toHaveLength(0); expect(host.querySelector(".imp-saved")).toBeNull();
   });
-  it("corregir una línea desmarca la confirmación y el botón explica que hay que volver a confirmar", async () => {
-    const api = stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);
-    await click(button(host, "Seguir al paso 3")); await click(consent(host));
-    expect(consent(host).checked).toBe(true); expect(saveButton(host).disabled).toBe(false);
-    await click(button(host, "Volver a revisar")); expect(host.textContent).toContain("Paso 2 de 3"); expect(heading()).toBe("Revisá lo que entendimos");
-    await type(byLabel(host, "Cantidad explícita 1"), "2");
-    await click(button(host, "Seguir al paso 3"));
-    expect(consent(host).checked).toBe(false); expect(saveButton(host).disabled).toBe(true);
-    expect(host.textContent).toContain("Revisaste cambios: volvé a confirmar");
-    expect(api.posts(confirmPath)).toHaveLength(0);
+  it("corregir una pieza actualiza el resumen del paso 3 y vaciarla la deja sin dato", async () => {
+    stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);
+    await type(byLabel(host, "Almacenamiento") ?? host.querySelector('input[aria-label="Almacenamiento"]'), "");
+    await click(button(host, "Está bien, seguir"));
+    expect(host.querySelector(".imp-summary")?.textContent).toContain("9 piezas sin dato");
+    expect(host.querySelector(".imp-summary")?.textContent).not.toContain("pieza a medias");
   });
-  it("marcar la casilla y confirmar envía un solo POST con confirmed: true y muestra la torre guardada", async () => {
+  it("el paso 3 deja declarar si la PC ya está armada y lo envía al confirmar", async () => {
     const api = stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);
-    await click(button(host, "Seguir al paso 3"));
-    await type(byLabel(confirmForm(host), "Nombre de tu PC"), "Mi torre nueva");
-    await click(consent(host)); await click(saveButton(host)); await settle();
+    await click(button(host, "Está bien, seguir"));
+    await type(byLabel(panel(host, "p3"), "¿Esta PC ya está armada y funcionando?"), "assembled");
+    await click(saveButton(host)); await settle();
+    const sent = api.posts(confirmPath);
+    expect(sent).toHaveLength(1);
+    expect(JSON.parse(sent[0][1]!.body as string).proposal.context.assembly_state).toBe("assembled");
+  });
+  it("confirmar con «Sí, guardar mi PC» envía un solo POST con confirmed: true y muestra que se guardó", async () => {
+    const api = stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);
+    await click(button(host, "Está bien, seguir"));
+    await type(byLabel(panel(host, "p3"), "¿Cómo le decimos a esta PC?"), "Mi torre nueva");
+    await click(saveButton(host)); await settle();
     const sent = api.posts(confirmPath);
     expect(sent).toHaveLength(1);
     const body = JSON.parse(sent[0][1]!.body as string);
     expect(body.confirmed).toBe(true); expect(body.proposal.name).toBe("Mi torre nueva"); expect(body.catalog_revision).toBe("revision-de-prueba");
+    expect(body.proposal.context.assembly_state ?? null).toBeNull();
     expect(body).not.toHaveProperty("user_id");
-    const region = host.querySelector('section[aria-label="Torre guardada"]');
-    expect(region).not.toBeNull(); expect(region!.textContent).toContain(savedTower.name);
-    expect(confirmForm(host)).toBeNull(); expect(api.posts(confirmPath)).toHaveLength(1);
+    const saved = host.querySelector(".imp-saved");
+    expect(saved).not.toBeNull(); expect(saved!.textContent).toContain(`Listo, guardamos «${savedTower.name}»`);
+    expect(Array.from(saved!.querySelectorAll("a")).map(a => a.getAttribute("href"))).toContain("/pcs");
+    expect(saveButton(host)).toBeNull(); expect(api.posts(confirmPath)).toHaveLength(1);
   });
   it("«Volver a pegar» desde el paso 2 vuelve al paso 1 y conserva el texto escrito", async () => {
     const api = stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);
     await click(button(host, "Volver a pegar"));
-    expect(host.textContent).toContain("Paso 1 de 3"); expect(host.querySelector('form[aria-label="Propuesta editable de torre"]')).toBeNull();
+    expect(host.querySelector('li[aria-current="step"]')?.textContent).toContain("Pegá tu lista"); expect(panel(host, "p2").classList.contains("is-locked")).toBe(true);
     expect(textarea(host).value).toBe(text); expect(heading()).toBe("Pegá lo que sepas de tu PC");
     expect(api.posts(confirmPath)).toHaveLength(0);
+  });
+  it("«/pcs/import#ayuda» abre la ayuda de dónde sacar la lista", async () => {
+    stubApi(); window.location.hash = "#ayuda";
+    const host = await mount(createElement(ImportTower)); await settle();
+    const ayuda = host.querySelector("details#ayuda") as HTMLDetailsElement;
+    expect(ayuda).not.toBeNull(); expect(ayuda.open).toBe(true); expect(ayuda.textContent).toContain("Administrador de tareas");
+  });
+  it("sin el ancla la ayuda queda cerrada", async () => {
+    stubApi(); const host = await mount(createElement(ImportTower)); await settle();
+    expect((host.querySelector("details#ayuda") as HTMLDetailsElement).open).toBe(false);
   });
 });
 

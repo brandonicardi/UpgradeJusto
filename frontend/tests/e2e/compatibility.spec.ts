@@ -1,8 +1,8 @@
 import { expect, type Page } from "@playwright/test";
 import { test } from "./fixtures";
 import { randomUUID } from "node:crypto";
-import type { PC, PCInput } from "../../lib/pcs";
-import type { Evaluation } from "../../lib/compatibility";
+import { emptyTower, type Tower, type TowerInput } from "../../lib/towers";
+import type { TowerEvaluation, TowerSimulation } from "../../lib/tower-compatibility";
 import type { CatalogPage } from "../../lib/catalog";
 
 test.use({ trace: "off", screenshot: "off", video: "off" });
@@ -20,21 +20,31 @@ async function login(page: Page) {
   expect(statuses).toEqual([201, 200, 200]);
 }
 
-async function api(page: Page, path: string, method = "GET", body?: unknown): Promise<{ status: number; data: unknown }> {
+async function towerApi(page: Page, path: string, method = "GET", body?: unknown): Promise<{ status: number; data: unknown }> {
   return page.evaluate(async args => {
     const headers: Record<string, string> = {};
     if (args.method !== "GET") {
       const token = await (await fetch("/api/auth/csrf", { cache: "no-store", signal: AbortSignal.timeout(15000) })).json();
       headers["X-CSRF-Token"] = token.csrf_token; headers["Content-Type"] = "application/json";
     }
-    const response = await fetch(`/api/pcs${args.path}`, { method: args.method, headers, cache: "no-store", signal: AbortSignal.timeout(15000), body: args.body === undefined ? undefined : JSON.stringify(args.body) });
+    const response = await fetch(`/api/towers${args.path}`, { method: args.method, headers, cache: "no-store", signal: AbortSignal.timeout(20000), body: args.body === undefined ? undefined : JSON.stringify(args.body) });
     return { status: response.status, data: response.status === 204 ? null : await response.json() };
   }, { path, method, body });
 }
 
-function r01(result: Evaluation) { return result.rule_results.find(rule => rule.rule_id === "B01")?.state; }
+function state(result: TowerEvaluation, rule: string) { return result.rule_results.find(item => item.rule_id === rule)?.state; }
 
-test("CU05 delta plataforma: evidencia RAM parcial, exceso de slots, no mutación y dueño", async ({ newIsolatedContext }) => {
+async function evaluate(page: Page, id: string, revision: number): Promise<TowerEvaluation> {
+  const response = await towerApi(page, `/${id}/evaluate`, "POST", { expected_pc_revision: revision });
+  expect(response.status).toBe(200);
+  return response.data as TowerEvaluation;
+}
+
+function line(category: TowerInput["lines"][number]["category"], componentId: string, quantity = 1): TowerInput["lines"][number] {
+  return { line_id: null, category, component_id: componentId, declared_model: null, quantity };
+}
+
+test("CU05 política esencial 2: evaluar sin BIOS, sin installed_bios y una BIOS anterior no cambia el veredicto", async ({ newIsolatedContext }) => {
   test.setTimeout(120000);
   const contextA = await newIsolatedContext(), contextB = await newIsolatedContext();
   const a = await contextA.newPage(), b = await contextB.newPage();
@@ -47,122 +57,87 @@ test("CU05 delta plataforma: evidencia RAM parcial, exceso de slots, no mutació
     const catalogResponse = await fetch("http://127.0.0.1:8000/api/catalog/components?page_size=50");
     expect(catalogResponse.status).toBe(200);
     const catalog: CatalogPage = await catalogResponse.json();
-    for (const reference of ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P09"]) expect(catalog.items.some(item => item.id === reference)).toBe(true);
-    const input: PCInput = { name: `PC D propia ${randomUUID()}`, components: [
-      { category: "cpu", component_id: "P01", quantity: 1 }, { category: "motherboard", component_id: "P03", quantity: 1 }, { category: "ram", component_id: "P04", quantity: 2 },
-      { category: "gpu", component_id: "P06", quantity: 1 }, { category: "psu", component_id: "P07", quantity: 1 }, { category: "case", component_id: "P09", quantity: 1 },
-    ], context: { bios_version: "P2.30", notes: null } };
-    const created = await api(a, "", "POST", input); expect(created.status).toBe(201);
-    let pc = created.data as PC; id = pc.id;
-    // Flujo histórico de seis categorías: el editor de torre vive en /pcs.
-    await a.goto("/pcs/legacy"); await a.getByRole("button", { name: input.name, exact: true }).click();
-    const panel = a.getByRole("region", { name: "Compatibilidad parcial", exact: true });
-    const resultPanel = a.getByRole("region", { name: "Resultado parcial del servidor", exact: true });
-    await expect(panel).toContainText("No modifica tu PC");
-    async function evaluate() {
-      const waiting = a.waitForResponse(response => response.url().endsWith(`/api/pcs/${id}/compatibility/evaluate`) && response.request().method() === "POST", { timeout: 15000 });
-      await panel.getByRole("button", { name: "Comprobar mi PC", exact: true }).click();
-      const response = await waiting; expect(response.status()).toBe(200);
-      await expect(resultPanel).toBeVisible();
-      return await response.json() as Evaluation;
-    }
-    let evaluated = await evaluate();
-    expect(r01(evaluated)).toBe("pass"); expect(evaluated.verdict).toBe("compatible");
-    expect(evaluated.rules_version).toBe("cu05-basic-stock-engine-1"); expect(evaluated.pc_revision).toBe(String(pc.revision));
-    expect(evaluated.scope?.id).toBe("cu05-basic-stock-1");
-    const ramRule = evaluated.rule_results.find(rule => rule.rule_id === "B02");
-    expect(ramRule).toBeDefined();
-    expect(ramRule?.state).toBe("pass");
-    expect(JSON.stringify({ facts: ramRule?.facts, evidence: ramRule?.evidence })).toMatch(/DDR4/i);
-    expect(JSON.stringify(ramRule?.evidence)).toMatch(/https?:\/\//);
-    expect(evaluated.rule_results).toHaveLength(7);
-    await expect(resultPanel.getByRole("region", { name: "Comprobación de componentes", exact: true })).toContainText("Compatible para uso sin overclock");
-    await resultPanel.getByText("Ver comprobación de mi PC", { exact: true }).click();
-    await resultPanel.getByText("Cómo se comprobó", { exact: true }).click();
-    const formatRule = evaluated.rule_results.find(rule => rule.rule_id === "B07");
-    expect(formatRule).toBeDefined();
-    function sourceUrls(value: Evaluation["rule_results"][number]["evidence"]): string[] {
-      if (Array.isArray(value)) return value.flatMap(sourceUrls);
-      if (value && typeof value === "object") return Object.values(value).flatMap(sourceUrls);
-      if (typeof value === "string" && /^https?:\/\//i.test(value)) {
-        try { const url = new URL(value); return ["http:", "https:"].includes(url.protocol) ? [url.href] : []; } catch { return []; }
-      }
-      return [];
-    }
-    const expectedUrls = [...new Set(sourceUrls(formatRule!.evidence))];
-    expect(expectedUrls.length).toBeGreaterThan(0);
-    const ruleSummary = resultPanel.getByText("Gabinete y formatos", { exact: true });
-    await ruleSummary.click();
-    const ruleDetails = ruleSummary.locator("..");
-    await expect(ruleDetails).toHaveJSProperty("open", true);
-    await expect(ruleDetails).toContainText(`Código técnico: ${formatRule!.rule_id}`);
-    for (const url of expectedUrls) {
-      const source = ruleDetails.getByRole("link").filter({ hasText: url }).first();
-      await expect(source).toBeVisible();
-      await expect(source).toHaveAttribute("href", url);
-    }
-    expect((await api(a, `/${id}`)).data).toEqual(pc);
+    for (const reference of ["P01", "P03", "P04", "P06", "P07", "P09"]) expect(catalog.items.some(item => item.id === reference)).toBe(true);
+    const input: TowerInput = {
+      ...emptyTower(),
+      name: `Torre D propia ${randomUUID()}`,
+      category_status: { ...emptyTower().category_status, cpu: "present", motherboard: "present", ram: "present", gpu: "present", psu: "present", case: "present" },
+      lines: [line("cpu", "P01"), line("motherboard", "P03"), line("ram", "P04", 2), line("gpu", "P06"), line("psu", "P07"), line("case", "P09")],
+      context: { bios_version: "P1.20", notes: null, assembly_state: "assembled" },
+    };
+    const created = await towerApi(a, "", "POST", input); expect(created.status).toBe(201);
+    let pc = created.data as Tower; id = pc.id;
+    // Una evaluación nueva usa la política esencial 2 y no consulta la BIOS.
+    let evaluated = await evaluate(a, id, pc.revision);
+    expect(evaluated.rules_version).toBe("cu05-tower-essential-engine-2");
+    expect(evaluated.scope?.id).toBe("cu05-tower-essential-2");
+    expect(evaluated.scope?.policy_version).toBe("tower-essential-policy-2");
+    expect(evaluated.rule_results.map(rule => rule.rule_id)).toEqual(["T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T11"]);
+    expect(state(evaluated, "T01")).toBe("pass");
+    const rulesText = JSON.stringify(evaluated.rule_results);
+    expect(rulesText).not.toContain("installed_bios");
+    expect(rulesText).not.toContain("minimum_bios");
+    expect(rulesText).not.toContain("earlier_bios");
+    expect(JSON.stringify(evaluated.missing_fields)).not.toMatch(/bios/i);
+    expect(evaluated.evaluated_configuration.context.bios_version).toBe("P1.20");
+    expect((await towerApi(a, `/${id}`)).data).toEqual(pc);
 
-    for (const [bios, state, verdict] of [["P1.20", "fail", "incompatible"], [null, "unknown", "requiere_verificacion"], ["P2.31", "unknown", "requiere_verificacion"]] as const) {
-      const updated = await api(a, `/${id}`, "PUT", { ...input, context: { bios_version: bios, notes: null }, revision: pc.revision });
-      expect(updated.status).toBe(200); pc = updated.data as PC;
-      await a.goto("/pcs/legacy"); await a.getByRole("button", { name: input.name, exact: true }).click();
-      await a.getByText("Más opciones", { exact: true }).click();
-      await expect(a.getByRole("region", { name: "Detalle de PC", exact: true }).getByText(`Revisión ${pc.revision}`, { exact: true })).toBeVisible();
-      evaluated = await evaluate(); expect(r01(evaluated)).toBe(state); expect(evaluated.verdict).toBe(verdict);
-      expect((await api(a, `/${id}`)).data).toEqual(pc);
+    // La versión declarada se conserva como dato: ni la ausencia ni una anterior cambian el veredicto.
+    const baselineVerdict = evaluated.verdict, baselineState = state(evaluated, "T01"), baselineMissing = JSON.stringify(evaluated.missing_fields);
+    for (const bios of [null, "P1.20", "P2.30"] as const) {
+      const updated = await towerApi(a, `/${id}`, "PUT", { ...input, context: { ...input.context, bios_version: bios }, revision: pc.revision });
+      expect(updated.status).toBe(200); pc = updated.data as Tower;
+      evaluated = await evaluate(a, id, pc.revision);
+      expect(evaluated.verdict).toBe(baselineVerdict);
+      expect(state(evaluated, "T01")).toBe(baselineState);
+      expect(JSON.stringify(evaluated.missing_fields)).toBe(baselineMissing);
+      expect(JSON.stringify(evaluated.rule_results)).not.toContain("installed_bios");
+      expect((await towerApi(a, `/${id}`)).data).toEqual(pc);
     }
-    const restored = await api(a, `/${id}`, "PUT", { ...input, revision: pc.revision });
-    expect(restored.status).toBe(200); pc = restored.data as PC;
-    await a.goto("/pcs/legacy"); await a.getByRole("button", { name: input.name, exact: true }).click();
-    await a.getByText("Más opciones", { exact: true }).click();
-    await expect(a.getByRole("region", { name: "Detalle de PC", exact: true }).getByText(`Revisión ${pc.revision}`, { exact: true })).toBeVisible();
-    async function simulate() {
-      const waiting = a.waitForResponse(response => response.url().endsWith(`/api/pcs/${id}/compatibility/simulate`) && response.request().method() === "POST", { timeout: 15000 });
-      await panel.getByRole("button", { name: "Simular sin guardar", exact: true }).click();
-      const response = await waiting; expect(response.status()).toBe(200);
-      await expect(resultPanel).toContainText("Simulación sobre copia");
-      return await response.json() as Evaluation;
-    }
-    await panel.getByText("Simular otro componente", { exact: true }).click();
-    await panel.getByLabel("Categoría a sustituir", { exact: true }).selectOption("motherboard");
-    await panel.getByLabel("Referencia candidata 1", { exact: true }).selectOption("P03");
-    let simulation = await simulate(); expect(r01(simulation)).toBe("unknown");
-    expect((simulation.evaluated_configuration as { context: { bios_version: string | null } }).context.bios_version).toBeNull();
-    await panel.getByLabel("BIOS declarada de placa candidata", { exact: false }).fill("P2.30");
-    simulation = await simulate(); expect(r01(simulation)).toBe("pass"); expect(simulation.verdict).toBe("compatible");
-    await panel.getByLabel("Categoría a sustituir", { exact: true }).selectOption("cpu");
-    await panel.getByLabel("Referencia candidata 1", { exact: true }).selectOption("P02");
-    simulation = await simulate(); expect(r01(simulation)).toBe("pass");
-    await panel.getByLabel("Categoría a sustituir", { exact: true }).selectOption("ram");
-    await panel.getByLabel("Referencia candidata 1", { exact: true }).selectOption("P05");
-    await panel.getByLabel("Cantidad candidata 1", { exact: true }).fill("2");
-    simulation = await simulate();
-    const groups = (simulation.evaluated_configuration as { components: PC["components"] }).components;
-    expect(groups.filter(group => group.category === "ram")).toEqual([{ category: "ram", component_id: "P05", quantity: 2 }]);
-    expect((await api(a, `/${id}`)).data).toEqual(pc);
-    await panel.getByLabel("Referencia candidata 1", { exact: true }).selectOption("P04");
-    await panel.getByLabel("Cantidad candidata 1", { exact: true }).fill("5");
-    simulation = await simulate();
-    expect(simulation.rule_results.find(rule => rule.rule_id === "B02")?.state).toBe("fail");
-    expect(simulation.verdict).toBe("incompatible");
-    const powerRule = simulation.rule_results.find(rule => rule.rule_id === "B05");
-    expect(powerRule).toBeDefined();
-    expect(simulation.scope?.operating_regime).toBe("stock_no_oc");
-    expect((simulation.evaluated_configuration as { components: PC["components"] }).components.filter(group => group.category === "ram")).toEqual([{ category: "ram", component_id: "P04", quantity: 5 }]);
-    expect((await api(a, `/${id}`)).data).toEqual(pc);
-    for (const action of ["evaluate", "simulate"]) {
-      const body = action === "evaluate" ? { expected_pc_revision: pc.revision } : { expected_pc_revision: pc.revision, category: "cpu", candidates: [{ component_id: "P02", quantity: 1 }] };
-      expect((await api(b, `/${id}/compatibility/${action}`, "POST", body)).status).toBe(404);
-      expect((await api(a, `/${id}/compatibility/${action}`, "POST", { ...body, expected_pc_revision: 1 })).status).toBe(409);
-    }
-    expect((await api(a, `/${id}`)).data).toEqual(pc);
+
+    // Una placa candidata se simula sin BIOS: el cuerpo no lleva candidate_context ni installed_bios.
+    const simulationBody: TowerSimulation = {
+      expected_pc_revision: pc.revision,
+      actions: [{ action: "replace_category", category: "motherboard", line_id: null, candidates: [{ component_id: "P03", declared_model: null, quantity: 1 }] }],
+    };
+    expect(JSON.stringify(simulationBody)).not.toMatch(/bios|candidate_context/i);
+    const simulated = await towerApi(a, `/${id}/simulate`, "POST", simulationBody);
+    expect(simulated.status).toBe(200);
+    const simulation = simulated.data as TowerEvaluation;
+    expect(state(simulation, "T01")).toBe("pass");
+    expect(JSON.stringify(simulation.rule_results)).not.toContain("installed_bios");
+    expect((await towerApi(a, `/${id}`)).data).toEqual(pc);
+
+    // Dueño y revisión siguen resolviéndose en el servidor; ni consultar ni simular modifican la PC.
+    const foreignSimulation: TowerSimulation = {
+      expected_pc_revision: pc.revision,
+      actions: [{ action: "replace_category", category: "cpu", line_id: null, candidates: [{ component_id: "P02", declared_model: null, quantity: 1 }] }],
+    };
+    expect((await towerApi(b, `/${id}/evaluate`, "POST", { expected_pc_revision: pc.revision })).status).toBe(404);
+    expect((await towerApi(b, `/${id}/simulate`, "POST", foreignSimulation)).status).toBe(404);
+    expect((await towerApi(a, `/${id}/evaluate`, "POST", { expected_pc_revision: pc.revision + 1 })).status).toBe(409);
+    expect((await towerApi(a, `/${id}/simulate`, "POST", { ...foreignSimulation, expected_pc_revision: pc.revision + 1 })).status).toBe(409);
+    expect((await towerApi(a, `/${id}`)).data).toEqual(pc);
+
+    // La pantalla de Mi PC no pide BIOS y muestra lo que devolvió el servidor.
+    await a.goto("/pcs");
+    // En dev la pantalla se hidrata después del esqueleto: esperar la tarjeta real, no el estado de carga.
+    const tab = a.getByRole("button", { name: pc.name, exact: true });
+    await expect(tab).toBeVisible({ timeout: 20000 });
+    await tab.click();
+    await expect(a.getByLabel(/BIOS/i)).toHaveCount(0);
+    const encaje = a.getByRole("heading", { name: "¿Encaja todo entre sí?", exact: true }).locator("..");
+    await expect(encaje).toContainText("Procesador y placa madre", { timeout: 20000 });
+    const processorRow = encaje.locator("li").filter({ hasText: "Procesador y placa madre" });
+    await expect(processorRow).toContainText("Encaja");
+    await expect(processorRow).not.toContainText(/BIOS|installed_bios/i);
+    await expect(encaje).not.toContainText(/snapshot|revisión|scope|coverage|PASS/i);
   } catch (error) { failed = true; throw error; }
   finally {
     try {
       if (id) {
-        const cleanup = await api(a, `/${id}`, "DELETE");
-        if (![204, 404].includes(cleanup.status) && !failed) throw new Error("Own compatibility PC cleanup failed");
+        const cleanup = await towerApi(a, `/${id}`, "DELETE");
+        if (![204, 404].includes(cleanup.status) && !failed) throw new Error("Own compatibility tower cleanup failed");
       }
     } catch (error) { if (!failed) throw error; }
     finally { await Promise.allSettled([contextA.close(), contextB.close()]); }

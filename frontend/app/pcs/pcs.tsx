@@ -2,130 +2,155 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
-import HardwareGuide from "../../components/hardware-guide";
-import RemoteProductSelector from "../../components/remote-product-selector";
-import TowerCompatibility from "./tower-compatibility";
-import TowerRecommendations from "./tower-recommendations";
-import TowerInventory, { focusTowerCategory, towerStatusId } from "../../components/tower-inventory";
 import PcsEmptyState from "../../components/pcs-empty-state";
-import { emptyTower, towerCategories, towerInput, towerKeys, towerRequest, type CategoryStatus, type Tower, type TowerCategory, type TowerInput, type TowerLine, type TowerPage } from "../../lib/towers";
+import { Button } from "../../components/uj/button";
+import { Field } from "../../components/uj/field";
+import { Notice } from "../../components/uj/notice";
+import { cargaDeLaPc, piezas } from "../../lib/mi-pc";
+import { mainRoutes } from "../../lib/shell-nav";
+import { emptyTower, towerInput, towerRequest, type AssemblyState, type Tower, type TowerCategory, type TowerInput, type TowerPage } from "../../lib/towers";
+import AssemblyStateSelect from "./assembly-state";
+import EditorDePieza, { type CambioDePieza } from "./mi-pc-editor";
+import EncajeDeLaPc from "./mi-pc-encaje";
+import PiezasDeLaPc from "./mi-pc-piezas";
+import EstadoDeArmado from "./pc-assembly";
 import "./pcs.css";
 
-export default function PCs() {
-  const [list, setList] = useState<TowerPage | null>(null), [selected, setSelected] = useState<Tower | null>(null), [draft, setDraft] = useState<TowerInput | null>(null);
-  const [busy, setBusy] = useState(true), [error, setError] = useState(""), [notice, setNotice] = useState(""), [deleting, setDeleting] = useState(false);
-  const lock = useRef(false), focusAfterOpen = useRef<TowerCategory | null>(null);
+const rutaConviene = mainRoutes[1][0];
+
+export default function PCs({ nueva: abrirNueva = false }: { nueva?: boolean }) {
+  const [lista, setLista] = useState<TowerPage | null>(null), [seleccionadaId, setSeleccionadaId] = useState<string | null>(null), [borrador, setBorrador] = useState<TowerInput | null>(abrirNueva ? emptyTower() : null);
+  const [editando, setEditando] = useState<TowerCategory | null>(null), [ocupado, setOcupado] = useState(true), [error, setError] = useState(""), [errorEditor, setErrorEditor] = useState(""), [aviso, setAviso] = useState<string | null>(null), [borrando, setBorrando] = useState(false);
+  const bloqueo = useRef(false);
+  const seleccionada = lista?.items.find(pc => pc.id === seleccionadaId) ?? null;
+
   useEffect(() => {
-    if (!draft || !focusAfterOpen.current) return;
-    focusTowerCategory(focusAfterOpen.current); focusAfterOpen.current = null;
-  }, [draft]);
-  async function load(page = 1) { setList(await (await towerRequest(`?page=${page}&page_size=20`)).json()); }
-  useEffect(() => {
-    let active = true;
-    towerRequest("?page=1&page_size=20").then(response => response.json()).then(data => { if (active) setList(data); }).catch(() => { if (active) setError("No se pudo consultar torres. Iniciá sesión o usá el flujo histórico si la API aún no está disponible."); }).finally(() => { if (active) setBusy(false); });
-    return () => { active = false; };
+    let activo = true;
+    towerRequest("?page=1&page_size=20").then(respuesta => respuesta.json()).then((datos: TowerPage) => {
+      if (!activo) return;
+      setLista(datos); setSeleccionadaId(actual => actual ?? datos.items[0]?.id ?? null);
+    }).catch(() => { if (activo) setError("No pudimos traer tus PCs. Iniciá sesión o probá de nuevo en un rato."); }).finally(() => { if (activo) setOcupado(false); });
+    return () => { activo = false; };
   }, []);
-  async function operation(action: () => Promise<void>) {
-    if (lock.current) return;
-    lock.current = true; setBusy(true); setError(""); setNotice("");
-    try { await action(); } catch (failure) { setError(failure instanceof Error ? failure.message : "Servicio no disponible. No se confirmaron cambios."); }
-    finally { lock.current = false; setBusy(false); }
+
+  async function operar(accion: () => Promise<void>) {
+    if (bloqueo.current) return;
+    bloqueo.current = true; setOcupado(true); setError(""); setErrorEditor("");
+    try { await accion(); } catch (falla) { const mensaje = falla instanceof Error ? falla.message : "No pudimos completar la acción. No se guardó ningún cambio."; if (editando) setErrorEditor(mensaje); else setError(mensaje); }
+    finally { bloqueo.current = false; setOcupado(false); }
   }
-  function edit(pc: Tower | null) { setSelected(pc); setDraft(pc ? towerInput(pc) : emptyTower()); setDeleting(false); setError(""); setNotice(""); }
-  function editCategory(category: TowerCategory) { if (!selected) return; focusAfterOpen.current = category; edit(selected); }
-  function status(category: TowerCategory, value: CategoryStatus) {
-    if (!draft) return;
-    if (draft.lines.some(line => line.category === category) && value !== "present") {
-      setError("Quitá explícitamente las líneas de esta categoría antes de marcar no sé o no tengo."); return;
+  async function recargar(pagina = 1, elegir?: string) {
+    const datos: TowerPage = await (await towerRequest(`?page=${pagina}&page_size=20`)).json();
+    setLista(datos); setSeleccionadaId(elegir ?? seleccionadaId ?? datos.items[0]?.id ?? null);
+  }
+  const elegir = (id: string) => { setSeleccionadaId(id); setBorrador(null); setEditando(null); setAviso(null); setBorrando(false); setError(""); setErrorEditor(""); };
+  const abrir = (category: TowerCategory) => { setEditando(category); setAviso(null); setErrorEditor(""); };
+  const cerrar = () => { setEditando(null); setErrorEditor(""); };
+
+  /** Arma la PC completa con el cambio de una pieza y la valida; el servidor sigue siendo quien decide qué se guarda. */
+  function conCambio(base: TowerInput, category: TowerCategory, cambio: CambioDePieza): TowerInput {
+    // El contexto guardado (incluida una BIOS declarada antes) se conserva tal cual: no se pide de nuevo.
+    const siguiente: TowerInput = {
+      ...base, category_status: { ...base.category_status, [category]: cambio.status },
+      lines: [...base.lines.filter(line => line.category !== category), ...cambio.lines],
+    };
+    towerInput({ ...siguiente, name: siguiente.name.trim() || "Mi PC" });
+    return siguiente;
+  }
+  function guardarPieza(category: TowerCategory, cambio: CambioDePieza) {
+    if (borrador) {
+      try { setBorrador(conCambio(borrador, category, cambio)); cerrar(); } catch (falla) { setErrorEditor(falla instanceof Error ? falla.message : "Revisá los datos de la pieza."); }
+      return;
     }
-    setDraft({ ...draft, category_status: { ...draft.category_status, [category]: value } }); setError("");
+    if (!seleccionada) return;
+    void operar(async () => {
+      const entrada = towerInput(conCambio(seleccionada, category, cambio));
+      const guardada: Tower = await (await towerRequest(`/${seleccionada.id}`, "PUT", { ...entrada, revision: seleccionada.revision })).json();
+      setLista(actual => actual && { ...actual, items: actual.items.map(pc => pc.id === guardada.id ? guardada : pc) });
+      setEditando(null); setAviso(`Guardamos ${piezas[category].articulo}`);
+    });
   }
-  function updateLine(index: number, patch: Partial<TowerLine>) {
-    if (!draft) return;
-    const lines = draft.lines.map((line, i) => i === index ? { ...line, ...patch } : line);
-    const changedBoard = draft.lines[index]?.category === "motherboard" && ("component_id" in patch || "declared_model" in patch);
-    setDraft({ ...draft, lines, context: changedBoard ? { ...draft.context, bios_version: null } : draft.context });
+  function guardarNueva() {
+    if (!borrador) return;
+    void operar(async () => {
+      const guardada: Tower = await (await towerRequest("", "POST", towerInput(borrador))).json();
+      await recargar(1, guardada.id); setBorrador(null); setAviso(`Guardamos «${guardada.name}»`);
+    });
   }
-  const presentCount = selected ? towerKeys.filter(category => selected.category_status[category] === "present").length : 0;
-  const unknownCount = selected ? towerKeys.filter(category => selected.category_status[category] === "unknown").length : 0;
-  const title = selected ? selected.name : draft ? (draft.name.trim() || "Nueva PC") : "Mi PC";
-  const subtitle = selected
-    ? "Esto es lo que sabemos de tu PC."
-    : draft
-      ? "Completá las piezas que conozcas y guardá. Lo que no sepas queda para después."
-      : list && !list.total
-        ? "Cargá tu primera PC para empezar."
-        : "Elegí una de tus PCs para ver sus piezas.";
-  return <section className="pcs-screen" aria-busy={busy}>
+  /** Guarda sólo la declaración de armado; no toca piezas ni inventa el estado. */
+  function guardarArmado(valor: AssemblyState) {
+    if (!seleccionada) return;
+    void operar(async () => {
+      const entrada = towerInput({ ...seleccionada, context: { ...seleccionada.context, assembly_state: valor } });
+      const guardada: Tower = await (await towerRequest(`/${seleccionada.id}`, "PUT", { ...entrada, revision: seleccionada.revision })).json();
+      setLista(actual => actual && { ...actual, items: actual.items.map(pc => pc.id === guardada.id ? guardada : pc) });
+      setAviso("Guardamos si tu PC ya está armada");
+    });
+  }
+
+  const vista = borrador ?? seleccionada;
+  const carga = vista ? cargaDeLaPc(vista) : null;
+  const titulo = borrador ? (borrador.name.trim() || "Una PC nueva") : seleccionada?.name ?? "Mi PC";
+  const subtitulo = borrador ? "Cargá las piezas que conozcas y guardala. Lo que no sepas queda para después."
+    : seleccionada ? "Esto es lo que sabemos de tu PC."
+      : lista && !lista.total ? "Cargá tu primera PC para empezar." : "Un momento, estamos buscando tus PCs.";
+  const editor = (category: TowerCategory) => {
+    const lines = vista!.lines.filter(line => line.category === category);
+    return <EditorDePieza key={`${vista === borrador ? "nueva" : seleccionada!.id}-${category}-${seleccionada?.revision ?? 0}`} category={category} ocupado={ocupado} error={errorEditor} textoDeGuardar={borrador ? "Guardar esta pieza" : "Guardar cambios"}
+      inicial={{ status: vista!.category_status[category], lines }} onCancelar={cerrar} onGuardar={cambio => guardarPieza(category, cambio)} />;
+  };
+
+  return <section className="pcs-screen" aria-busy={ocupado}>
     <div className="pcs-tabs" role="group" aria-label="Tus PCs">
       <span className="pcs-label">Tus PCs</span>
-      {list?.items.map(pc => <button key={pc.id} className="pcs-tab" disabled={busy} aria-pressed={selected?.id === pc.id} onClick={() => operation(async () => { setSelected(await (await towerRequest(`/${pc.id}`)).json()); setDraft(null); setDeleting(false); })}>{pc.name}</button>)}
-      <button className="pcs-add" disabled={busy} onClick={() => edit(null)}><Plus aria-hidden="true" />Agregar otra PC</button>
-      {list && list.total > list.page_size && <nav aria-label="Páginas de PCs" className="row"><button disabled={busy || list.page <= 1} onClick={() => operation(() => load(list.page - 1))}>Anterior</button><button disabled={busy || list.page * list.page_size >= list.total} onClick={() => operation(() => load(list.page + 1))}>Siguiente</button></nav>}
+      {lista?.items.map(pc => <button key={pc.id} type="button" className="pcs-tab" disabled={ocupado} aria-pressed={!borrador && seleccionadaId === pc.id} onClick={() => elegir(pc.id)}>{pc.name}</button>)}
+      <button type="button" className="pcs-add" disabled={ocupado} onClick={() => { setBorrador(emptyTower()); setEditando(null); setAviso(null); setError(""); }}><Plus aria-hidden="true" />Agregar otra PC</button>
+      {lista && lista.total > lista.page_size && <nav aria-label="Páginas de PCs" className="pcs-pages"><button type="button" className="pcs-quiet" disabled={ocupado || lista.page <= 1} onClick={() => operar(() => recargar(lista.page - 1))}>Anterior</button><button type="button" className="pcs-quiet" disabled={ocupado || lista.page * lista.page_size >= lista.total} onClick={() => operar(() => recargar(lista.page + 1))}>Siguiente</button></nav>}
     </div>
 
     <header className="pcs-head">
-      <div>
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
-      </div>
-      {selected && <div className="pcs-complete" aria-label={`${presentCount} de 9 piezas cargadas, ${unknownCount} ${unknownCount === 1 ? "dato" : "datos"} por confirmar`}>
-        <div className="pcs-complete-top"><strong>{presentCount} de 9 piezas</strong><span>{unknownCount ? `${unknownCount} ${unknownCount === 1 ? "dato" : "datos"} por confirmar` : "Sin datos por confirmar"}</span></div>
-        <ul className="pcs-dots" aria-hidden="true">{towerKeys.map(category => <li key={category} className={selected.category_status[category] === "unknown" ? "q" : selected.category_status[category] === "absent" ? "e" : ""} />)}</ul>
+      <div><h1>{titulo}</h1><p>{subtitulo}</p></div>
+      {carga && !borrador && <div className="pcs-complete" role="group" aria-label={carga.etiqueta}>
+        <div className="pcs-complete-top"><strong>{carga.cargadas} de {carga.total} piezas esenciales</strong><span>{carga.porConfirmarTexto}</span></div>
+        <ul className="pcs-dots" aria-hidden="true">{carga.puntos.map((punto, index) => <li key={index} className={punto === "ok" ? "" : punto} />)}</ul>
+        <p className="pcs-complete-opcional">{carga.opcionales}</p>
       </div>}
     </header>
 
-    <p role="status" aria-label="Estado de PCs">{busy ? "Consultando el servidor…" : notice}</p>
-    {error && <p role="alert">{error}</p>}
+    <p role="status" className="sr-only">{ocupado ? "Un momento…" : ""}</p>
+    {error && <div className="pcs-notice"><Notice tono="no" titulo="No pudimos hacerlo">{error}</Notice></div>}
 
     <div className="pcs-body">
       <section aria-label="Piezas de tu PC" className="pcs-main">
-        {selected && !draft && <>
-          <TowerInventory pc={selected} onEditCategory={busy ? undefined : editCategory} />
-          <details className="pcs-more"><summary>BIOS y contexto declarado</summary><p>BIOS declarada: {selected.context.bios_version ?? "Por confirmar"}</p><p>{selected.context.notes || "Sin notas declaradas."}</p></details>
-          <TowerRecommendations key={`proposals-${selected.id}`} pc={selected} disabled={busy} />
-          <details className="pcs-more"><summary>Más opciones de esta PC</summary><p>Guardar sólo registra tu configuración; no comprueba compatibilidad. En notebooks y equipos prearmados, confirmá si las piezas se pueden cambiar.</p><button disabled={busy} className="secondary" onClick={() => setDeleting(true)}>Preparar borrado</button></details>
-          {deleting && <form aria-label="Confirmar borrado" onSubmit={event => { event.preventDefault(); void operation(async () => { await towerRequest(`/${selected.id}`, "DELETE"); setSelected(null); setDeleting(false); setNotice("PC eliminada del servidor."); await load(); }); }}><label><input type="checkbox" required disabled={busy} />Confirmo eliminar esta PC</label><button disabled={busy}>Eliminar definitivamente</button><button type="button" disabled={busy} onClick={() => setDeleting(false)}>Cancelar borrado</button></form>}
-        </>}
-
-        {draft && <form className="surface stack pc-editor" aria-label="Editor de PC" onSubmit={event => { event.preventDefault(); void operation(async () => { const input = towerInput(draft); const saved: Tower = await (await towerRequest(selected ? `/${selected.id}` : "", selected ? "PUT" : "POST", selected ? { ...input, revision: selected.revision } : input)).json(); setSelected(saved); setDraft(null); setNotice("PC guardada. No se evaluó compatibilidad."); await load(list?.page ?? 1); }); }}>
-          <fieldset disabled={busy} className="stack"><legend>{selected ? "Editar configuración" : "Crear configuración"}</legend>
-            {selected?.origin_schema === 1 && <section><p>Leer no modificó tu PC histórica. Este primer guardado la convierte explícitamente a schema2; dejará de editarse/evaluarse por el flujo de seis categorías. Los resultados anteriores se conservan como históricos.</p><label><input type="checkbox" required />Confirmo convertir esta configuración a torre schema2 al guardar</label></section>}
-            <label>Nombre de PC<input value={draft.name} required maxLength={100} onChange={event => setDraft({ ...draft, name: event.target.value })} /></label>
-            <details><summary>Cómo encontrar los datos de mi PC</summary><HardwareGuide id="tower-hardware-guide" /></details>
-            <p>No sé no significa no tengo. Declarar ausencia no elimina los requisitos del hardware. Los modelos escritos no se convierten en especificaciones.</p>
-            {towerKeys.map(category => <fieldset key={category} className="surface stack-sm"><legend>{towerCategories[category]}</legend>
-              <label htmlFor={towerStatusId(category)}>Estado de {towerCategories[category]}</label>
-              <select id={towerStatusId(category)} value={draft.category_status[category]} onChange={event => status(category, event.target.value as CategoryStatus)}><option value="unknown">No sé / por confirmar</option><option value="absent">No tengo (declarado)</option><option value="present">Tengo esta pieza</option></select>
-              {category === "ram" && <p>Cantidad = módulos, no GB. Hasta 4 grupos y 16 módulos. No deduzcas cantidad ni capacidad desde el nombre.</p>}
-              {draft.lines.map((line, index) => line.category !== category ? null : <section key={`${category}-${index}`} className="stack-sm" aria-label={`${towerCategories[category]} línea ${index + 1}`}>
-                <label>Identificación de la pieza<select value={line.declared_model !== null ? "declared" : "catalog"} onChange={event => updateLine(index, event.target.value === "declared" ? { component_id: null, declared_model: "" } : { component_id: null, declared_model: null })}><option value="catalog">Elegir en catálogo</option><option value="declared">Escribir modelo declarado</option></select></label>
-                {line.declared_model !== null ? <label>Modelo declarado de {towerCategories[category]}<input maxLength={200} required value={line.declared_model} onChange={event => updateLine(index, { declared_model: event.target.value })} /></label> : <RemoteProductSelector category={category} value={line.component_id} onChange={id => updateLine(index, { component_id: id, declared_model: null })} />}
-                <label>Cantidad de {category === "ram" ? "módulos" : "unidades"}<input type="number" required min={1} max={category === "ram" ? 16 : category === "storage" ? 16 : category === "fan" ? 32 : 1} step={1} value={Number.isNaN(line.quantity) ? "" : line.quantity} onChange={event => updateLine(index, { quantity: event.target.valueAsNumber })} /></label>
-                <button type="button" className="secondary" onClick={() => setDraft({ ...draft, lines: draft.lines.filter((_, i) => i !== index), context: category === "motherboard" ? { ...draft.context, bios_version: null } : draft.context })}>Quitar línea de {towerCategories[category]}</button>
-              </section>)}
-              {draft.category_status[category] === "present" && <button type="button" className="secondary" disabled={draft.lines.filter(line => line.category === category).length >= (category === "ram" ? 4 : category === "storage" ? 16 : category === "fan" ? 8 : 1)} onClick={() => setDraft({ ...draft, lines: [...draft.lines, { line_id: null, category, component_id: null, declared_model: "", quantity: 1 }] })}>Agregar línea de {towerCategories[category]}</button>}
-            </fieldset>)}
-            <label>BIOS declarada<input maxLength={100} value={draft.context.bios_version ?? ""} onChange={event => setDraft({ ...draft, context: { ...draft.context, bios_version: event.target.value || null } })} /></label><p>Cambiar o quitar placa borra la BIOS declarada del borrador. Vacía significa por confirmar; no se hereda.</p>
-            <label>Notas declaradas<textarea maxLength={1000} value={draft.context.notes ?? ""} onChange={event => setDraft({ ...draft, context: { ...draft.context, notes: event.target.value || null } })} /></label>
-            <button>Guardar PC</button><button type="button" className="secondary" onClick={() => { setDraft(null); setError(""); }}>Cancelar edición</button>
-          </fieldset>
-        </form>}
+        {aviso && <div className="pcs-notice"><Notice tono="encaja" titulo={aviso}>Ya podemos revisar si todo encaja de nuevo.</Notice></div>}
+        {borrador && <div className="pcs-card pcs-new"><Field etiqueta="¿Cómo le decimos a esta PC?" maxLength={100} value={borrador.name} placeholder="Por ejemplo: La de casa" ayuda={borrador.name.trim() ? undefined : "Poné un nombre para poder guardarla."} onChange={event => setBorrador({ ...borrador, name: event.target.value })} /><AssemblyStateSelect value={borrador.context.assembly_state ?? null} onChange={assembly_state => setBorrador({ ...borrador, context: { ...borrador.context, assembly_state } })} disabled={ocupado} /></div>}
+        {vista && <PiezasDeLaPc pc={vista} editando={editando} editor={editando ? editor(editando) : null} onEditar={ocupado ? undefined : abrir} />}
+        {borrador && <div className="pcs-editor-actions pcs-new-actions"><Button peso="principal" disabled={ocupado || !borrador.name.trim()} onClick={guardarNueva}>Guardar mi PC</Button><Button peso="secundario" disabled={ocupado} onClick={() => { setBorrador(null); setEditando(null); setErrorEditor(""); }}>Cancelar</Button></div>}
+        {seleccionada && !borrador && <details className="pcs-more"><summary>Más opciones de esta PC</summary>
+          <p className="pcs-help">Borrar una PC no se puede deshacer.</p>
+          {!borrando ? <Button peso="secundario" chico disabled={ocupado} onClick={() => setBorrando(true)}>Quiero borrar esta PC</Button>
+            : <form className="pcs-delete" aria-label="Confirmar borrado" onSubmit={event => { event.preventDefault(); void operar(async () => { await towerRequest(`/${seleccionada.id}`, "DELETE"); setSeleccionadaId(null); setBorrando(false); await recargar(1); setAviso("Borramos esa PC"); }); }}>
+              <label><input type="checkbox" required disabled={ocupado} />Confirmo que quiero borrar «{seleccionada.name}»</label>
+              <div className="pcs-editor-actions"><Button peso="peligro" chico type="submit" disabled={ocupado}>Borrar definitivamente</Button><Button peso="secundario" chico disabled={ocupado} onClick={() => setBorrando(false)}>Cancelar</Button></div>
+            </form>}
+        </details>}
+        {!vista && lista && !lista.total && <PcsEmptyState disabled={ocupado} onCreate={() => setBorrador(emptyTower())} />}
       </section>
 
       <aside className="pcs-side">
-        {selected && !draft && <div className="pcs-card"><h2>¿Encaja todo entre sí?</h2><TowerCompatibility key={`${selected.id}`} pc={selected} disabled={busy} /></div>}
-        <div className="pcs-card">
-          <div className="pcs-links">
-            <Link href="/tower-plans">Ver mi plan <ArrowRight aria-hidden="true" /></Link>
-            <Link href="/chat">Preguntarle al asistente <ArrowRight aria-hidden="true" /></Link>
-            <Link href="/pcs/import">Pegar una lista para actualizarla <ArrowRight aria-hidden="true" /></Link>
-          </div>
-        </div>
+        {seleccionada && !borrador && <>
+          <div className="pcs-card pcs-act"><h2>¿Qué querés hacer con esta PC?</h2><p>Te mostramos qué conviene cambiar según tu objetivo y presupuesto.</p><Link href={rutaConviene}>Ver qué me conviene</Link></div>
+          <EstadoDeArmado key={`${seleccionada.id}-${seleccionada.revision}-assembly`} pc={seleccionada} ocupado={ocupado} onGuardar={guardarArmado} />
+          <EncajeDeLaPc key={`${seleccionada.id}-${seleccionada.revision}`} pc={seleccionada} />
+        </>}
+        <div className="pcs-card"><div className="pcs-links">
+          <Link href="/tower-plans">Ver mi plan <ArrowRight aria-hidden="true" /></Link>
+          <Link href="/chat">Preguntarle al asistente <ArrowRight aria-hidden="true" /></Link>
+          <Link href="/pcs/import">Pegar una lista para actualizarla <ArrowRight aria-hidden="true" /></Link>
+        </div></div>
       </aside>
     </div>
 
-    {!selected && !draft && list && !list.total && <PcsEmptyState disabled={busy} onCreate={() => edit(null)} />}
-    {!selected && !draft && !!list?.total && <p className="compact-help">Elegí una de tus PCs para ver sus piezas.</p>}
+    <div className="pcs-foot"><span>Tu PC sólo cambia cuando tocás «Guardar cambios». Mirar sugerencias no la modifica.</span><span><Link href="/">Volver al inicio</Link></span></div>
   </section>;
 }

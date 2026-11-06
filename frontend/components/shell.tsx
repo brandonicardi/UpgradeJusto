@@ -26,7 +26,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     return () => { window.removeEventListener(sessionChangedEvent, changed); probe.dispose(); };
   }, [pathname]);
   if (isSharedPath(pathname)) return <main id="contenido" tabIndex={-1}>{children}</main>;
-  return <div className={pathname === "/" ? "app-shell v0-integrated entry-shell" : catalogHeader ? "app-shell v0-integrated catalog-shell" : "app-shell v0-integrated"}>
+  return <div className={pathname === "/" || pathname === "/conviene" || /^\/tower-plans(\/[^/]+)?$/.test(pathname) ? "app-shell v0-integrated entry-shell" : catalogHeader ? "app-shell v0-integrated catalog-shell" : "app-shell v0-integrated"}>
     <a href="#contenido" className="skip-link">Saltar al contenido</a>
     <header className="sidebar">
       <Link className="brand" href="/">UpgradeJusto</Link>

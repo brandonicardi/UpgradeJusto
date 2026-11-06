@@ -42,6 +42,23 @@
 .share-screen :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 .share-screen img { max-width: 100%; height: auto; }
 
+/* Encabezado, cinta y resumen del plan compartido (según la maqueta) */
+.share-screen .share-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
+.share-screen .share-logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
+.share-screen .share-ribbon { display: flex; align-items: center; gap: var(--space-3); color: var(--tinta); }
+.share-screen .share-ribbon svg { color: var(--pino); flex: none; }
+.share-screen h1 mark { background: var(--lima); color: var(--sobre-lima); padding: 0 .15em; border-radius: var(--radius-sm); }
+.share-screen .share-sum { display: grid; gap: var(--space-2); font-variant-numeric: tabular-nums; }
+.share-screen .share-sum > div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); }
+.share-screen .share-sum strong { font-family: var(--font-display); font-size: 20px; color: var(--tinta); }
+.share-screen .share-side h2 { font: 650 20px/26px var(--font-display); }
+.share-screen .share-more { margin-top: var(--space-6); }
+.share-screen .share-more > summary { font-weight: 700; }
+.share-screen .share-more > :not(summary) { margin-top: var(--space-4); }
+.share-screen .share-more .share-card { padding: var(--space-4); background: var(--papel); }
+.share-screen .share-foot { margin-top: var(--space-8); }
+.share-screen details > summary { cursor: pointer; }
+
 /* Etapas como tarjetas (plan compartido) */
 .share-screen .share-stages { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); min-width: 0; }
 .share-screen .share-stage { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; padding: var(--space-5); background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); min-width: 0; }
@@ -50,6 +67,7 @@
 .share-screen .share-kicker { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
 .share-screen .share-stage h2 { margin: 2px 0; font: 650 20px/26px var(--font-display); }
 .share-screen .share-tech { margin: 0; font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
+.share-screen .share-note { margin: var(--space-2) 0 0; padding: var(--space-2) var(--space-3); border-left: 3px solid var(--revisar); background: var(--revisar-fondo); border-radius: var(--radius-sm); font-size: 14px; line-height: 20px; color: var(--tinta); }
 .share-screen .share-stage-aside { display: grid; justify-items: end; gap: var(--space-2); text-align: right; min-width: 0; }
 .share-screen .share-photo { width: 72px; height: 72px; border-radius: var(--radius-sm); background: var(--papel-hundido); overflow: hidden; display: grid; place-items: center; }
 .share-screen .share-offer { display: grid; justify-items: end; gap: 2px; }

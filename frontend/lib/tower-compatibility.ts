@@ -4,32 +4,53 @@ import { towerKeys, towerUUID, type Tower, type TowerCategory } from "./towers";
 
 export type TowerEvaluation = {
   verdict: "compatible" | "incompatible" | "requiere_verificacion";
-  rule_results: { rule_id: string; family: string; state: "pass" | "fail" | "unknown"; facts: JsonValue[]; evidence: JsonValue[]; conditions: JsonValue[]; missing_fields: JsonValue[] }[];
+  rule_results: { rule_id: string; family: string; state: "pass" | "fail" | "unknown" | "not_applicable"; facts: JsonValue[]; evidence: JsonValue[]; conditions: JsonValue[]; missing_fields: JsonValue[] }[];
   // Las evaluaciones guardadas antes conservan el contrato `stock`; las nuevas traen solo las comprobaciones esenciales.
-  missing_fields: JsonValue[]; rules_version: "cu05-tower-stock-engine-1" | "cu05-tower-essential-engine-1"; data_revision: string; pc_revision: string | number;
-  scope: { id: "cu05-tower-stock-1" | "cu05-tower-essential-1"; policy_version: "tower-stock-policy-1" | "tower-essential-policy-1"; inventory_version: "tower-stock-inventory-1" | "tower-essential-inventory-1"; label: string; operating_regime: "stock_no_oc"; excludes: string[] };
+  // La versión 2 agrega la BIOS fuera de alcance y espacio físico no evaluado (`not_applicable`).
+  missing_fields: JsonValue[]; rules_version: "cu05-tower-stock-engine-1" | "cu05-tower-essential-engine-1" | "cu05-tower-essential-engine-2"; data_revision: string; pc_revision: string | number;
+  scope: { id: "cu05-tower-stock-1" | "cu05-tower-essential-1" | "cu05-tower-essential-2"; policy_version: "tower-stock-policy-1" | "tower-essential-policy-1" | "tower-essential-policy-2"; inventory_version: "tower-stock-inventory-1" | "tower-essential-inventory-1"; label: string; operating_regime: "stock_no_oc"; excludes: string[] };
   coverage: { required: JsonValue; implemented: JsonValue; evaluated: JsonValue; passed: JsonValue; failed: JsonValue; unknown: JsonValue; not_applicable: JsonValue; not_implemented: JsonValue; complete: boolean };
   additional_checks: { id: string; status: string; reason: string }[]; warnings: string[]; evaluated_configuration: Tower;
 };
 export type TowerCandidate = { component_id: string | null; declared_model: string | null; quantity: number };
 export type TowerAction = { action: "replace_category" | "replace_line" | "add_line" | "remove_line"; category: TowerCategory; line_id: string | null; candidates: TowerCandidate[]; candidate_context?: { bios_version: string | null } };
 export type TowerSimulation = { expected_pc_revision: number; actions: TowerAction[] };
-export const towerRuleLabels: Record<string, string> = { T01: "CPU y BIOS", T02: "Memoria RAM", T03: "Interfaz de la gráfica", T04: "Largo de la gráfica", T05: "Fuente de alimentación", T06: "Conexiones", T07: "Formatos", T08: "Almacenamiento", T09: "Refrigeración del CPU", T10: "Ventiladores", T11: "Identificación y presencia", T12: "Recursos compartidos y potencia" };
-const towerScopeIds = ["cu05-tower-stock-1", "cu05-tower-essential-1"];
+export const towerRuleLabels: Record<string, string> = { T01: "Procesador y placa", T02: "Memoria RAM", T03: "Interfaz de la gráfica", T04: "Largo de la gráfica", T05: "Fuente de alimentación", T06: "Conexiones", T07: "Formatos", T08: "Almacenamiento", T09: "Refrigeración del CPU", T10: "Ventiladores", T11: "Identificación y presencia", T12: "Recursos compartidos y potencia" };
+// Cada contrato esencial tiene su propia pareja de motor y alcance. Un cruce entre versiones no es esencial.
+const essentialContracts = [
+  { rules: "cu05-tower-essential-engine-1", scope: "cu05-tower-essential-1", policy: "tower-essential-policy-1" },
+  { rules: "cu05-tower-essential-engine-2", scope: "cu05-tower-essential-2", policy: "tower-essential-policy-2" },
+] as const;
+const towerScopeIds = ["cu05-tower-stock-1", ...essentialContracts.map(contract => contract.scope)];
 /** Las evaluaciones nuevas no incluyen refrigeración, ventiladores ni recursos compartidos (T09, T10, T12). */
-export function isEssentialEvaluation(result: { rules_version: string; scope?: { id: string } }): boolean {
-  return result.rules_version === "cu05-tower-essential-engine-1" && result.scope?.id === "cu05-tower-essential-1";
+export function isEssentialTowerEvaluation(result: { rules_version: string; scope?: { id: string; policy_version?: string } }): boolean {
+  return essentialContracts.some(contract => result.rules_version === contract.rules && result.scope?.id === contract.scope && (result.scope.policy_version === undefined || result.scope.policy_version === contract.policy));
 }
+/** Alias histórico: mismo criterio, acepta las dos versiones esenciales. */
+export const isEssentialEvaluation = isEssentialTowerEvaluation;
 export const essentialChecksNote = "Pasó las comprobaciones esenciales. La refrigeración y los ventiladores no se evalúan todavía.";
-/** Aclaración para gente común junto a «Encaja». No cambia el veredicto: solo se muestra si el servidor dijo `compatible`. */
-export function towerEssentialNote(result: { verdict: string; rules_version: string; scope?: { id: string } }): string | null {
-  return result.verdict === "compatible" && isEssentialEvaluation(result) ? essentialChecksNote : null;
+export const essentialChecksNoteV2 = "Pasó las comprobaciones esenciales. La BIOS no se evalúa. La refrigeración y los ventiladores no se evalúan todavía.";
+export const physicalSpaceNote = "Chequeá que entre en tu gabinete.";
+function physicalSpaceNotEvaluated(result: { rule_results?: readonly { rule_id: string; state: string }[] }): boolean {
+  return result.rule_results?.some(rule => (rule.rule_id === "T04" || rule.rule_id === "T07") && rule.state === "not_applicable") ?? false;
+}
+/** Aclaración para gente común. No cambia el veredicto: la frase de «pasó» solo acompaña un resultado compatible. */
+export function towerEssentialNote(result: { verdict: string; rules_version: string; scope?: { id: string }; rule_results?: readonly { rule_id: string; state: string }[] }): string | null {
+  if (!isEssentialTowerEvaluation(result)) return null;
+  // La aclaración de «pasó» solo acompaña un veredicto compatible; el aviso del gabinete se muestra siempre que falte ese dato.
+  const note = result.verdict === "compatible" ? result.rules_version === "cu05-tower-essential-engine-2" ? essentialChecksNoteV2 : essentialChecksNote : "";
+  const physical = physicalSpaceNotEvaluated(result) ? physicalSpaceNote : "";
+  return [note, physical].filter(Boolean).join(" ") || null;
 }
 export function towerResultLabel(result: TowerEvaluation): string {
-  if (!towerScopeIds.includes(String(result.scope?.id)) || result.scope.operating_regime !== "stock_no_oc") return "Alcance no identificado: revisá el detalle del servidor";
-  const label = { compatible: isEssentialEvaluation(result) ? "Compatible en las comprobaciones esenciales" : "Compatible dentro del alcance torre stock", incompatible: "Hay incompatibilidades en tu torre", requiere_verificacion: "Faltan datos para comprobar tu torre" }[result.verdict];
-  // A contradictory/partial response must never acquire a green headline.
-  if (result.verdict === "compatible" && (!result.coverage.complete || result.missing_fields.length || result.rule_results.some(rule => rule.state !== "pass"))) return "Resultado inconsistente o incompleto: requiere revisión del servidor";
+  const essential = isEssentialTowerEvaluation(result);
+  const scopeMatches = result.scope?.id === "cu05-tower-stock-1"
+    ? result.rules_version === "cu05-tower-stock-engine-1" && result.scope.policy_version === "tower-stock-policy-1" && result.scope.inventory_version === "tower-stock-inventory-1"
+    : essential;
+  if (!towerScopeIds.includes(String(result.scope?.id)) || !scopeMatches || result.scope.operating_regime !== "stock_no_oc") return "Alcance no identificado: revisá el detalle del servidor";
+  const label = { compatible: essential ? "Compatible en las comprobaciones esenciales" : "Compatible dentro del alcance torre stock", incompatible: "Hay incompatibilidades en tu torre", requiere_verificacion: "Faltan datos para comprobar tu torre" }[result.verdict];
+  // A contradictory/partial response must never acquire a green headline. `not_applicable` no bloquea: el servidor ya lo declaró.
+  if (result.verdict === "compatible" && (!result.coverage.complete || result.missing_fields.length || result.rule_results.some(rule => rule.state === "fail" || rule.state === "unknown"))) return "Resultado inconsistente o incompleto: requiere revisión del servidor";
   return label ?? "Estado del servidor no reconocido";
 }
 export function towerSimulationInput(pc: Tower, input: TowerAction[]): TowerSimulation {

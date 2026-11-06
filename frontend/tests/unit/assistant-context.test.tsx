@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { messageInput } from "../../lib/assistant";
-import { assistantContext, createContextRequestEpoch, emptyTurnCriteria, towerTurnContext, turnObjective, type AssistantContext } from "../../lib/assistant-context";
+import { assistantContext, createContextRequestEpoch, emptyTurnCriteria, keepsTurnContext, towerTurnContext, turnObjective, type AssistantContext } from "../../lib/assistant-context";
 import { emptyTower, type Tower } from "../../lib/towers";
 import TowerChatContext, { TowerChatSummary } from "../../components/tower-chat-context";
 
@@ -9,6 +9,12 @@ const id = "12345678-1234-1234-1234-123456789abc";
 const pc = (): Tower => ({ ...emptyTower(), id, name: "Torre sintética", revision: 1, origin_schema: 2 });
 const context = () => towerTurnContext(pc(), emptyTurnCriteria());
 describe("CU08 optional per-turn context, structural validation not authorization", () => {
+  it("la PC elegida sigue para repreguntar salvo que el servidor avise que cambió", () => {
+    expect(keepsTurnContext()).toBe(true);
+    expect(keepsTurnContext(503)).toBe(true);
+    expect(keepsTurnContext(409)).toBe(false);
+    expect(keepsTurnContext(404)).toBe(false);
+  });
   it("invalidates old page/reload tickets at user intent before effect cleanup", () => {
     const requests = createContextRequestEpoch(), initial = requests.current();
     expect(requests.isCurrent(initial)).toBe(true);
@@ -54,6 +60,6 @@ describe("CU08 optional per-turn context, structural validation not authorizatio
   it("starts with no chosen context, explains transient selection and never sends on mount", () => {
     let calls = 0;
     const html = renderToStaticMarkup(<TowerChatContext disabled={false} onChange={() => { calls++; }} />);
-    expect(html).toContain("Ninguna"); expect(html).toContain("Solo este turno; selección no guardada en conversación"); expect(html).toContain("Consultando…"); expect(html).toMatch(/disabled=""[^>]*>Torres siguientes/); expect(calls).toBe(0);
+    expect(html).toContain("Ninguna"); expect(html).toContain("Sigue elegida en tus próximas preguntas de esta charla; no se guarda en la conversación"); expect(html).toContain("Consultando…"); expect(html).toMatch(/disabled=""[^>]*>Torres siguientes/); expect(calls).toBe(0);
   });
 });

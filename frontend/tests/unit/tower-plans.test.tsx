@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { emptyTower, type Tower } from "../../lib/towers";
@@ -11,7 +12,7 @@ import TowerRecommendations from "../../app/pcs/tower-recommendations";
 import TowerPlans from "../../app/tower-plans/workspace";
 import { button, byLabel, click, mount, settle, type, unmountAll } from "./support/dom";
 
-afterEach(async () => { await unmountAll(); vi.unstubAllGlobals(); });
+afterEach(async () => { vi.useRealTimers(); await unmountAll(); vi.unstubAllGlobals(); });
 
 const id = "12345678-1234-1234-1234-123456789abc", other = "12345678-1234-1234-1234-123456789abd";
 function pc(): Tower { return { ...emptyTower(), id, name: "Synthetic PC", revision: 1, origin_schema: 2 }; }
@@ -43,7 +44,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const host = await mount(<TowerPlans initialId={other} />); await settle();
     await click(button(host, "Preparar un NUEVO borrador con PC y catálogo actuales (reemplaza borrador sin guardar)"));
     expect(host.querySelector('[aria-label="Editor de plan de torre"]')).not.toBeNull();
-    expect(button(host, "Confirmar recálculo y guardar nueva revisión")?.disabled).toBe(true);
+    expect(button(host, "Confirmar y guardar los cambios del plan")?.disabled).toBe(true);
     await click(button(host, "Preparar baja del plan"));
     const deactivation = host.querySelector('[aria-label="Confirmar baja de plan de torre"]');
     expect(deactivation).not.toBeNull(); expect(deactivation?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(false);
@@ -62,6 +63,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const plan = saved();
     plan.snapshot.stages = ["ready", "blocked", "requires_verification"].map((status, index) => ({ ...plan.snapshot.stages[0], position: index + 1, name: `Cambio ${index + 1}`, status: status as "ready" | "blocked" | "requires_verification", evaluation: { ...plan.snapshot.stages[0].evaluation, verdict: (["compatible", "incompatible", "requiere_verificacion"] as const)[index] }, cost: { ...plan.snapshot.cost, total_ars: index === 2 ? null : "900719925474099300.19" }, cumulative_cost: { ...plan.snapshot.cost, total_ars: index === 2 ? null : "900719925474099301.21" } }));
     plan.snapshot.cost = { ...plan.snapshot.cost, total_ars: "900719925474099302.23", within_budget: false };
+    plan.snapshot.stages[0].evaluation.rule_results = [{ rule_id: "T04", family: "case", state: "not_applicable", facts: [], evidence: [], conditions: [], missing_fields: [] }];
     const before = JSON.stringify(plan), html = renderToStaticMarkup(<TowerPlanView plan={plan} now={0} />);
     const root = document.createElement("div"); root.innerHTML = html;
     expect(root.querySelectorAll(".plan-reading-stage")).toHaveLength(3);
@@ -69,7 +71,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const visible = root.cloneNode(true) as HTMLElement;
     visible.querySelectorAll("details").forEach(detail => detail.remove());
     const brief = visible.textContent!;
-    for (const text of ["Cantidad explícita: 1", "Coste por confirmar", "Cobertura incompleta: no confirma compatibilidad completa", "Encaja", "No encaja", "Falta un dato", "Plan bloqueado", "Plan pendiente de verificación", "Listo según el servidor", "2 con precio completo", "1 con coste por confirmar", "Así quedaría tu plan", "Tu PC con todo el plan", "Para el uso de todos los días", "Supera el presupuesto guardado"]) expect(brief).toContain(text);
+    for (const text of ["Cantidad explícita: 1", "Costo por confirmar", "No pudimos revisar todo: todavía no confirma que encaje", "Encaja", "No encaja", "Falta un dato", "No evaluado: Largo de la gráfica. No es un dato que falte", "Plan bloqueado", "Plan pendiente de verificación", "Listo según el servidor", "2 con precio completo", "1 con costo por confirmar", "Así quedaría tu plan", "Tu PC con todo el plan", "Para el uso de todos los días", "Supera el presupuesto guardado"]) expect(brief).toContain(text);
     expect(brief).not.toContain("Antes de esta etapa");
     expect(brief).not.toMatch(/Hecha|Comprada|Ya compraste|etapas compradas|snapshot|coverage|schema|PASS/);
     expect(root.querySelector("progress,[role=progressbar]")).toBeNull();
@@ -78,7 +80,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     expect(root.querySelectorAll(".accordion.plan-stage")).toHaveLength(3);
     expect(html).toContain('<details class="stage-technical-evaluation">'); expect(html).toContain('<details class="plan-comparison">');
     expect(brief).toContain("900.719.925.474.099.300,19"); expect(brief).toContain("900.719.925.474.099.301,21"); expect(brief).toContain("900.719.925.474.099.302,23");
-    expect(html).toContain("Antes de esta etapa"); expect(html).toContain("Coste acumulado hasta etapa 3"); expect(html).toContain("Versiones, cobertura completa y copia evaluada"); expect(JSON.stringify(plan)).toBe(before);
+    expect(html).toContain("Antes de esta etapa"); expect(html).toContain("Costo acumulado hasta etapa 3"); expect(html).toContain("Versiones, cobertura completa y copia evaluada"); expect(JSON.stringify(plan)).toBe(before);
   });
   it("places saved inventory before secondary material confirmation while preserving the unchecked control", () => {
     const html = renderToStaticMarkup(<TowerRecommendations pc={pc()} disabled={false} configuration={<div>saved-inventory-sentinel</div>} />);
@@ -139,6 +141,41 @@ describe("CU07 private tower plans: structural requests and operation identity",
     expect(planActions([{ ...action(), category: "motherboard" }])[0].candidate_context).toEqual({ bios_version: null });
     const html = renderToStaticMarkup(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={() => {}} />); expect(html).toMatch(/type="number"[^>]*value=""/); expect(html).not.toMatch(/type="number"[^>]*value="1"/);
   });
+  it("autocompleta el modelo propio con el catálogo, sin elegir la primera coincidencia", async () => {
+    vi.useFakeTimers();
+    const part = { id: "gpu-1", category: "gpu" as const, name: "RTX 4060", attributes: {}, sources: [], prices: [], image: null };
+    const request = vi.fn<typeof fetch>().mockImplementation(async input => {
+      const url = String(input);
+      if (url.startsWith("/api/catalog/components?")) return Response.json({ dataset_version: "v1", items: [part], total: 1, page: 1, page_size: 8 });
+      if (url === "/api/catalog/components/gpu-1") return Response.json(part);
+      throw new Error(`Solicitud inesperada: ${url}`);
+    });
+    vi.stubGlobal("fetch", request);
+    const host = await mount(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={() => {}} />);
+    await type(byLabel(host, "Qué pieza querés cambiar"), "gpu");
+    const input = byLabel(host, "Modelo de la pieza") as HTMLInputElement;
+    await type(input, "RTX");
+    expect(request).not.toHaveBeenCalled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(260); });
+    expect(request.mock.calls.some(([url]) => String(url).includes("q=RTX") && String(url).includes("category=gpu"))).toBe(true);
+    expect(host.querySelector('[role="listbox"]')).not.toBeNull();
+    expect(host.querySelector('[role="option"][aria-selected="true"]')).toBeNull();
+    await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })); });
+    expect(input.getAttribute("aria-activedescendant")).toBe(host.querySelector('[role="option"]')?.id);
+    await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); await Promise.resolve(); });
+    expect(host.textContent).toContain("Selección actual");
+    expect(request.mock.calls.some(([url]) => String(url) === "/api/catalog/components/gpu-1")).toBe(true);
+    vi.useRealTimers();
+  });
+  it("deja el texto libre como modelo declarado si no se elige una sugerencia", async () => {
+    const onAdd = vi.fn();
+    const host = await mount(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={onAdd} />);
+    await type(byLabel(host, "Modelo de la pieza"), "Placa rara sin ficha");
+    await type(byLabel(host, "Cantidad de la pieza 1"), "1");
+    await click(button(host, "Sumar el cambio a esta etapa"));
+    expect(onAdd).toHaveBeenCalledTimes(1);
+    expect(onAdd.mock.calls[0][0].candidates[0]).toMatchObject({ component_id: null, declared_model: "Placa rara sin ficha", quantity: 1 });
+  });
   it("double save sends one operation; uncertain retry keeps identical UUID/body", async () => {
     const h = writer([503, 200]); const input = draft();
     await Promise.all([h.controller.save(input), h.controller.save(input)]); expect(h.onState.mock.calls.at(-1)?.[0].phase).toBe("uncertain");
@@ -158,7 +195,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const plan = saved(); plan.snapshot.stages[0].materials = [{ kind: "thermal_compound", state: "available_confirmed", confirmed: true }];
     plan.snapshot.stages[0].offers = [{ offer_id: "synthetic", store: "venex", product_id: "synthetic", component_id: "synthetic", variant_key: "synthetic", amount: "123.45", currency: "ARS", condition: "cash", availability: "unknown", stock_quantity: null, source_url: "https://example.com/synthetic", observed_at: "2026-10-24T10:00:00Z", expires_at: "2026-10-25T10:00:00Z", status: "fresh" }];
     const before = JSON.stringify(plan), html = renderToStaticMarkup(<TowerPlanView plan={plan} historical now={Date.parse("2026-10-26T10:00:00Z")} />);
-    expect(html).toContain("Versión anterior del plan"); expect(html).toContain("Versión del plan 1 · Versión de tu PC 1"); expect(html).not.toMatch(/revisión \d|snapshot/i); expect(html).toContain("Cotizaciones conservadas de esta versión"); expect(html).toContain("123,45"); expect(html).toContain("https://example.com/synthetic"); expect(html).toContain("Coste acumulado hasta etapa 2"); expect(html).toContain("Total desconocido / incompleto"); expect(html).toContain("Consultar no actualiza precios ni reserva stock"); expect(JSON.stringify(plan)).toBe(before);
+    expect(html).toContain("Versión anterior del plan"); expect(html).toContain("Este plan se guardó 1 vez · tu PC cambió 1 vez"); expect(html).not.toMatch(/revisión \d|snapshot/i); expect(html).toContain("Cotizaciones conservadas de esta versión"); expect(html).toContain("123,45"); expect(html).toContain("https://example.com/synthetic"); expect(html).toContain("Costo acumulado hasta etapa 2"); expect(html).toContain("Total desconocido / incompleto"); expect(html).toContain("Consultar no actualiza precios ni reserva stock"); expect(JSON.stringify(plan)).toBe(before);
     expect(html).toContain("Estado original del precio"); expect(html).toContain("fresh"); expect(html).toContain("El precio guardado venció"); expect(plan.snapshot.stages[0].offers[0].status).toBe("fresh");
     expect(html).toContain('class="saved-plan-layout"'); expect(html).toContain('aria-label="Decisión sobre el plan"'); expect(html).toContain("Sólo se cobran las acciones de compra, no las piezas conservadas"); expect(html).toContain("Cantidad explícita: 1");
     expect(html).toContain('aria-label="Comparación del plan"'); expect(html).toContain("Base del plan"); expect(html).toContain("Resultado propuesto");

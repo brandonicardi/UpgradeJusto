@@ -14,6 +14,11 @@ omitieron lo que la maqueta mostraba sin contrato real; esa decisión no fue de 
 - `/catalog/[id]` se rearma desde `PantallaPieza`: encabezado, «Lo que conviene saber», tabla de precios
   y tarjeta «¿Encaja en tu PC?» con acciones reales.
 - El estado sale de `/simulate`, del motor determinístico. Esto reemplaza la grilla sin veredicto.
+- **Planificado, NO implementar todavía (decisión de Brandon, 6/11):** un modo estricto «Encaja en mi
+  PC + solo mejoras». Con una PC elegida, el catálogo debe mostrar únicamente piezas que encajen al
+  reemplazar su categoría y que sean una mejora con evidencia publicada para el objetivo relevante.
+  La misma pieza o una alternativa equivalente no es mejora; sin evidencia no se etiqueta ni se cuela
+  en el filtro. Se revisa con Brandon antes de programar.
 
 ## Impact
 

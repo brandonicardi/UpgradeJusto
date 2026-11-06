@@ -37,7 +37,7 @@ test("@tower-share38 propietario publica una vez → anónimo frozen → revoca 
     const web = await visitor.goto(`/shared-tower-plans/${issued.token}`); expect(web?.status()).toBe(200); expect(web?.headers()["referrer-policy"]).toBe("no-referrer");
     await expect(visitor.getByRole("article", { name: "Plan de torre compartido", exact: true })).toBeVisible();
     const publicAPI = await api(visitor, `/api/shared-tower-plans/${issued.token}`); expect(publicAPI.status).toBe(200); expect(publicAPI.noStore).toBe(true); expect(publicAPI.referrer).toBe("no-referrer"); expect(publicAPI.robots).toBe("noindex, nofollow");
-    const data = parsePublicTowerShare(publicAPI.data), frozen = hash(data); expect(Object.keys(data.base_configuration.category_status).length).toBe(9); expect(data.stages.every(stage => stage.evaluation.rule_results.length === 12)).toBe(true); expect(JSON.stringify(data).includes("Nombre privado")).toBe(false);
+    const data = parsePublicTowerShare(publicAPI.data), frozen = hash(data); expect(Object.keys(data.base_configuration.category_status).length).toBe(9); expect(data.stages.every(stage => stage.evaluation.rule_results.length === 9)).toBe(true); expect(JSON.stringify(data).includes("Nombre privado")).toBe(false);
     await visitor.reload(); expect(hash(parsePublicTowerShare((await api(visitor, `/api/shared-tower-plans/${issued.token}`)).data)) === frozen).toBe(true);
     expect((await cv.cookies()).length).toBe(0);
     phase = "other-owner"; expect((await api(b, `/api/tower-plans/${plan.id}/shares`)).status).toBe(404); expect((await api(b, `/api/tower-plans/${plan.id}/shares/${issued.id}`, "DELETE", { expected_plan_revision: issued.plan_revision })).status).toBe(404);

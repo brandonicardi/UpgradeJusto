@@ -31,16 +31,18 @@ export function cheapestFirst(items: readonly TowerRecommendationItem[]): TowerR
 }
 
 /** Tienda, día y enlace de la oferta que respalda el precio; sin oferta no se inventa ninguno. */
-export function proposalOffer(item: TowerRecommendationItem): { store: string; date: string; url: string | null; condition: string } | null {
+export function proposalOffer(item: Pick<TowerRecommendationItem, "offers">): { store: string; date: string; url: string | null; condition: string } | null {
   const offer = item.offers.find(candidate => candidate.amount !== null) ?? item.offers[0];
   if (!offer) return null;
   return { store: offer.store === "compragamer" ? "Compra Gamer" : offer.store === "venex" ? "Venex" : String(offer.store), date: offer.observed_at, url: retailSourceURL(offer.source_url), condition: offer.condition === "cash" ? "Contado" : "Lista (no cuotas)" };
 }
 
-const estados = { pass: "compatible", fail: "incompatible", unknown: "requiere_verificacion" } as const;
+const estados = { pass: "compatible", fail: "incompatible", unknown: "requiere_verificacion", not_applicable: "no_evaluado" } as const;
 
-/** Las comprobaciones de la propuesta, con nombre para personas y el estado del motor. */
-export function checkRows(item: TowerRecommendationItem): { id: string; label: string; estado: "compatible" | "incompatible" | "requiere_verificacion" }[] {
+export type CheckState = "compatible" | "incompatible" | "requiere_verificacion" | "no_evaluado";
+
+/** Las comprobaciones de la propuesta, con nombre para personas y el estado del motor. Un dato que no aplica no es un dato que falta. */
+export function checkRows(item: TowerRecommendationItem): { id: string; label: string; estado: CheckState }[] {
   return item.evaluation.rule_results.map(rule => ({ id: rule.rule_id, label: towerRuleLabels[rule.rule_id] ?? "Otra comprobación", estado: estados[rule.state] ?? "requiere_verificacion" }));
 }
 

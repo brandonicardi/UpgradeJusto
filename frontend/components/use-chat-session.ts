@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { AssistantError, assistantRequest, citationText, messageInput, readAssistantStream, streamErrorText, type Citation, type Conversation, type Message, type PageOf } from "../lib/assistant";
-import type { AssistantContext } from "../lib/assistant-context";
+import { keepsTurnContext, type AssistantContext } from "../lib/assistant-context";
 import { useTowerChatSelection } from "./tower-chat-context";
 
 export type Live = { content: string; citations: Citation[]; tools: { name: string; status: string }[]; status: string };
@@ -116,7 +116,7 @@ export function useChatSession() {
     lastMessageId.current = null;
     setBusy(true); setStreaming(true); setError(""); setNotice("Iniciando pregunta privada. Todavía no hay una respuesta completa.");
     setLive({ content: "", citations: [], tools: [], status: "pending" });
-    let messageId: string | null = null, outcome = "interrupted";
+    let messageId: string | null = null, outcome = "interrupted", failedStatus: number | undefined;
     try {
       const response = await request(`/${conversationId}/messages`, "POST", body, signal);
       if (ticket !== epoch.current) return;
@@ -142,6 +142,7 @@ export function useChatSession() {
       if (ticket === epoch.current) setNotice(outcome === "completed" ? "Respuesta terminada; comprobando que esté guardada…" : "Respuesta interrumpida. Recuperando historial, sin reenviar.");
     } catch (failure) {
       if (ticket !== epoch.current) return;
+      if (failure instanceof AssistantError) failedStatus = failure.status;
       if (failure instanceof AssistantError && failure.status === 409) setConflict(true);
       setError(signal.aborted ? "Respuesta detenida. Recuperá el historial para comprobar qué se guardó." : failure instanceof AssistantError ? failure.message : "Se interrumpió la conexión. El texto es parcial; no se reenviará automáticamente.");
     } finally {
@@ -152,11 +153,12 @@ export function useChatSession() {
           const persisted = await loadMessages(conversationId);
           if (ticket === epoch.current) {
             const stored = persisted.items.find(item => item.id === messageId && item.role === "assistant");
-            if (stored) { setLive(null); setNotice(`Historial recuperado: ${statusLabel(stored.status)}. No se reenvió la pregunta.`); }
+            // Ya guardada: repetir la misma pregunta con la misma PC es un turno nuevo, no un reenvío.
+            if (stored) { lastRequest.current = null; setLive(null); setNotice(`Historial recuperado: ${statusLabel(stored.status)}. No se reenvió la pregunta.`); }
             else setNotice("Todavía no se confirmó el guardado de la respuesta. Podés recuperar historial sin reenviar.");
           }
         } catch { if (ticket === epoch.current) setNotice("No se pudo confirmar el guardado. El texto sigue siendo provisional. Recuperá historial sin reenviar."); }
-        if (ticket === epoch.current) { sending.current = false; clearContext(); setBusy(false); }
+        if (ticket === epoch.current) { sending.current = false; if (!keepsTurnContext(failedStatus)) clearContext(); setBusy(false); }
       }
     }
   }

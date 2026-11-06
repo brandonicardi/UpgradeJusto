@@ -4,8 +4,11 @@ export const towerCategories = { cpu: "Procesador", motherboard: "Placa madre", 
 export type TowerCategory = keyof typeof towerCategories;
 export const towerKeys = Object.keys(towerCategories) as TowerCategory[];
 export type CategoryStatus = "present" | "unknown" | "absent";
+/** Declaración explícita de la persona: nunca se infiere por tener una PC guardada. */
+export type AssemblyState = "assembled" | "new" | null;
+export type TowerContext = { bios_version: string | null; notes: string | null; assembly_state?: AssemblyState };
 export type TowerLine = { line_id: string | null; category: TowerCategory; component_id: string | null; declared_model: string | null; quantity: number };
-export type TowerInput = { schema_version: 2; name: string; category_status: Record<TowerCategory, CategoryStatus>; lines: TowerLine[]; context: { bios_version: string | null; notes: string | null } };
+export type TowerInput = { schema_version: 2; name: string; category_status: Record<TowerCategory, CategoryStatus>; lines: TowerLine[]; context: TowerContext };
 export type Tower = TowerInput & { id: string; revision: number; origin_schema: 1 | 2 };
 export type TowerPage = { items: Tower[]; total: number; page: number; page_size: number };
 export const towerUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -18,8 +21,8 @@ export function towerInput(draft: TowerInput): TowerInput {
     if (value !== null && (typeof value !== "string" || value.includes("\0") || value.trim().length > max)) throw new Error("Revisá los límites de los textos declarados.");
     return value?.trim() || null;
   };
-  const name = text(draft.name, 100);
-  if (!name || draft.schema_version !== 2 || draft.lines.length > 36 || Object.keys(draft.category_status).length !== 9) throw new Error("Revisá nombre, categorías y cantidad de líneas.");
+  const name = text(draft.name, 100), assembly = draft.context.assembly_state ?? null;
+  if (!name || draft.schema_version !== 2 || draft.lines.length > 36 || Object.keys(draft.category_status).length !== 9 || !(assembly === null || assembly === "assembled" || assembly === "new")) throw new Error("Revisá nombre, categorías, estado de armado y cantidad de líneas.");
   const seen = new Set<string>();
   const lines = draft.lines.map(line => {
     const component_id = text(line.component_id, 200), declared_model = text(line.declared_model, 200);
@@ -38,7 +41,7 @@ export function towerInput(draft: TowerInput): TowerInput {
     if (groups.length > maxGroups || count > maxUnits) throw new Error(`Revisá las cantidades de ${towerCategories[key]}.`);
     category_status[key] = status;
   }
-  return { schema_version: 2, name, category_status, lines, context: { bios_version: text(draft.context.bios_version, 100), notes: text(draft.context.notes, 1000) } };
+  return { schema_version: 2, name, category_status, lines, context: { bios_version: text(draft.context.bios_version, 100), notes: text(draft.context.notes, 1000), ...(draft.context.assembly_state !== undefined ? { assembly_state: assembly } : {}) } };
 }
 export async function towerRequest(path = "", method = "GET", data?: TowerInput & { revision?: number }): Promise<Response> {
   const headers = new Headers();

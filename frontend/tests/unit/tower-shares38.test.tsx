@@ -91,9 +91,9 @@ describe("CU09 tower shares: synthetic unit data, not real API evidence", () => 
     host.innerHTML = renderToStaticMarkup(<PublicTowerShareView data={data} />);
     const summaries = [...host.querySelectorAll("summary")].map(item => item.textContent ?? "").join("\n");
     expect(summaries).not.toContain("T01"); expect(summaries).not.toContain("Cobertura");
-    expect(summaries).toContain("CPU y BIOS"); expect(summaries).toContain("Detalle de lo comprobado");
+    expect(summaries).toContain("Procesador y placa"); expect(summaries).toContain("Detalle de lo comprobado");
     expect(host.textContent).not.toContain("Cobertura"); expect(host.textContent).toContain("Qué pudimos comprobar");
-    const detail = [...host.querySelectorAll("details")].find(item => item.querySelector(":scope > summary")?.textContent?.includes("CPU y BIOS"));
+    const detail = [...host.querySelectorAll("details")].find(item => item.querySelector(":scope > summary")?.textContent?.includes("Procesador y placa"));
     expect(detail?.textContent).toContain("Código interno: T01");
   });
   it("projects only public DTO keys and rejects schema1, invalid money and unresolved component refs", () => {

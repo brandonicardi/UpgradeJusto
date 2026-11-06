@@ -3,10 +3,20 @@ import { applicationOrigin, createSocketProxy } from "../support/socket-proxy";
 import { imageEvidenceBypass, imageEvidenceHeaders, imageEvidenceURL } from "../support/image-evidence-policy";
 
 type LocalProxy = Awaited<ReturnType<typeof createSocketProxy>>;
+let developmentServer: boolean | undefined;
+/** El servidor de desarrollo necesita su WebSocket de HMR para hidratar. */
+async function isDevelopmentServer() {
+  if (developmentServer !== undefined) return developmentServer;
+  try {
+    const response = await fetch(`${applicationOrigin}/pcs`, { cache: "no-store" });
+    developmentServer = response.ok && (await response.text()).includes("_development_");
+  } catch { developmentServer = false; }
+  return developmentServer;
+}
 export const test = base.extend<{ socketProxy: LocalProxy; newIsolatedContext: () => Promise<BrowserContext>; newImageEvidenceContext: () => Promise<BrowserContext> }>({
   socketProxy: async ({ browserName }, provide) => {
     if (browserName !== "chromium") throw new Error("Socket proxy fixture requires configured Chromium");
-    const proxy = await createSocketProxy();
+    const proxy = await createSocketProxy({ allowDevHmr: await isDevelopmentServer() });
     try { await provide(proxy); }
     finally {
       await proxy.close();

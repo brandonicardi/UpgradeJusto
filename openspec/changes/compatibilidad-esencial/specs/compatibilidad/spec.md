@@ -16,11 +16,11 @@ El sistema SHALL evaluar toda torre nueva con la política esencial versionada, 
 
 ### Requirement: Alcance esencial declarado
 
-El sistema SHALL declarar en cada evaluación que refrigeración, ventiladores, velocidades de memoria y ECC quedan fuera del alcance, y MUST NOT presentarlos como aprobados.
+El sistema SHALL declarar en cada evaluación nueva que la BIOS, la refrigeración, los ventiladores, las velocidades de memoria y ECC quedan fuera del alcance, y MUST NOT presentarlos como aprobados.
 
-#### Scenario: Encaja sin refrigeración evaluada
+#### Scenario: Encaja sin refrigeración ni BIOS evaluadas
 - **WHEN** una torre pasa las comprobaciones esenciales
-- **THEN** el veredicto es `compatible` y la evaluación informa que la refrigeración no se evaluó
+- **THEN** el veredicto es `compatible` y la evaluación informa que la refrigeración y la BIOS no se evaluaron
 
 #### Scenario: Cooler sin datos
 - **WHEN** una torre tiene un cooler sin datos o su presencia es desconocida
@@ -28,7 +28,7 @@ El sistema SHALL declarar en cada evaluación que refrigeración, ventiladores, 
 
 ### Requirement: Soporte de CPU por modelo
 
-El sistema SHALL exigir socket igual y soporte documentado del modelo exacto de CPU en el modelo exacto de placa, con la relación de BIOS cuando corresponde.
+El sistema SHALL exigir socket igual y soporte documentado del modelo exacto de CPU en el modelo exacto de placa, sin consultar la versión de BIOS.
 
 #### Scenario: Sockets distintos
 - **WHEN** el socket documentado de la CPU difiere del de la placa
@@ -38,9 +38,21 @@ El sistema SHALL exigir socket igual y soporte documentado del modelo exacto de 
 - **WHEN** los sockets coinciden y no hay fila exacta de soporte
 - **THEN** T01 queda desconocida; el chipset o la familia no alcanzan
 
-#### Scenario: BIOS sin declarar
-- **WHEN** hay fila de soporte y la BIOS instalada no está declarada
-- **THEN** T01 queda desconocida
+#### Scenario: BIOS ausente o anterior
+- **WHEN** hay fila exacta de soporte y la BIOS no está declarada o es anterior a la mínima documentada
+- **THEN** T01 no cambia por la BIOS: la ausencia no agrega faltantes y la anterior no falla
+
+### Requirement: BIOS fuera del alcance
+
+El sistema MUST NOT pedir la versión de BIOS para evaluar una torre ni usar la versión declarada para aprobar, fallar o dejar desconocida una comprobación nueva. La versión guardada SHALL conservarse como dato y la interfaz SHALL aclarar que la BIOS no se evalúa, sin afirmar que esté validada.
+
+#### Scenario: Evaluación nueva sin BIOS
+- **WHEN** se evalúa una torre nueva con la política esencial 2
+- **THEN** ninguna comprobación ni faltante menciona la BIOS
+
+#### Scenario: Plan viejo con BIOS
+- **WHEN** se abre un plan o enlace calculado con la política esencial 1
+- **THEN** conserva su versión, sus comprobaciones y el tratamiento histórico de la BIOS, sin recalcular
 
 ### Requirement: Potencia contra recomendación publicada
 

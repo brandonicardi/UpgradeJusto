@@ -1,0 +1,104 @@
+/* Agregar PC, armada desde la maqueta PantallaAgregarPC. El contenido va a 1280 px, como el resto de las pantallas con maqueta. */
+.v0-integrated main:has(> .imp-screen) { padding: 0 var(--space-7) var(--space-5); max-width: 1280px; }
+@media (max-width: 700px) { .v0-integrated main:has(> .imp-screen) { padding-inline: var(--space-4); } }
+
+.imp-screen { font-family: var(--font-sans-uj); color: var(--tinta); }
+.imp-back { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--tinta-suave); font-weight: 600; text-decoration: none; margin-top: var(--space-4); }
+.imp-back:hover { color: var(--tinta); }
+.imp-back svg { width: 20px; height: 20px; }
+.imp-back:focus-visible, .imp-link-btn:focus-visible, .imp-quiet:focus-visible, .imp-chip:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.imp-hero { padding-top: var(--space-4); padding-bottom: var(--space-6); max-width: 760px; }
+.imp-hero h1 { margin: 0 0 var(--space-3); font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
+.imp-hero p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
+.imp-progress { margin-bottom: var(--space-6); }
+
+.imp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--space-6); align-items: start; padding-bottom: var(--space-8); }
+.imp-main { display: grid; gap: var(--space-6); min-width: 0; }
+
+.imp-panel { background: var(--papel-alto); border-radius: var(--radius-lg); box-shadow: var(--sombra-1); padding: var(--space-6); display: grid; gap: var(--space-5); min-width: 0; scroll-margin-top: var(--space-5); }
+.imp-panel-head { display: grid; gap: var(--space-2); }
+.imp-n { font: 700 13px/16px var(--font-sans-uj); letter-spacing: .02em; color: var(--tinta-suave); }
+.imp-panel-head h2 { margin: 0; font: 650 28px/34px var(--font-display); letter-spacing: -.01em; }
+.imp-panel-head h2:focus-visible { outline: 2px solid var(--foco); outline-offset: 4px; }
+.imp-panel-head p { margin: 0; color: var(--tinta-suave); }
+.imp-panel.is-locked { box-shadow: none; background: transparent; border: 1.5px dashed var(--linea-fuerte); }
+.imp-panel-body { display: grid; gap: var(--space-5); min-width: 0; }
+
+.imp-form { display: grid; gap: var(--space-5); }
+.imp-paste-field { display: grid; gap: var(--space-2); }
+.imp-label { font-weight: 700; }
+/* Como en la maqueta: arranca alta y todavía puede crecer con lo que pegás (hasta un tope). */
+.imp-paste { width: 100%; min-height: 220px; max-height: 520px; resize: vertical; field-sizing: content; font: 400 16px/24px var(--font-sans-uj); }
+.imp-help { margin: 0; font-size: 14px; line-height: 20px; color: var(--tinta-suave); font-weight: 500; }
+.imp-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.imp-reading { display: inline-flex; align-items: center; gap: var(--space-3); color: var(--tinta-suave); font-weight: 600; }
+.imp-quiet { min-height: 40px; padding: 0 var(--space-2); border: 0; background: transparent; color: var(--pino); font: 600 14px/20px var(--font-sans-uj); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.imp-where { border-top: 1px solid var(--linea); padding-top: var(--space-4); scroll-margin-top: var(--space-6); }
+.imp-where summary { cursor: pointer; font-weight: 600; color: var(--pino); padding-block: var(--space-1); }
+.imp-where summary:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.imp-where ol { margin: var(--space-3) 0 0; padding-left: var(--space-5); display: grid; gap: var(--space-2); list-style: decimal; }
+
+/* Revisar */
+.imp-count { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.imp-tag { display: inline-flex; align-items: center; gap: var(--space-1); padding: 4px var(--space-3) 4px var(--space-2); border-radius: var(--radius-pill); font: 700 13px/18px var(--font-sans-uj); letter-spacing: .02em; white-space: nowrap; }
+.imp-tag svg { width: 16px; height: 16px; }
+.imp-tag-leida { background: var(--pino-suave); color: var(--tinta); }
+.imp-tag-leida svg { color: var(--pino); }
+.imp-tag-revisar { background: var(--revisar-fondo); color: var(--revisar); }
+.imp-tag-sin_dato { background: var(--papel-hundido); color: var(--tinta-suave); }
+.imp-info { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); background: var(--papel-hundido); }
+.imp-info svg { width: 20px; height: 20px; margin-top: 2px; }
+.imp-info strong { display: block; }
+.imp-info p { margin: 2px 0 0; }
+.imp-review { display: grid; gap: var(--space-5); }
+.imp-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.imp-row { display: grid; grid-template-columns: 180px minmax(0, 1fr) auto; gap: var(--space-4); align-items: start; padding: var(--space-4); border: 1px solid var(--linea); border-radius: var(--radius-md); background: var(--papel); }
+.imp-row.is-check { border-color: var(--revisar); }
+.imp-row.is-none { border-style: dashed; border-color: var(--linea-fuerte); }
+.imp-row-kind { display: grid; gap: 2px; }
+.imp-row-kind b { font-weight: 700; }
+.imp-row-kind span { font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
+.imp-row-edit { display: grid; gap: var(--space-2); min-width: 0; }
+.imp-line { display: grid; gap: var(--space-2); }
+.imp-input { width: 100%; }
+.imp-qty { display: grid; gap: var(--space-1); font-size: 14px; font-weight: 600; max-width: 240px; }
+.imp-quote { font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
+.imp-quote q { color: var(--tinta); font-style: italic; }
+.imp-ask { font-size: 15px; line-height: 22px; color: var(--revisar); font-weight: 600; }
+.imp-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.imp-chip { min-height: 36px; padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); border: 1.5px solid var(--linea-fuerte); background: var(--papel-alto); color: var(--tinta); font: 600 14px/20px var(--font-sans-uj); cursor: pointer; }
+.imp-chip[aria-pressed="true"] { background: var(--tinta); color: var(--papel); border-color: var(--tinta); }
+
+/* Guardar */
+.imp-summary { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.imp-summary li { display: flex; gap: var(--space-2); }
+.imp-summary svg { width: 20px; height: 20px; color: var(--pino); flex: none; margin-top: 2px; }
+.imp-saved, .imp-uncertain { display: grid; gap: var(--space-4); }
+.imp-link-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: var(--space-3) var(--space-5); border-radius: var(--radius-pill); border: 1.5px solid transparent; font: 600 16px/24px var(--font-sans-uj); text-decoration: none; }
+.imp-link-principal { background: var(--pino); color: var(--sobre-pino); }
+.imp-link-secundario { background: var(--papel-alto); color: var(--tinta); border-color: var(--linea-fuerte); }
+.imp-link-secundario:hover { border-color: var(--tinta); }
+.imp-chico { min-height: 40px; padding: var(--space-2) var(--space-4); font-size: 14px; line-height: 20px; justify-self: start; }
+
+/* Costado */
+.imp-side { display: grid; gap: var(--space-4); position: sticky; top: var(--space-5); }
+.imp-card { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-3); }
+.imp-card h2 { margin: 0; font: 650 18px/24px var(--font-display); }
+.imp-card p { margin: 0; color: var(--tinta-suave); font-size: 15px; line-height: 22px; }
+.imp-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); font-size: 15px; line-height: 22px; }
+.imp-card li { display: flex; gap: var(--space-2); }
+.imp-card li svg { width: 18px; height: 18px; color: var(--pino); flex: none; margin-top: 2px; }
+.imp-trust { background: var(--pino); border-color: var(--pino); color: var(--sobre-pino); }
+.imp-trust p, .imp-trust li svg { color: var(--sobre-pino); }
+
+@media (max-width: 1000px) {
+  .imp-layout { grid-template-columns: 1fr; }
+  .imp-side { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .imp-hero h1 { font-size: 34px; line-height: 40px; }
+  .imp-panel { padding: var(--space-5) var(--space-4); border-radius: var(--radius-md); }
+  .imp-panel-head h2 { font-size: 24px; line-height: 30px; }
+  .imp-row { grid-template-columns: 1fr; gap: var(--space-2); }
+  .imp-side { grid-template-columns: 1fr; }
+}

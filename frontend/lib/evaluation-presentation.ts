@@ -1,6 +1,6 @@
 import { isBasicStock, type Evaluation } from "./compatibility";
 export const componentChecks: Record<string, { label: string; action: string }> = {
-  B01: { label: "Procesador y placa", action: "Revisá el modelo exacto del procesador, el socket y la versión de BIOS de la placa." },
+  B01: { label: "Procesador y placa", action: "Revisá el modelo exacto del procesador y el de la placa. La versión de BIOS guardada es solo un dato: no se evalúa." },
   B02: { label: "Memoria RAM", action: "Revisá tipo, formato, número de módulos y capacidad admitida por la placa." },
   B03: { label: "Conexión de la gráfica", action: "Confirmá la interfaz de la gráfica y la ranura de la placa." },
   B04: { label: "Espacio para la gráfica", action: "Compará el largo nominal de la gráfica con el espacio admitido por el gabinete." },

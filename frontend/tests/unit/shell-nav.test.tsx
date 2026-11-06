@@ -12,7 +12,7 @@ const enlaces = (s: string) => [...s.matchAll(/<a [^>]*href="([^"]+)"[^>]*>([^<]
 describe("navegación del encabezado", () => {
   it("lista los destinos en el orden pedido", () => {
     expect(mainRoutes.map(([href, label]) => [href, label])).toEqual([
-      ["/pcs", "Mi PC"], ["/", "Lo que te conviene"], ["/tower-plans", "Mi plan"], ["/catalog", "Catálogo"],
+      ["/pcs", "Mi PC"], ["/conviene", "Lo que te conviene"], ["/tower-plans", "Mi plan"], ["/catalog", "Catálogo"],
     ]);
     expect(accountRoute).toEqual(["/account", "Tu cuenta"]);
   });
@@ -24,8 +24,11 @@ describe("navegación del encabezado", () => {
   it("marca la página actual, con los alias históricos", () => {
     expect(isCurrent("/pcs", "/pcs")).toBe(true);
     expect(isCurrent("/", "/pcs")).toBe(true);
-    expect(isCurrent("/", "/")).toBe(false);
-    expect(isCurrent("/pcs", "/")).toBe(false);
+    expect(isCurrent("/", "/conviene")).toBe(false);
+    expect(isCurrent("/pcs", "/conviene")).toBe(false);
+    expect(isCurrent("/conviene", "/conviene")).toBe(true);
+    expect(isCurrent("/conviene/paso-2", "/conviene")).toBe(true);
+    expect(isCurrent("/conviene", "/pcs")).toBe(false);
     expect(isCurrent("/build", "/pcs")).toBe(true);
     expect(isCurrent("/plans", "/tower-plans")).toBe(true);
     expect(isCurrent("/plans/3", "/tower-plans")).toBe(true);
@@ -45,7 +48,7 @@ describe("Shell", () => {
     expect(s).toContain("UpgradeJusto");
     expect(s).toContain('class="skip-link"');
     const hrefs = enlaces(s).map(e => e[0]);
-    for (const h of ["/pcs", "/tower-plans", "/", "/catalog", "/account"]) expect(hrefs).toContain(h);
+    for (const h of ["/pcs", "/conviene", "/tower-plans", "/", "/catalog", "/account"]) expect(hrefs).toContain(h);
     expect(s).not.toContain('href="/admin"');
     expect(s).toMatch(/aria-current="page"[^>]*>Catálogo</);
     expect(s).toContain('aria-expanded="false"');
@@ -70,8 +73,10 @@ describe("Shell", () => {
       expect(s).not.toContain("v0-reference-banner");
     }
   });
-  it("trata / como Mi PC", () => {
+  it("trata / como Mi PC y marca «Lo que te conviene» en su propia ruta", () => {
     expect(html("/")).toMatch(/href="\/pcs"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/pcs"/);
+    expect(html("/conviene")).toMatch(/href="\/conviene"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/conviene"/);
+    expect(html("/conviene")).not.toMatch(/href="\/pcs"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/pcs"/);
   });
   it("no muestra navegación en un plan compartido", () => {
     const s = html("/shared-tower-plans/abc");

@@ -15,7 +15,7 @@ Depende de `compatibilidad-esencial`. No editar reglas de `compatibility/`.
 
 ## 3. Evaluación real
 - [x] 3.1 Torre real con BIOS P2.30: `compatible`. Con la memoria DDR5 o la CPU AM5: `incompatible`. Sin
-      BIOS: `requiere_verificacion`. Prueba de integración sin mocks del motor.
+      BIOS: `compatible` (la BIOS ya no se evalúa). Prueba de integración sin mocks del motor.
 
 - [x] 3.2 Propuestas reales: la capacidad de RAM se lee de los hechos publicados y las RTX 5070 de tienda
       suman sus hechos. Una pieza que ya encaja sola no se ofrece con extras pagos. Prueba: gaming y

@@ -25,9 +25,19 @@
 .admin-table th, .admin-table td { text-align: left; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--linea); vertical-align: middle; }
 .admin-table th { font: 700 13px/16px var(--font-sans-uj); letter-spacing: .02em; color: var(--tinta-suave); background: var(--papel-hundido); }
 .admin-table tr:last-child td { border-bottom: 0; }
+.admin-table td:last-child { white-space: nowrap; }
+.admin-table td:last-child button { white-space: nowrap; }
 .admin-table td .sub { display: block; font-size: 13px; line-height: 18px; color: var(--tinta-suave); }
 .admin-table .miss { display: inline-flex; align-items: center; gap: 6px; font: 600 13px/18px var(--font-sans-uj); padding: 2px var(--space-2); border-radius: var(--radius-pill); background: var(--revisar-fondo); color: var(--tinta); margin: 2px 4px 2px 0; }
 .admin-table .old { color: var(--no-encaja); font-weight: 600; }
+/* La fila elegida se marca con lima; el texto encima usa sobre-lima. */
+.admin-table tr.is-selected > td { background: var(--lima); color: var(--sobre-lima); }
+.admin-table tr.is-selected .sub { color: var(--sobre-lima); opacity: .8; }
+.admin-table tr.is-selected .miss { background: var(--papel-alto); color: var(--tinta); }
+.admin-table tr.is-selected .old { color: var(--sobre-lima); }
+
+.admin-pager { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+.admin-pager > span { margin-right: auto; font-variant-numeric: tabular-nums; }
 
 .admin-form { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); box-shadow: var(--sombra-2); position: sticky; top: var(--space-5); }
 .admin-form h2 { margin: 0; font: 650 22px/28px var(--font-display); }

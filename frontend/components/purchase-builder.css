@@ -1,0 +1,69 @@
+/* Armar una PC, armada desde la maqueta PantallaArmar. El contenido va a 1280 px.
+   La propuesta automática de la maqueta no existe en la API: acá se eligen las piezas a mano
+   y el resumen muestra sólo el subtotal de lo elegido, nunca un total inventado. */
+.v0-integrated main:has(> .build-screen) { padding: 0 var(--space-7) var(--space-5); max-width: 1280px; }
+@media (max-width: 700px) { .v0-integrated main:has(> .build-screen) { padding-inline: var(--space-4); } }
+
+.build-screen { font-family: var(--font-sans-uj); color: var(--tinta); }
+.build-hero { padding-top: var(--space-7); padding-bottom: var(--space-6); display: grid; gap: var(--space-2); max-width: 760px; }
+.build-hero h1 { margin: 0; font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
+.build-hero p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
+
+.build-ask { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin: 0; padding: 0; border: 0; min-width: 0; }
+.build-panel { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
+.build-step { font: 700 13px/16px var(--font-sans-uj); letter-spacing: .02em; color: var(--tinta-suave); }
+.build-panel h2 { margin: 0; font: 650 24px/30px var(--font-display); letter-spacing: -.01em; }
+.build-field { display: grid; gap: var(--space-2); font-weight: 600; }
+/* Las opciones de objetivo van en dos columnas, como la maqueta, para que la tarjeta no quede vacía. */
+.build-panel [role="group"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.build-panel [role="group"] > button { justify-content: flex-start; }
+
+.build-result { margin-top: var(--space-7); display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--space-6); align-items: start; }
+.build-main { min-width: 0; display: grid; gap: var(--space-4); }
+.build-head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-4); flex-wrap: wrap; }
+.build-head h2 { margin: 0; font: 700 32px/38px var(--font-display); letter-spacing: -.015em; }
+.build-head p { margin: var(--space-1) 0 0; color: var(--tinta-suave); font-size: 15px; line-height: 22px; }
+.build-list { display: grid; gap: var(--space-3); }
+
+.build-part { display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-4); background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); scroll-margin-top: var(--space-5); }
+.build-part.is-empty { background: transparent; border-style: dashed; border-color: var(--linea-fuerte); }
+.build-part-top { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: var(--space-3); align-items: center; }
+.build-part-photo { width: 56px; height: 56px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--linea); border-radius: var(--radius-sm); background: var(--papel-hundido); }
+.build-part-photo .hardware-art { width: 48px; height: 48px; }
+.build-part h3 { margin: 0; font: 700 16px/22px var(--font-sans-uj); }
+.build-part-top p { margin: 0; font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
+
+.build-line { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: var(--space-3); align-items: start; padding-top: var(--space-3); border-top: 1px solid var(--linea); min-width: 0; }
+.build-line > .tower-product-photo { width: 56px; height: 56px; }
+.build-line p { margin: 0; font-size: 14px; line-height: 20px; }
+.build-line small { display: block; font-size: 13px; line-height: 18px; color: var(--tinta-suave); }
+.build-line-side { display: grid; gap: var(--space-1); justify-items: end; text-align: right; }
+.build-price { font-weight: 700; font-size: 15px; line-height: 22px; white-space: nowrap; }
+.build-line-side .text-button { font-size: 13px; }
+
+.build-picker { border-top: 1px solid var(--linea); padding-top: var(--space-1); }
+.build-picker > summary { display: flex; align-items: center; min-height: 40px; cursor: pointer; color: var(--pino); font-weight: 600; }
+.build-picker > summary:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.build-picker > fieldset { padding: var(--space-4); background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radius-md); }
+
+.build-sum { position: sticky; top: var(--space-5); display: grid; gap: var(--space-4); align-content: start; background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); min-width: 0; }
+.build-total { display: grid; gap: var(--space-2); padding: var(--space-5); border-radius: var(--radius-lg); background: var(--tinta); color: var(--papel); }
+.build-total-label { font: 700 13px/16px var(--font-sans-uj); letter-spacing: .02em; opacity: .8; }
+.build-total-value { font: 700 32px/36px var(--font-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.build-total small { font-size: 14px; line-height: 20px; opacity: .8; }
+.build-sum [aria-label="Coste de compras seleccionadas"] > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.build-note { margin: 0; font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
+
+@media (max-width: 1050px) {
+  .build-ask, .build-result { grid-template-columns: 1fr; }
+  .build-sum { position: static; }
+}
+@media (max-width: 700px) {
+  .build-hero h1 { font-size: 36px; line-height: 40px; }
+  .build-panel { padding: var(--space-5) var(--space-4); border-radius: var(--radius-md); }
+  .build-panel [role="group"] { grid-template-columns: 1fr; }
+  .build-head h2 { font-size: 28px; line-height: 34px; }
+  .build-line { grid-template-columns: 48px minmax(0, 1fr); }
+  .build-line > .tower-product-photo { width: 48px; height: 48px; }
+  .build-line-side { grid-column: 1 / -1; justify-items: start; text-align: left; }
+}

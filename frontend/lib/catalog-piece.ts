@@ -21,7 +21,7 @@ export function splitPieceChecks<T extends { rule_id: string }>(rules: T[], cate
   const related = rules.filter(rule => ruleCategories[rule.rule_id]?.includes(category));
   return { related, others: rules.filter(rule => !related.includes(rule)) };
 }
-export const pieceState = { pass: "Encaja", fail: "No encaja", unknown: "Falta un dato" };
+export const pieceState = { pass: "Encaja", fail: "No encaja", unknown: "Falta un dato", not_applicable: "No se evalúa" };
 export const pieceVerdict = { compatible: "Encaja", incompatible: "No encaja", requiere_verificacion: "Falta un dato" };
 const replaceWithPiece = (part: TowerComponent) => ({ action: "replace_category" as const, category: part.category, line_id: null, candidates: [{ component_id: part.id, declared_model: null, quantity: 1 }] });
 export async function simulatePiece(pc: Tower, part: TowerComponent, signal: AbortSignal) {
