@@ -61,8 +61,13 @@ def test_preview_conservative_ephemeral_and_insufficient(actors):
     # Scope change is explicit, not reduced coverage under the old engine version.
     assert item["evaluation"]["rules_version"] == "cu05-basic-stock-engine-1"
     assert item["evaluation"]["scope"]["id"] == "cu05-basic-stock-1"
-    assert item["evaluation"]["coverage"]["required"] == [f"B{i:02}" for i in range(1, 8)]
-    assert {check["id"] for check in item["evaluation"]["additional_checks"]} >= {"B08", "B09"}
+    assert item["evaluation"]["coverage"]["required"] == [
+        f"B{i:02}" for i in range(1, 8)
+    ]
+    assert {check["id"] for check in item["evaluation"]["additional_checks"]} >= {
+        "B08",
+        "B09",
+    }
     assert item["missing_fields"] and body["limitations"]
     low = a[0].post(path, json=payload(budget_ars="766417.97"), headers=a[1])
     assert low.status_code == 200 and low.json()["items"][0]["status"] == "rejected"

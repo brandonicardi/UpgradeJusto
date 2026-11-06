@@ -71,7 +71,9 @@ def send(
     svc=Depends(service),
 ):
     # Reserve and read history under the same PG lock/transaction.
-    mid, history = pg_call(svc.repository.begin, identity, conversation_id, data, True, True)
+    mid, history = pg_call(
+        svc.repository.begin, identity, conversation_id, data, True, True
+    )
     return StreamingResponse(
         svc.stream(identity, conversation_id, mid, request.cookies[COOKIE], history),
         media_type="text/event-stream",

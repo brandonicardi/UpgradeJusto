@@ -7,7 +7,10 @@ import pytest
 from pydantic import ValidationError
 from test_tower38_recommend_pure import NOW, catalog, cpus, offer, part, tower
 
-from upgradejusto.compatibility.tower_contract import REQUIRED, TowerRuleResult
+from upgradejusto.compatibility.tower_contract import (
+    ESSENTIAL_REQUIRED as REQUIRED,
+)
+from upgradejusto.compatibility.tower_contract import TowerRuleResult
 from upgradejusto.pcs.service import PCError
 from upgradejusto.plans.tower_calculation import (
     finish_snapshot,
@@ -160,7 +163,7 @@ def test_stage_budget_and_total_known_failure_preserve_unknown_subtotals():
 def test_preparation_and_green_status_are_only_synthetic_gate_proofs(monkeypatch):
     import upgradejusto.plans.tower_calculation as module
 
-    original = module.evaluate_tower
+    original = module.evaluate_tower_essential
 
     def synthetic_green(*args):
         result = original(*args)
@@ -184,7 +187,7 @@ def test_preparation_and_green_status_are_only_synthetic_gate_proofs(monkeypatch
             }
         )
 
-    monkeypatch.setattr(module, "evaluate_tower", synthetic_green)
+    monkeypatch.setattr(module, "evaluate_tower_essential", synthetic_green)
     old, new = cpus()
     new = priced(new)
     psu = priced(part("synthetic-psu", "psu", "Synthetic PSU"))
@@ -222,7 +225,7 @@ def test_preparation_and_green_status_are_only_synthetic_gate_proofs(monkeypatch
             }
         )
 
-    monkeypatch.setattr(module, "evaluate_tower", fail_and_missing)
+    monkeypatch.setattr(module, "evaluate_tower_essential", fail_and_missing)
     failed = calculate(base, draft(base, [stage(replacement(new))]), data)
     assert failed["status"] == "blocked"
     assert any("synthetic.missing" in path for path in failed["missing_fields"])

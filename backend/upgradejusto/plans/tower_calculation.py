@@ -5,8 +5,8 @@ from types import SimpleNamespace
 from uuid import uuid5
 
 from upgradejusto.compatibility.tower_application import apply_tower_actions
-from upgradejusto.compatibility.tower_contract import REQUIRED
-from upgradejusto.compatibility.tower_engine import evaluate_tower
+from upgradejusto.compatibility.tower_contract import ESSENTIAL_REQUIRED
+from upgradejusto.compatibility.tower_essential import evaluate_tower_essential
 from upgradejusto.compatibility.tower_evidence import resolve_tower_evidence
 from upgradejusto.compatibility.tower_http_models import TowerEvaluationResponse
 from upgradejusto.recommendations.tower_cost import select_offer
@@ -132,7 +132,7 @@ def compatible(evaluation):
         evaluation.verdict == "compatible"
         and evaluation.coverage.complete
         and not evaluation.missing_fields
-        and {r.rule_id for r in evaluation.rule_results} == set(REQUIRED)
+        and {r.rule_id for r in evaluation.rule_results} == set(ESSENTIAL_REQUIRED)
         and all(r.state == "pass" for r in evaluation.rule_results)
     )
 
@@ -144,7 +144,7 @@ def iter_stages(base, request, catalog, version, now):
     for position, stage in enumerate(request.stages, 1):
         after = stage_configuration(current, stage.actions, catalog, position)
         evidence = resolve_tower_evidence(after, catalog, version)
-        result = evaluate_tower(after, evidence)
+        result = evaluate_tower_essential(after, evidence)
         evaluation = TowerEvaluationResponse(
             **result.model_dump(), evaluated_configuration=after
         )

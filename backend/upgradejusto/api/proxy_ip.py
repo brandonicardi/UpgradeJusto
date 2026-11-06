@@ -71,7 +71,7 @@ def permitted_query(request: Request) -> bool:
     if not request.scope.get("query_string"):
         return True
     path = request.scope["raw_path"]
-    admin_list = path == b"/api/admin/revisions" or bool(
+    admin_list = path in (b"/api/admin/revisions", b"/api/admin/dashboard") or bool(
         re.fullmatch(
             rb"/api/admin/revisions/"
             rb"(?:sprint31b-a-v1|revision-[0-9a-f]{32}|retail-[0-9a-f]{64})/"

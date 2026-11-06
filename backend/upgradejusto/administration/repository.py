@@ -1,15 +1,29 @@
 """CU10: writes serialized by revision and active-pointer PostgreSQL locks."""
 
 import uuid
+from datetime import datetime, timezone
 
 import sqlalchemy as sa
 from pydantic import ValidationError
 
 from upgradejusto.administration.models import validate_data
-from upgradejusto.administration.tables import active, revisions, roles, rows
+from upgradejusto.administration.tables import (
+    active,
+    manual_price_changes,
+    revisions,
+    roles,
+    rows,
+)
 from upgradejusto.administration.validation import materialize
+from upgradejusto.catalog.postgres import published_catalog_snapshot
+from upgradejusto.compatibility.basic_manufacturer import resolve_stock_specs
+from upgradejusto.compatibility.tower_essential import ESSENTIAL_ATTRIBUTES
+from upgradejusto.compatibility.tower_technical_resolver import (
+    resolve_published_technical,
+)
 from upgradejusto.pcs.service import PCError
 from upgradejusto.persistence.schema import components, datasets
+from upgradejusto.retail.models import LOWEST_OFFER_MAX_AGE
 from upgradejusto.retail.tables import resources
 from upgradejusto.retail.technical_validation import preserve_retail_resource
 
@@ -45,6 +59,113 @@ class AdministrationRepository:
     def authorize(self, owner):
         with self.engine.begin() as conn:
             self._authorize(conn, owner)
+
+    def dashboard(self, owner, usage, limit, offset, now=None):
+        """Four metrics and two paginated lists for the active revision only."""
+        now = now or datetime.now(timezone.utc)
+        with self.engine.begin() as conn:
+            self._authorize(conn, owner)
+            version = conn.scalar(
+                sa.select(active.c.version).with_for_update(read=True)
+            )
+            snapshot = published_catalog_snapshot(conn, version)
+            missing_items, old_items = [], []
+            stores, without_recent = set(), 0
+            for component in snapshot.components:
+                category = component.category.value
+                for offer in component.offers:
+                    stores.add(offer.store)
+                basic = resolve_stock_specs(component, snapshot)
+                specs = resolve_published_technical(component, snapshot, basic).specs
+                missing = sorted(
+                    attribute
+                    for attribute in ESSENTIAL_ATTRIBUTES.get(category, frozenset())
+                    if specs.fact(attribute) is None
+                )
+                if missing:
+                    missing_items.append(
+                        {
+                            "component_id": component.id,
+                            "category": category,
+                            "name": component.name,
+                            "missing": missing,
+                            "affected_pcs": usage.get(component.id, 0),
+                        }
+                    )
+                priced = [
+                    offer
+                    for offer in component.offers
+                    if offer.condition == "cash" and offer.amount is not None
+                ]
+                if not priced:
+                    without_recent += 1
+                    continue
+                latest = max(
+                    priced, key=lambda offer: (offer.observed_at, offer.offer_id)
+                )
+                age = now - latest.observed_at
+                if age <= LOWEST_OFFER_MAX_AGE:
+                    continue
+                without_recent += 1
+                old_items.append(
+                    {
+                        "component_id": component.id,
+                        "category": category,
+                        "name": component.name,
+                        "amount": latest.amount,
+                        "currency": latest.currency,
+                        "store": latest.store,
+                        "observed_at": latest.observed_at.isoformat(),
+                        "days": max(age.days, 0),
+                    }
+                )
+            missing_items.sort(key=lambda item: item["component_id"])
+            old_items.sort(key=lambda item: (item["observed_at"], item["component_id"]))
+
+            def page(items):
+                return {
+                    "items": items[offset : offset + limit],
+                    "total": len(items),
+                    "limit": limit,
+                    "offset": offset,
+                }
+
+            return {
+                "dataset_version": version,
+                "metrics": {
+                    "components": len(snapshot.components),
+                    "missing_data": len(missing_items),
+                    "without_recent_price": without_recent,
+                    "stores": len(stores),
+                },
+                "missing_data": page(missing_items),
+                "old_prices": page(old_items),
+            }
+
+    def record_manual_price(
+        self,
+        conn,
+        owner,
+        component_id,
+        amount,
+        observed_on,
+        source_url,
+        dataset_version,
+        created_at,
+    ):
+        conn.execute(
+            manual_price_changes.insert().values(
+                id=uuid.uuid4(),
+                admin_id=owner,
+                component_id=component_id,
+                amount=amount,
+                currency="ARS",
+                observed_on=observed_on,
+                source_url=source_url,
+                dataset_version=dataset_version,
+                created_at=created_at,
+            )
+        )
 
     def _revision(self, conn, identity, draft=False):
         row = (

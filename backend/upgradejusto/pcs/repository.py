@@ -8,7 +8,7 @@ from upgradejusto.administration.tables import active
 from upgradejusto.catalog.dataset import DATASET_VERSION
 from upgradejusto.pcs.models import PC, PCPage
 from upgradejusto.pcs.service import PCError
-from upgradejusto.pcs.tower_tables import configurations
+from upgradejusto.pcs.tower_tables import configurations, lines
 from upgradejusto.persistence.schema import pc_groups, pcs
 
 
@@ -57,6 +57,19 @@ class PCRepository:
             .first()
         )
         return self._public(conn, row) if row else None
+
+    def count_component_usage(self):
+        """Distinct saved PCs per component, without owners or PC identities."""
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                sa.select(
+                    lines.c.component_id,
+                    sa.func.count(sa.distinct(lines.c.pc_id)),
+                )
+                .where(lines.c.component_id.is_not(None))
+                .group_by(lines.c.component_id)
+            ).all()
+            return {component_id: int(total) for component_id, total in rows}
 
     def list(self, owner, page, page_size):
         legacy_only = ~sa.exists(

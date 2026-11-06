@@ -234,3 +234,19 @@ class RevisionInput(InputModel):
 
 class PublishInput(InputModel):
     expected_active_version: Text
+
+
+class ManualPriceInput(InputModel):
+    expected_active: Text
+    component_id: Text
+    amount: Annotated[StrictStr, Field(pattern=r"^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$")]
+    observed_on: date
+    source_url: Annotated[StrictStr, StringConstraints(min_length=1, max_length=2000)]
+
+    @field_validator("amount")
+    @classmethod
+    def positive_amount(cls, value):
+        amount = Decimal(value)
+        if amount <= 0 or amount > Decimal("999999999999.99"):
+            raise ValueError("Positive amount required")
+        return value

@@ -22,6 +22,13 @@ ORIGIN = {
     "references": "tower-benefit-references-1",
     "identity": "tower-reference-identity-2",
 }
+ESSENTIAL_ORIGIN = {
+    **ORIGIN,
+    "scope": "cu05-tower-essential-1",
+    "policy": "tower-essential-policy-1",
+    "inventory": "tower-essential-inventory-1",
+    "rules": "cu05-tower-essential-engine-1",
+}
 CATEGORIES = {
     "cpu": "CPU",
     "motherboard": "Placa base",

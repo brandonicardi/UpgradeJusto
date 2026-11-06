@@ -133,7 +133,7 @@ def test_service_resolves_all_ids_and_known_failure_keeps_unknown_without_writes
     assert result.verdict == "incompatible"
     assert "T04" in result.coverage.failed
     assert result.missing_fields and not result.coverage.complete
-    assert len(result.coverage.required) == 12
+    assert len(result.coverage.required) == 9
     assert result.data_revision.startswith("synthetic-published|")
     assert result.evaluated_configuration.lines[0].component_id == "cpu-060"
     assert result.evaluated_configuration.id == tower.id

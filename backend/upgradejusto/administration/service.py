@@ -2,11 +2,16 @@
 
 
 class AdministrationService:
-    def __init__(self, repository):
+    def __init__(self, repository, pcs=None):
         self.repository = repository
+        self.pcs = pcs
 
     def list(self, owner, identity, collection, limit, offset):
         return self.repository.list(owner, identity, collection, limit, offset)
+
+    def dashboard(self, owner, limit, offset):
+        usage = self.pcs.count_component_usage() if self.pcs is not None else {}
+        return self.repository.dashboard(owner, usage, limit, offset)
 
     def create(self, owner, data):
         return self.repository.create(owner, data.base_version)

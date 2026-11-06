@@ -48,3 +48,30 @@ rows = sa.Table(
         name="ck_revision_collection",
     ),
 )
+manual_price_changes = sa.Table(
+    "manual_price_changes",
+    metadata,
+    sa.Column("id", sa.Uuid, primary_key=True),
+    sa.Column(
+        "admin_id",
+        sa.Uuid,
+        sa.ForeignKey("auth_users.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    sa.Column("component_id", sa.Text, nullable=False),
+    sa.Column("amount", sa.Numeric(14, 2), nullable=False),
+    sa.Column("currency", sa.Text, nullable=False),
+    sa.Column("observed_on", sa.Date, nullable=False),
+    sa.Column("source_url", sa.Text, nullable=False),
+    sa.Column(
+        "dataset_version",
+        sa.Text,
+        sa.ForeignKey("catalog_revisions.id"),
+        nullable=False,
+    ),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+    sa.CheckConstraint("amount > 0", name="ck_manual_price_positive"),
+    sa.CheckConstraint("currency = 'ARS'", name="ck_manual_price_currency"),
+    sa.CheckConstraint("length(component_id) > 0", name="ck_manual_price_component"),
+    sa.CheckConstraint("length(source_url) > 0", name="ck_manual_price_url"),
+)

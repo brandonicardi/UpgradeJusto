@@ -29,18 +29,34 @@ COOLER = {
     "thermal_compound_required_on_remount": "bool",
     "thermal_compound_included": "bool",
 }
+MEMORY_TYPES = {"DDR3", "DDR4", "DDR5"}
+
+BOARD_FORMS = {"ATX", "mATX", "Mini-ITX", "E-ATX"}
+PSU_FORMS = {"ATX", "SFX", "SFX-L"}
 SCHEMA = {
     "motherboard": {
         "tower_ports": "resources",
         "fan_headers": "resources",
         "shared_limits": "limits",
         "fan_total_current_ma": "count",
+        "socket": "text",
+        "memory_type": MEMORY_TYPES,
+        "slots": "positive",
+        "max_total_gb": "positive",
+        "max_module_gb": "positive",
+        "form_factor": BOARD_FORMS,
+        "pcie_slot": {"PCIe x16"},
+        "atx24_count": "count",
+        "eps8_count": "count",
     },
     "case": {
         "storage_bays": "resources",
         "cooler_height_limit_mm": "positive",
         "fan_positions": "count",
         "fan_supported_sizes_mm": "positives",
+        "gpu_limit_mm": "positive",
+        "board_formats": "texts",
+        "psu_formats": "texts",
     },
     "storage": {
         "storage_interface": INTERFACES,
@@ -54,9 +70,36 @@ SCHEMA = {
         "fan_current_ma": "positive",
         "fan_connector": CONNECTORS,
     },
-    "gpu": {"tower_port_kind": {"PCIe"}, "tower_port_form": PCIE_FORMS},
-    "psu": {"sata_power_count": "count"},
-    "cpu": {"stock_cooler_included": "bool", **COOLER},
+    "gpu": {
+        "tower_port_kind": {"PCIe"},
+        "tower_port_form": PCIE_FORMS,
+        "length_mm": "positive",
+        "recommended_psu_w": "positive",
+        "nvidia_recommended_psu_w": "positive",
+        "gpu_power_kind": {"PCIe8", "16pin", "none"},
+        "gpu_power_count": "count",
+    },
+    "psu": {
+        "sata_power_count": "count",
+        "continuous_power_w": "positive",
+        "form_factor": PSU_FORMS,
+        "atx24_count": "count",
+        "eps8_count": "count",
+        "pcie8_count": "count",
+        "native16_count": "count",
+    },
+    "cpu": {
+        "stock_cooler_included": "bool",
+        "socket": "text",
+        "memory_type": MEMORY_TYPES,
+        **COOLER,
+    },
+    "ram": {
+        "memory_type": MEMORY_TYPES,
+        "capacity_gb": "positive",
+        "module_type": {"UDIMM"},
+        "buffered": "bool",
+    },
 }
 
 
@@ -102,6 +145,8 @@ def parse_value(key, value, schema):
     if isinstance(kind, set):
         if type(value) is not str or value not in kind:
             raise ValueError("Unsupported nominal token")
+    elif kind == "text":
+        text(value)
     elif kind in {"positive", "count"}:
         lower, upper = (1, 1000000000) if kind == "positive" else (0, 1000000)
         if type(value) is not int or not lower <= value <= upper:

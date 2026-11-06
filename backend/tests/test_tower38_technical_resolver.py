@@ -77,7 +77,10 @@ def synthetic_full_publication(monkeypatch):
     for category, values in fields.items():
         allowed = SCHEMA.get(category, {})
         technical = {
-            key: deepcopy(value) for key, value in values.items() if key in allowed
+            key: deepcopy(value)
+            for key, value in values.items()
+            # Largo queda en la evidencia base: las pruebas lo cambian para fallar.
+            if key in allowed and key not in ("length_mm", "gpu_limit_mm")
         }
         for key in ("tower_ports", "storage_bays", "fan_headers"):
             for resource in technical.get(key, []):
@@ -89,7 +92,7 @@ def synthetic_full_publication(monkeypatch):
                     "cost": 1,
                 }.items():
                     resource.setdefault(name, default)
-        baseline = {key: value for key, value in values.items() if key not in allowed}
+        baseline = {key: value for key, value in values.items() if key not in technical}
         basics[category] = BasicSpecs(
             baseline, {key: (REF,) for key in baseline}, frozenset(), "c" * 64
         )

@@ -10,6 +10,9 @@ from .observations import DomainModel, EvidenceRef, Text
 
 REQUIRED = tuple(f"T{i:02}" for i in range(1, 13))
 RULES_VERSION = "cu05-tower-stock-engine-1"
+# New evaluations use the essential policy; stored stock snapshots keep their version.
+ESSENTIAL_REQUIRED = (*REQUIRED[:8], "T11")
+ESSENTIAL_RULES_VERSION = "cu05-tower-essential-engine-1"
 
 
 class TowerScope(DomainModel):
@@ -22,6 +25,21 @@ class TowerScope(DomainModel):
         "Geometría avanzada e interferencias milimétricas y curvas de cables",
         "Transitorios medidos y certificación térmica/eléctrica exhaustiva",
         "Conservación de funciones frontales y periféricos",
+    )
+
+
+class EssentialScope(DomainModel):
+    id: Literal["cu05-tower-essential-1"] = "cu05-tower-essential-1"
+    policy_version: Literal["tower-essential-policy-1"] = "tower-essential-policy-1"
+    inventory_version: Literal["tower-essential-inventory-1"] = (
+        "tower-essential-inventory-1"
+    )
+    label: Text = "Comprobaciones esenciales de una PC de casa, no certificación física"
+    operating_regime: Literal["stock_no_oc"] = "stock_no_oc"
+    excludes: tuple[Text, ...] = (
+        "La refrigeración y los ventiladores no se evalúan todavía",
+        "Velocidades de memoria, ECC y memoria de servidor",
+        "Medidas finas de instalación, cables y consumo medido",
     )
 
 
@@ -39,10 +57,12 @@ class TowerEvaluationResult(DomainModel):
     verdict: Literal["compatible", "incompatible", "requiere_verificacion"]
     rule_results: tuple[TowerRuleResult, ...]
     missing_fields: tuple[Text, ...]
-    rules_version: Literal["cu05-tower-stock-engine-1"] = RULES_VERSION
+    rules_version: Literal[
+        "cu05-tower-stock-engine-1", "cu05-tower-essential-engine-1"
+    ] = RULES_VERSION
     data_revision: Text
     pc_revision: Text
-    scope: TowerScope = TowerScope()
+    scope: TowerScope | EssentialScope = TowerScope()
     coverage: Coverage
     additional_checks: tuple[AdditionalCheck, ...]
     warnings: tuple[Text, ...]

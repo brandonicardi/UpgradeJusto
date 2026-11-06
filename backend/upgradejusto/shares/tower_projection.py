@@ -4,6 +4,10 @@ from decimal import Decimal
 
 from pydantic import ValidationError
 
+from upgradejusto.compatibility.tower_contract import (
+    ESSENTIAL_REQUIRED,
+    EssentialScope,
+)
 from upgradejusto.pcs.service import PCError
 from upgradejusto.pcs.tower_models import Tower
 from upgradejusto.recommendations.tower_references import benefit
@@ -12,6 +16,7 @@ from upgradejusto.retail.technical_validation import validate_technical_binding
 from .tower_registry import (
     CATEGORIES,
     ENUMS,
+    ESSENTIAL_ORIGIN,
     EXCLUDES,
     FACTS,
     ORIGIN,
@@ -91,7 +96,24 @@ class TowerPublicProjection:
         require(
             private.get("kind") == "tower_plan" and private.get("schema_version") == 2
         )
-        require(all(private.get("versions", {}).get(k) == v for k, v in ORIGIN.items()))
+        versions = private.get("versions", {})
+        self.origin = next(
+            (
+                origin
+                for origin in (ORIGIN, ESSENTIAL_ORIGIN)
+                if all(versions.get(k) == v for k, v in origin.items())
+            ),
+            None,
+        )
+        require(self.origin is not None)
+        essential = self.origin is ESSENTIAL_ORIGIN
+        self.rule_ids = list(ESSENTIAL_REQUIRED if essential else RULE_LABELS)
+        self.excludes = EssentialScope().excludes if essential else EXCLUDES
+        self.scope_label = (
+            EssentialScope().label
+            if essential
+            else "Torre stock: asignación nominal, no certificación física"
+        )
         require(private["versions"].get("catalog") == sources.version)
         require(private.get("objective") in ("general", "gaming", "productivity"))
         require(private.get("workload") in (None, "blender-cpu"))
@@ -429,7 +451,9 @@ class TowerPublicProjection:
         return result
 
     def evaluation(self, data, configuration):
-        require(type(data) is dict and data.get("rules_version") == ORIGIN["rules"])
+        require(
+            type(data) is dict and data.get("rules_version") == self.origin["rules"]
+        )
         self.extra(
             data,
             (
@@ -447,7 +471,7 @@ class TowerPublicProjection:
             ),
         )
         rules = data.get("rule_results", [])
-        require([r.get("rule_id") for r in rules] == list(RULE_LABELS))
+        require([r.get("rule_id") for r in rules] == self.rule_ids)
         require(
             all(
                 r.get("family") == r["rule_id"] and r.get("state") in STATE_LABELS
@@ -472,7 +496,7 @@ class TowerPublicProjection:
                 type(coverage[key]) is list
                 and all(v in RULE_LABELS for v in coverage[key])
             )
-        require(coverage["required"] == list(RULE_LABELS))
+        require(coverage["required"] == self.rule_ids)
         for state, key in (
             ("pass", "passed"),
             ("fail", "failed"),
@@ -488,9 +512,9 @@ class TowerPublicProjection:
         boolean(coverage["complete"])
         scope = data.get("scope", {})
         require(
-            scope.get("id") == ORIGIN["scope"]
-            and scope.get("policy_version") == ORIGIN["policy"]
-            and scope.get("inventory_version") == ORIGIN["inventory"]
+            scope.get("id") == self.origin["scope"]
+            and scope.get("policy_version") == self.origin["policy"]
+            and scope.get("inventory_version") == self.origin["inventory"]
         )
         public_rules = []
         for rule in rules:
@@ -535,21 +559,21 @@ class TowerPublicProjection:
                 }
             )
         self.reserve()  # Composite private data_revision is reserved; public tuple retained.
-        if any(w not in EXCLUDES for w in data.get("warnings", [])):
+        if any(w not in self.excludes for w in data.get("warnings", [])):
             self.reserve()
         self.reserve(len(data.get("additional_checks", [])))
         return {
             "verdict": data["verdict"],
-            "rules_version": ORIGIN["rules"],
+            "rules_version": self.origin["rules"],
             "coverage": {key: coverage[key] for key in keys},
             "rule_results": public_rules,
             "scope": {
-                "id": ORIGIN["scope"],
-                "policy_version": ORIGIN["policy"],
-                "inventory_version": ORIGIN["inventory"],
+                "id": self.origin["scope"],
+                "policy_version": self.origin["policy"],
+                "inventory_version": self.origin["inventory"],
                 "operating_regime": "stock_no_oc",
-                "label": "Torre stock: asignación nominal, no certificación física",
-                "excludes": list(EXCLUDES),
+                "label": self.scope_label,
+                "excludes": list(self.excludes),
             },
             "missing_fields": [
                 {
@@ -928,7 +952,7 @@ class TowerPublicProjection:
             "currency": "ARS",
             "price_condition": self.private["price_condition"],
             "versions": {
-                **ORIGIN,
+                **self.origin,
                 "catalog": self.sources.version,
                 **VERSIONS,
                 "projection": PROJECTION_VERSION,

@@ -173,6 +173,32 @@ def _allocate(demands, resources, limits):
     return visit(0, set(), {})
 
 
+def resources(spec, key, owner, check):
+    raw = check.read(spec, key, owner)
+    if raw is None:
+        return None
+    try:
+        if type(raw) not in (list, tuple):
+            raise ValueError("Resource collection required")
+        values = tuple(NominalResource.model_validate(value) for value in raw)
+        ids = [value.resource_id for value in values]
+        if len(ids) != len(set(ids)) or any(
+            value.cost < 0
+            or not value.accepts
+            or any(not item.strip() for item in value.accepts)
+            or (value.voltage_mv is not None and value.voltage_mv <= 0)
+            or (value.max_current_ma is not None and value.max_current_ma < 0)
+            or value.resource_id in value.excludes
+            or set(value.excludes) - set(ids)
+            for value in values
+        ):
+            raise ValueError("Invalid resource inventory")
+        return values
+    except (TypeError, ValueError):
+        check.missing.append(owner + "." + key + ".valid_inventory")
+        return None
+
+
 def evaluate_tower(tower, evidence):
     """Tower/TowerCreate duck type; evidence is resolved by a server adapter only."""
     if tower.schema_version != 2 or not evidence.data_revision.strip():
@@ -264,31 +290,6 @@ def evaluate_tower(tower, evidence):
     cooling = Check("T09")
     fans = Check("T10")
     shared = Check("T12")
-
-    def resources(spec, key, owner, check):
-        raw = check.read(spec, key, owner)
-        if raw is None:
-            return None
-        try:
-            if type(raw) not in (list, tuple):
-                raise ValueError("Resource collection required")
-            values = tuple(NominalResource.model_validate(value) for value in raw)
-            ids = [value.resource_id for value in values]
-            if len(ids) != len(set(ids)) or any(
-                value.cost < 0
-                or not value.accepts
-                or any(not item.strip() for item in value.accepts)
-                or (value.voltage_mv is not None and value.voltage_mv <= 0)
-                or (value.max_current_ma is not None and value.max_current_ma < 0)
-                or value.resource_id in value.excludes
-                or set(value.excludes) - set(ids)
-                for value in values
-            ):
-                raise ValueError("Invalid resource inventory")
-            return values
-        except (TypeError, ValueError):
-            check.missing.append(owner + "." + key + ".valid_inventory")
-            return None
 
     ports = resources(board, "tower_ports", "motherboard", storage)
     bays = resources(case, "storage_bays", "case", storage)

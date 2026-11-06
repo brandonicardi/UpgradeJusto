@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 
 from upgradejusto.administration.models import (
     Collection,
+    ManualPriceInput,
     PublishInput,
     RevisionInput,
     RowInput,
@@ -14,7 +15,10 @@ from upgradejusto.administration.repository import AdministrationRepository
 from upgradejusto.administration.service import AdministrationService
 from upgradejusto.api.pcs import owner
 from upgradejusto.api.proxy_ip import client_ip
+from upgradejusto.pcs.repository import PCRepository
+from upgradejusto.pcs.service import PCService
 from upgradejusto.persistence.runtime import runtime_engine
+from upgradejusto.retail.service import RetailService
 
 router = APIRouter(
     prefix="/api/admin", tags=["administration"], dependencies=[Depends(client_ip)]
@@ -24,12 +28,39 @@ Offset = Annotated[int, Query(ge=0)]
 
 
 def service():
-    return AdministrationService(AdministrationRepository(runtime_engine()))
+    engine = runtime_engine()
+    return AdministrationService(
+        AdministrationRepository(engine),
+        PCService(PCRepository(engine, None), None),
+    )
+
+
+def retail_service():
+    return RetailService(runtime_engine())
 
 
 def administrator(identity=Depends(owner), svc=Depends(service)):
     svc.repository.authorize(identity)
     return identity
+
+
+@router.get("/dashboard")
+def dashboard(
+    limit: Limit = 25,
+    offset: Offset = 0,
+    identity=Depends(administrator),
+    svc=Depends(service),
+):
+    return svc.dashboard(identity, limit, offset)
+
+
+@router.post("/prices", status_code=201)
+def publish_price(
+    data: ManualPriceInput,
+    identity=Depends(administrator),
+    svc=Depends(retail_service),
+):
+    return svc.publish_price(identity, data)
 
 
 @router.get("/revisions")

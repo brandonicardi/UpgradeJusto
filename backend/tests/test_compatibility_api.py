@@ -51,7 +51,10 @@ def test_evaluate_and_simulate_are_ephemeral_and_replace_all_ram(actors):
         "warnings",
     }
     # New calculations use the authorized basic scope; legacy engine tests keep12.
-    assert body["pc_revision"] == "1" and body["rules_version"] == "cu05-basic-stock-engine-1"
+    assert (
+        body["pc_revision"] == "1"
+        and body["rules_version"] == "cu05-basic-stock-engine-1"
+    )
     assert body["scope"]["id"] == "cu05-basic-stock-1"
     assert body["scope"]["inventory_version"] == "basic-stock-inventory-1"
     assert body["verdict"] == "requiere_verificacion"

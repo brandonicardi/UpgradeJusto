@@ -8,7 +8,7 @@ from upgradejusto.pcs.service import PCError
 from upgradejusto.pcs.tower_models import Tower, TowerLine
 from upgradejusto.pcs.tower_repository import TowerRepository
 
-from .tower_engine import evaluate_tower
+from .tower_essential import evaluate_tower_essential
 from .tower_evidence import resolve_tower_evidence
 from .tower_http_models import TowerEvaluationResponse, TowerSimulationDTO
 
@@ -97,7 +97,7 @@ class TowerCompatibilityService:
         evidence = resolve_tower_evidence(
             tower, catalog, self.catalog.repository.dataset_version
         )
-        evaluation = evaluate_tower(tower, evidence)
+        evaluation = evaluate_tower_essential(tower, evidence)
         return TowerEvaluationResponse(
             **evaluation.model_dump(), evaluated_configuration=tower
         )

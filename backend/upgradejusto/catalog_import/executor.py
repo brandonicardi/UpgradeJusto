@@ -29,6 +29,10 @@ def active_snapshot(service, owner):
     return version, components, sources
 
 
+def support_pair(row):
+    return row["cpu_component_id"], row["motherboard_component_id"]
+
+
 class ImportExecutor:
     def __init__(self, administration_service):
         self.service = administration_service
@@ -57,7 +61,16 @@ class ImportExecutor:
                 raise ValueError("Existing provenance identity conflict")
             if previous is None:
                 additions.append(source)
-        if not updates and not additions:
+        # Exact support pairs already published are kept, never overwritten here.
+        support = getattr(proposal, "support", ())
+        published = {
+            support_pair(r["data"])
+            for r in _all(self.service, trusted_owner, version, "cpu_support")
+        }
+        new_support = [row for row in support if support_pair(row) not in published]
+        for row in new_support:
+            validate_data("cpu_support", row)
+        if not updates and not additions and not new_support:
             return {"dataset_version": version, "status": "unchanged"}
         draft = self.service.create(
             trusted_owner, SimpleNamespace(base_version=version)
@@ -68,6 +81,8 @@ class ImportExecutor:
             self.service.write(
                 trusted_owner, draft, "components", data=data, row_id=identity
             )
+        for row in new_support:
+            self.service.write(trusted_owner, draft, "cpu_support", data=row)
         return self.service.publish(
             trusted_owner, draft, SimpleNamespace(expected_active_version=version)
         )

@@ -30,6 +30,7 @@ from upgradejusto.administration.service import AdministrationService
 from upgradejusto.administration.tables import roles
 from upgradejusto.auth.security import HASHER
 from upgradejusto.catalog_import.executor import ImportExecutor, active_snapshot
+from upgradejusto.catalog_import.manufacturer import build_manufacturer_proposal
 from upgradejusto.catalog_import.proposal import build_proposal, digest
 from upgradejusto.compatibility.basic_manufacturer import SUPPLEMENTAL_SOURCES
 from upgradejusto.persistence.runtime import runtime_engine
@@ -37,11 +38,13 @@ from upgradejusto.persistence.schema import users
 from upgradejusto.persistence.seed import seed_catalog
 from upgradejusto.retail.models import VendorBatch
 from upgradejusto.retail.service import RetailService
+from upgradejusto.retail.tables import resources
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_DATA_DIR = BACKEND_DIR.parent / "data" / "catalogo"
 TECHNICAL_SAMPLE = BACKEND_DIR / "data" / "hardware-import" / "raw-sample.json"
 MANIFEST_NAME = "manifest.json"
+MANUFACTURER_FACTS = Path("tecnicos") / "fabricante.json"
 DATA_PREFIX = ("data", "catalogo")
 DEMO_ADMIN_EMAIL = "demo-admin@example.test"
 ADMIN_ROLE = "admin"
@@ -166,6 +169,30 @@ def publish_batches(engine, admin_id: UUID, data_dir: Path) -> tuple[list[dict],
     return results, products
 
 
+def publish_manufacturer_facts(engine, admin_id: UUID, data_dir: Path) -> str:
+    """Publica hechos de fabricante; un error no tumba los lotes ya cargados."""
+    service = AdministrationService(AdministrationRepository(engine))
+    version, components, _ = active_snapshot(service, admin_id)
+    with engine.connect() as conn:
+        mpns = {
+            row.component_id: row.identity.get("mpn")
+            for row in conn.execute(
+                sa.select(resources.c.component_id, resources.c.identity).where(
+                    resources.c.dataset_version == version
+                )
+            )
+        }
+    try:
+        document = json.loads(
+            (data_dir / MANUFACTURER_FACTS).read_text(encoding="utf-8")
+        )
+        proposal = build_manufacturer_proposal(document, components, mpns)
+        result = ImportExecutor(service).publish(admin_id, version, proposal)
+    except (OSError, KeyError, TypeError, ValueError) as error:
+        return f"rechazado: {type(error).__name__}"
+    return result.get("status", "published")
+
+
 def run(data_dir: Path | None = None) -> dict:
     """Ejecuta la carga completa y devuelve un resumen sin secretos."""
     directory = data_dir or configured_data_dir()
@@ -176,9 +203,11 @@ def run(data_dir: Path | None = None) -> dict:
         admin_id = ensure_demo_admin(engine)
         technical = publish_technical(engine, admin_id)
         batches, products = publish_batches(engine, admin_id, directory)
+        manufacturer = publish_manufacturer_facts(engine, admin_id, directory)
         return {
             "components": seeded,
             "technical_status": technical.get("status", "published"),
+            "manufacturer_status": manufacturer,
             "batches": len(batches),
             "products": products,
             "published": sum(1 for result in batches if not result["idempotent"]),
@@ -201,6 +230,7 @@ def main() -> int:
         "Demo seed ready: "
         f"components={summary['components']}; "
         f"technical={summary['technical_status']}; "
+        f"manufacturer={summary['manufacturer_status']}; "
         f"batches={summary['batches']} products={summary['products']} "
         f"(published={summary['published']}, unchanged={summary['unchanged']}); "
         f"quarantined={summary['quarantined']}"

@@ -226,14 +226,18 @@ def test_mounted_tower_plan_signed_owner_history_cache_and_caps(
     assert a[0].get(f"/api/pcs/{ctx.saved['id']}").json() == ctx.saved
     checked(
         b[0].request(
-            "DELETE", path, headers=signed("DELETE", path, b),
+            "DELETE",
+            path,
+            headers=signed("DELETE", path, b),
             json={"expected_plan_revision": 3},
         ),
         404,
     )
     checked(
         a[0].request(
-            "DELETE", path, headers=signed("DELETE", path, a),
+            "DELETE",
+            path,
+            headers=signed("DELETE", path, a),
             json={"expected_plan_revision": 3},
         ),
         204,

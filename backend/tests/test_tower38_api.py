@@ -27,6 +27,7 @@ from upgradejusto.compatibility.tower_application import (
     TowerCompatibilityService,
     TowerEvaluationRepository,
 )
+from upgradejusto.compatibility.tower_contract import ESSENTIAL_REQUIRED
 from upgradejusto.main import app
 from upgradejusto.pcs.tower_tables import configurations, lines
 from upgradejusto.persistence.schema import pcs
@@ -214,8 +215,8 @@ def test_tower_http_unknown_negative_and_simulation_never_write(
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["verdict"] == "requiere_verificacion"
-    assert body["scope"]["id"] == "cu05-tower-stock-1"
-    assert body["coverage"]["required"] == [f"T{i:02}" for i in range(1, 13)]
+    assert body["scope"]["id"] == "cu05-tower-essential-1"
+    assert body["coverage"]["required"] == list(ESSENTIAL_REQUIRED)
     assert body["evaluated_configuration"] == tower
     assert response.headers["cache-control"] == "no-store"
     assert "owner_id" not in body["evaluated_configuration"]
@@ -350,7 +351,7 @@ def test_tower_actions_do_not_reinterpret_legacy_plan_share_bytes(stock_publishe
         root(tower) + "/evaluate", headers=a[1], json={"expected_pc_revision": 1}
     )
     assert response.status_code == 200, response.text
-    assert response.json()["scope"]["id"] == "cu05-tower-stock-1"
+    assert response.json()["scope"]["id"] == "cu05-tower-essential-1"
     assert [a[0].get(path).content for path in paths] == before
     assert a[0].get(f"/api/pcs/{legacy['id']}").json() == legacy
 

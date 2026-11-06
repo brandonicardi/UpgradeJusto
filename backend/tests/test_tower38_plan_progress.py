@@ -189,7 +189,7 @@ def test_stage_key_uses_semantic_content_only():
 
 def test_head_is_the_new_additive_progress_migration(pg_engine):
     config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
-    assert ScriptDirectory.from_config(config).get_current_head() == "38_f_001"
+    assert ScriptDirectory.from_config(config).get_current_head() == "39_001"
     assert "tower_plan_stage_progress" in sa.inspect(pg_engine).get_table_names()
     inspector = sa.inspect(pg_engine)
     columns = {

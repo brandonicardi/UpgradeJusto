@@ -20,6 +20,9 @@ class PCService:
     def list(self, owner, page, page_size):
         return self.repository.list(owner, page, page_size)
 
+    def count_component_usage(self):
+        return self.repository.count_component_usage()
+
     def validate_components(self, groups):
         for group in groups:
             component = self.catalog.get_component(group.component_id)

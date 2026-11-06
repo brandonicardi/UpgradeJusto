@@ -3,7 +3,7 @@
 import re
 from decimal import Decimal
 
-from upgradejusto.compatibility.tower_contract import REQUIRED
+from upgradejusto.compatibility.tower_contract import ESSENTIAL_REQUIRED
 from upgradejusto.retail.models import REFERENCE_PRICE_VALIDITY
 
 
@@ -101,7 +101,7 @@ def classify(evaluation, benefit, cost, dependencies):
     green = (
         evaluation.verdict == "compatible"
         and not evaluation.missing_fields
-        and {r.rule_id for r in evaluation.rule_results} == set(REQUIRED)
+        and {r.rule_id for r in evaluation.rule_results} == set(ESSENTIAL_REQUIRED)
         and all(r.state == "pass" for r in evaluation.rule_results)
     )
     if (

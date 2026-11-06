@@ -65,7 +65,7 @@ def test_published_attributes_invalidate_capacity_without_rewriting_snapshots(
     assert item["benefit"]["status"] == "supported"
     assert item["cost"]["total_ars"] == "766417.98"
     assert item["status"] == "requires_verification"
-    assert item["evaluation"]["rules_version"] == "cu05-25-resources.1"
+    assert item["evaluation"]["rules_version"] == "cu05-basic-stock-engine-1"
     assert b[0].post(path, headers=b[1], json=payload).status_code == 404
     base = PostgresCatalogRepository(pg_engine).dataset_version
     draft = revision(a, base)

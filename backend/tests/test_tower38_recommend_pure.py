@@ -13,7 +13,9 @@ from upgradejusto.catalog.models import Category, Component, Source
 from upgradejusto.catalog.service import ResolvedCatalog
 from upgradejusto.compatibility.basic_specs import BasicSpecs
 from upgradejusto.compatibility.observations import EvidenceRef
-from upgradejusto.compatibility.tower_contract import REQUIRED
+from upgradejusto.compatibility.tower_contract import (
+    ESSENTIAL_REQUIRED as REQUIRED,
+)
 from upgradejusto.compatibility.tower_http_models import TowerAction, TowerSimulationDTO
 from upgradejusto.pcs.tower_models import Tower
 from upgradejusto.recommendations.tower_cost import (
