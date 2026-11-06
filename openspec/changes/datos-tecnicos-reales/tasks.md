@@ -17,6 +17,10 @@ Depende de `compatibilidad-esencial`. No editar reglas de `compatibility/`.
 - [x] 3.1 Torre real con BIOS P2.30: `compatible`. Con la memoria DDR5 o la CPU AM5: `incompatible`. Sin
       BIOS: `requiere_verificacion`. Prueba de integración sin mocks del motor.
 
+- [x] 3.2 Propuestas reales: la capacidad de RAM se lee de los hechos publicados y las RTX 5070 de tienda
+      suman sus hechos. Una pieza que ya encaja sola no se ofrece con extras pagos. Prueba: gaming y
+      general dan `recommended` con piezas reales en `test_tower_manufacturer_facts_pg.py`.
+
 ## 4. Verificación
 - [ ] 4.1 `pytest` con PostgreSQL y `ruff`. «Encaja» y «No encaja» visibles en catálogo y ficha.
 - [ ] 4.2 Revisor: sin datos inventados, identidad exacta, procedencia y reglas intactas.

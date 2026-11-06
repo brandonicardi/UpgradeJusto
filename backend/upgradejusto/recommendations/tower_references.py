@@ -2,7 +2,11 @@
 
 from decimal import Decimal
 
+from upgradejusto.compatibility.basic_manufacturer import resolve_stock_specs
 from upgradejusto.compatibility.basic_specs import resolve_basic_specs
+from upgradejusto.compatibility.tower_technical_resolver import (
+    resolve_published_technical,
+)
 
 REFERENCE_VERSION = "tower-benefit-references-1"
 IDENTITY_VERSION = "tower-reference-identity-2"
@@ -185,7 +189,10 @@ def benefit(before, after, catalog, objective, workload):
                 component = catalog.get(line.component_id)
                 if component is None:
                     return result
-                specs = resolve_basic_specs(component, catalog)
+                # Same published facts the engine reads, retail pieces included.
+                specs = resolve_published_technical(
+                    component, catalog, resolve_stock_specs(component, catalog)
+                ).specs
                 value = specs.fact("capacity_gb")
                 if value is None:
                     return result

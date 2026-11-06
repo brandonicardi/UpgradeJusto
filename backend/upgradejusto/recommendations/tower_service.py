@@ -236,7 +236,11 @@ def preview_snapshot(tower, catalog, version, request, now):
         )
     )
     truncated = False
+    # A paid extra is offered only when the primary alone does not fit already.
+    settled = set()
     for key, actions in candidates:
+        if len(actions) > 1 and actions[0].model_dump_json() in settled:
+            continue
         if len(items) >= MAX_EVALUATIONS:
             truncated = True
             break
@@ -302,6 +306,12 @@ def preview_snapshot(tower, catalog, version, request, now):
             cost["total_ars"] = None
             if cost["within_budget"] is True:
                 cost["within_budget"] = None
+        if (
+            request.mode != "manual_comparison"
+            and len(actions) == 1
+            and result.verdict == "compatible"
+        ):
+            settled.add(actions[0].model_dump_json())
         items.append(
             TowerPreviewItem(
                 key=key,
