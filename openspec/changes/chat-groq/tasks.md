@@ -129,7 +129,7 @@ verificador solo agrega dudas. El borrador nunca va al SSE, historial ni logs.
       pieza de otra configuración y `pc_revision` `str` contra `int`.
       Verificar: `$env:UJ_TEST_POSTGRES="0"; .\.venv\Scripts\python.exe -m pytest -q tests/test_assistant_evidence.py`
       y `.\.venv\Scripts\ruff.exe check .`.
-- [ ] 6.2 Prueba primero: `assistant/grounding.py` valida el texto visible completo por párrafos
+- [x] 6.2 Prueba primero: `assistant/grounding.py` valida el texto visible completo por párrafos
       con tuplas exactas: veredicto con misma PC/revisión/configuración/contexto; sujeto PC contra
       sujeto pieza (un veredicto de la PC base no prueba compatibilidad con una pieza); pieza por
       id exacto o nombre de catálogo normalizado («DDR5», «AM5» y «PCIe» no la identifican);
@@ -139,14 +139,15 @@ verificador solo agrega dudas. El borrador nunca va al SSE, historial ni logs.
       Casos adversarios: claim omitido en el texto, claim mal clasificado (veredicto declarado
       como otro tipo), número/precio/fecha/código/URL/palabra de veredicto no cubiertos, consejo
       general sin datos específicos que sí pasa.
-- [ ] 6.3 Prueba primero: `service.py` y `graph.py` separan borrador de publicado. Los deltas del
+- [x] 6.3 Prueba primero: `service.py` y `graph.py` separan borrador de publicado. Los deltas del
       modelo se acumulan en un buffer privado; `tool_status` y `citation` siguen saliendo en vivo.
       Al cerrar, solo se publican como `delta` los párrafos que pasaron validación. `finish` e
       `interrupt_pending` persisten solo lo publicado; desconexión o error descartan el borrador.
       Ningún texto del borrador aparece en SSE, historial ni logs.
       Prueba: evento SSE sin borrador, `tool_status` visible, historial sin original, buffer
       vaciado al cierre y cancelación sin publicar.
-- [ ] 6.4 Prueba primero con modelo falso: revisión semántica con el proveedor configurado
+- [ ] 6.4 (Parcial: hecha la reparación única y el fallback en `assistant/publication.py`; falta
+      la revisión semántica con un segundo llamado al modelo.) Prueba primero con modelo falso: revisión semántica con el proveedor configurado
       (abstracción en `provider.py` con timeout y modelo de revisión; en Groq respeta cuota y
       errores seguros). El verificador solo agrega dudas: un falso negativo no autoriza un
       veredicto ni un dato, y la validación determinística sigue mandando. Una **sola**

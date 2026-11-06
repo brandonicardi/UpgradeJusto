@@ -28,6 +28,7 @@ from .tower_references import (
 SEARCH_VERSION = "tower-recommend-search-2"
 # Below this, the change is not worth the money or the work of installing it.
 MIN_GAIN_PERCENT = Decimal(10)
+MAX_PROPOSALS_SHOWN = 8
 MAX_REJECTED_SHOWN = 6
 MAX_EVALUATIONS = 128
 DEPENDENCY_OPTIONS = 2
@@ -409,7 +410,9 @@ def preview_snapshot(tower, catalog, version, request, now):
         items = priced or items
         rejected = [item for item in items if item.status == "rejected"]
         items = [item for item in items if item.status != "rejected"]
-        items.extend(rejected[:MAX_REJECTED_SHOWN])
+        # Each item carries its whole evaluation: a long list helps nobody and
+        # would not fit what the screen or the chat can read.
+        items = items[:MAX_PROPOSALS_SHOWN] + rejected[:MAX_REJECTED_SHOWN]
     missing = (
         [] if items else ["benefit:no_applicable_curated_reference_or_exact_identity"]
     )

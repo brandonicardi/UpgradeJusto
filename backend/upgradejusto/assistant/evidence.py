@@ -15,6 +15,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal, InvalidOperation
 
 from pydantic import ValidationError
 
@@ -83,6 +84,7 @@ class CitationEvidence:
     url: str
     title: str
     locator: str
+    excerpt: str = ""
 
 
 def _text(value):
@@ -191,11 +193,24 @@ class TurnEvidence:
         self.evaluations: list[EvaluationEvidence] = []
         self.offers: list[OfferEvidence] = []
         self.pieces: dict[str, PieceEvidence] = {}
+        # Amounts the person wrote this turn: theirs, not the model's claims.
+        self.stated_amounts: frozenset = frozenset()
+        # Relative index values the recommender returned, never FPS.
+        self.reference_figures: set = set()
         self.citations: list[CitationEvidence] = []
         if snapshot:
             self._snapshot_pieces()
 
     # ------------------------------------------------------------------ pieces
+
+    def unnamed_pieces(self):
+        return [identity for identity, piece in self.pieces.items() if not piece.name]
+
+    def name_pieces(self, names):
+        """Evaluations carry ids only: a name from the catalog lets text match them."""
+        for identity, name in names.items():
+            if identity in self.pieces:
+                self._piece(identity, name, None, "catalog")
 
     def _piece(self, component_id, name, category, origin):
         component_id = _text(component_id)
@@ -388,6 +403,19 @@ class TurnEvidence:
             cost = item.get("cost")
             if isinstance(cost, dict):
                 self._cost_lines(cost, categories)
+            benefit = item.get("benefit")
+            if isinstance(benefit, dict):
+                try:
+                    before = Decimal(str(benefit.get("before")))
+                    after = Decimal(str(benefit.get("after")))
+                except InvalidOperation:
+                    continue
+                self.reference_figures |= {before, after}
+                if before > 0:
+                    # The screen says "cerca de 50 %": the same exact derivation.
+                    self.reference_figures.add(
+                        ((after / before - 1) * 100).quantize(Decimal(1))
+                    )
 
     def _cost_lines(self, cost, categories):
         """Legacy preview quotes; tower lines lack source/date and are skipped."""
@@ -462,6 +490,7 @@ class TurnEvidence:
                 url=url,
                 title=title,
                 locator=locator,
+                excerpt=_text(citation.get("excerpt")) or "",
             )
             if entry not in self.citations:
                 self.citations.append(entry)

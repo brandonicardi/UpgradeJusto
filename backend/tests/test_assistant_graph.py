@@ -131,7 +131,7 @@ class FakeGroq:
     [
         ("retry_ok", 2, None),
         ("retry_exhausted", 2, "schema_error_twice"),
-        ("text_no_retry", 1, "schema_error_after_text"),
+        ("text_no_retry", 2, "schema_error_twice"),
     ],
 )
 def test_schema_validation_retry(
@@ -633,7 +633,7 @@ def test_history_window_limited_to_last_8(monkeypatch):
     [
         ("retry_ok", 2, None, 5),
         ("too_long", 1, "rate_limit", None),
-        ("after_text", 1, "rate_limit", None),
+        ("after_text", 2, "rate_limit_retry_failed", 5),
         ("second_429", 2, "rate_limit_retry_failed", 5),
         ("429_then_413", 2, "content_too_large", 3),
         ("413", 1, "content_too_large", None),
@@ -815,9 +815,7 @@ def test_missing_configuration_schema_emits_retry_and_completes(monkeypatch, too
                     ],
                 )
             else:
-                yield AIMessageChunk(
-                    content="Necesito que uses configuration_schema=2."
-                )
+                yield AIMessageChunk(content="Necesito que revises tu PC.")
 
     monkeypatch.setattr(graph, "Client", FakeClient)
     monkeypatch.setattr(graph, "http_client", FakeClient)
@@ -844,7 +842,7 @@ def test_missing_configuration_schema_emits_retry_and_completes(monkeypatch, too
     assert tool_message.tool_call_id == "call1"
     deltas = [e for e in events if e[0] == "delta"]
     assert len(deltas) == 1
-    assert deltas[0][1]["text"] == "Necesito que uses configuration_schema=2."
+    assert deltas[0][1]["text"] == "Necesito que revises tu PC."
 
 
 def test_measure_input_schemas_for_budget(monkeypatch):

@@ -3,8 +3,10 @@
 import asyncio
 import json
 import os
+import re
 import sys
 import time
+from decimal import Decimal
 from typing import TypedDict
 
 import groq
@@ -13,9 +15,13 @@ from langgraph.graph import END, START, StateGraph
 from mcp import Client, StdioServerParameters
 from pydantic import ValidationError
 
+from upgradejusto.catalog.postgres import PostgresCatalogRepository
+from upgradejusto.catalog.service import CatalogService
+
 from .evidence import TurnEvidence
 from .provider import chat_model as model
 from .provider import http_client
+from .publication import REPAIR_POLICY, publish
 from .tool_inputs import validate_call
 from .tool_projection import ToolFailure, project_tool_result
 
@@ -125,11 +131,13 @@ def _compact_schema(value, *, name=None):
     return _prune_defs(value)
 
 
+MIN_REPAIR_SECONDS = 8
+MAX_REPAIR_SECONDS = 25
 POLICY = """Sos UpgradeJusto: usá las herramientas de solo lectura y nunca confirmés ni guardés nada en nombre de la persona.
 El veredicto de compatibilidad lo da el motor determinístico: traducí «compatible» como **Encaja**, «requiere_verificacion» como **Falta un dato** y «incompatible» como **No encaja**; si hay una incompatibilidad, manda ella.
 Si un dato falta o no lo podés comprobar, decí que falta ese dato: nunca lo tomes como cero, como «no» ni como que encaja.
 En un plan, los faltantes están en `missing_fields` de cada etapa: revisalas todas; la lista general del plan no las resume.
-No inventes precios, FPS, versiones de BIOS ni datos de fabricante.
+No inventes precios, FPS, versiones de BIOS ni datos de fabricante. Antes de decir que algo no tiene precio o stock, buscalo con la herramienta del catálogo. Si hablás de una pieza concreta, poné tienda y fecha en la línea que abre la lista de precios.
 Cuando cites precios, incluí moneda, fecha y tienda copiando `price_citation` de la oferta; si no hay una oferta vigente, decí que no la hay.
 Al recomendar una pieza decí siempre el veredicto de esa propuesta. `before` y `after` son un índice relativo de referencia, no FPS: nombralo como índice, no lo conviertas a FPS ni prometas ese resultado en la PC de la persona.
 No muestres códigos internos como `cg-123` ni identificadores: usá el nombre de la pieza.
@@ -243,6 +251,25 @@ class State(TypedDict):
     rounds: int
 
 
+def catalog_names(identities):
+    """Public names only; without them a piece just cannot be matched by name."""
+    try:
+        service = CatalogService(PostgresCatalogRepository())
+        found = {identity: service.get_component(identity) for identity in identities}
+    except Exception:  # noqa: BLE001 - validation stays stricter, never looser
+        return {}
+    return {key: part.name for key, part in found.items() if part is not None}
+
+
+def stated_amounts(history):
+    """Whole amounts in the last user message, with or without thousands dots."""
+    rows = [row["content"] for row in history[-8:] if row["role"] == "user"]
+    if not rows:
+        return frozenset()
+    found = re.findall(r"\d{1,3}(?:\.\d{3})+|\d+", rows[-1])
+    return frozenset(Decimal(value.replace(".", "")) for value in found)
+
+
 async def run_turn(raw_session, history, emit, conversation_id, evidence=None):
     # Explicit environment: provider key is NOT passed to the tool subprocess.
     allowed = {
@@ -298,16 +325,13 @@ async def run_turn(raw_session, history, emit, conversation_id, evidence=None):
             rate_limit_retried = False
 
             async def attempt(messages):
-                nonlocal answer, emitted_text
+                nonlocal answer
+                # The draft stays here: nothing is shown until it is validated.
                 async for chunk in bound.astream(messages):
                     answer = chunk if answer is None else answer + chunk
-                    # Only visible text; never additional_kwargs/reasoning_content.
-                    if isinstance(chunk.content, str) and chunk.content:
-                        emitted_text = True
-                        await emit("delta", {"text": chunk.content})
 
             async def attempt_waiting(messages):
-                nonlocal answer, emitted_text, rate_limit_retried
+                nonlocal answer, rate_limit_retried
                 try:
                     await attempt(messages)
                 except groq.APIError as exc:
@@ -318,8 +342,7 @@ async def run_turn(raw_session, history, emit, conversation_id, evidence=None):
                         raise
                     delay = _rate_limit_delay(exc)
                     if (
-                        emitted_text
-                        or rate_limit_retried
+                        rate_limit_retried
                         or delay is None
                         or delay > MAX_RATE_LIMIT_WAIT_SECONDS
                         or delay >= deadline - time.monotonic()
@@ -328,7 +351,6 @@ async def run_turn(raw_session, history, emit, conversation_id, evidence=None):
                     rate_limit_retried = True
                     await asyncio.sleep(delay)
                     answer = None
-                    emitted_text = False
                     try:
                         await attempt(messages)
                     except groq.APIError as exc2:
@@ -342,15 +364,12 @@ async def run_turn(raw_session, history, emit, conversation_id, evidence=None):
                         raise
 
             answer = None
-            emitted_text = False
             try:
                 await attempt_waiting(state["messages"])
             except groq.APIError as exc:
                 if not _tool_use_failed(exc):
                     raise
                 # Schema validation retry (preserve existing behaviour).
-                if emitted_text:
-                    raise ToolFailure("schema_error_after_text") from exc
                 if schema_retries >= 1:
                     raise ToolFailure("schema_error_twice") from exc
                 schema_retries += 1
@@ -363,7 +382,6 @@ async def run_turn(raw_session, history, emit, conversation_id, evidence=None):
                 )
                 retry_messages = state["messages"] + [validation_message]
                 answer = None
-                emitted_text = False
                 try:
                     await attempt_waiting(retry_messages)
                 except groq.APIError as exc2:
@@ -517,6 +535,32 @@ async def run_turn(raw_session, history, emit, conversation_id, evidence=None):
             )
             for row in history[-8:]
         ]
-        await graph.compile().ainvoke(
+        final = await graph.compile().ainvoke(
             {"messages": messages, "rounds": 0}, {"recursion_limit": 14}
         )
+        evidence.stated_amounts = stated_amounts(history)
+        unnamed = evidence.unnamed_pieces()
+        if unnamed:
+            evidence.name_pieces(await asyncio.to_thread(catalog_names, unnamed))
+        draft = final["messages"][-1].content
+        if not isinstance(draft, str) or not draft.strip():
+            raise ToolFailure("empty_provider_response")
+
+        async def repair(failed):
+            """One rewrite, inside the turn budget. Failing it only omits text."""
+            remaining = deadline - time.monotonic()
+            if remaining < MIN_REPAIR_SECONDS:
+                return None
+            try:
+                async with asyncio.timeout(min(remaining - 1, MAX_REPAIR_SECONDS)):
+                    reply = await model(http).ainvoke(
+                        [
+                            SystemMessage(content=REPAIR_POLICY),
+                            HumanMessage(content=failed),
+                        ]
+                    )
+            except Exception:  # noqa: BLE001 - any provider failure keeps what passed
+                return None
+            return reply.content if isinstance(reply.content, str) else None
+
+        await publish(evidence, draft, emit, repair)

@@ -236,6 +236,10 @@ rediseño visual) y cinco prompts abreviados de referencia.
 
 ---
 
+## Qué valida el chat antes de responder
+
+El texto del modelo queda en un borrador privado. `assistant/grounding.py` revisa cada párrafo contra lo que las herramientas devolvieron en ese turno: un veredicto tiene que venir del motor, un precio de una oferta real con tienda y fecha, y un dato técnico de una fuente citada. Lo que no se puede comprobar tiene una sola reescritura; si sigue sin respaldo, no se muestra y se avisa. Por eso la respuesta aparece completa al final y no palabra por palabra. Es una validación por reglas, no una garantía semántica.
+
 ## Setup de IA del proyecto
 
 Los agentes desarrollan el proyecto; el producto no depende de ellos. Lo que hace falta para

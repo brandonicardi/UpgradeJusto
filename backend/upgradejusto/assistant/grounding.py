@@ -136,7 +136,14 @@ _NUMBER_RE = re.compile(
     r"(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+[.,]\d+|\d+)"
     r"(?![A-Za-z0-9])"
 )
+_LIST_MARK_RE = re.compile(r"(?<![^\n])\d{1,2}[.)]\s")
 _CODE_RE = re.compile(r"\bcg-[A-Za-z0-9-]+\b", re.IGNORECASE)
+# "RTX 5060" names a product; its digits are not a claim about anything.
+_MODEL_RE = re.compile(
+    r"\b(?:RTX|GTX|RX|Arc\s+[AB]|Ryzen\s+\d|Core\s+i\d|Core\s+Ultra\s+\d|i[3579]-?)"
+    r"\s*\d{3,5}[A-Za-z0-9]*",
+    re.IGNORECASE,
+)
 _TECH_UNIT_RE = re.compile(
     r"\s*(?:gb|gib|tb|tib|mb|mib|kb|kib|mhz|ghz|hz|w|watts?|mm|cm|rpm|nm|db|m\.2)\b",
     re.IGNORECASE,
@@ -156,7 +163,11 @@ _VERDICT_RE = re.compile(
     r"|\bfaltan\s+datos\b"
     r"|\brequiere\s+verificacion\b"
     r")"
-    r"|(?P<compatible>\bcompatibles?\b|\bencajan?\b)"
+    r"|(?P<compatible>\bcompatibles?\b|\bencajan?\b"
+    r"|\bva(?:n)?\s+a\s+(?:funcionar|andar)\b"
+    r"|\bfunciona(?:n|ra|ran)?\s+(?:bien|sin\s+problemas)\b"
+    r"|\balcanza(?:n|ra)?\s+para\s+(?:esa|ese|esta|este|tu|la|el)\b"
+    r"|\bte\s+(?:sirve|va\s+a\s+servir)\s+(?:para|con)\s+(?:tu|esa|ese|esta|este)\b)"
 )
 
 _REVISION_RE = re.compile(r"\brevisi[oó]n\s+(\d+)\b|\brev\.?\s*(\d+)\b", re.IGNORECASE)
@@ -175,6 +186,7 @@ _STOCK_NEG_RE = re.compile(
 )
 _STOCK_POS_RE = re.compile(
     r"\bhay\s+stock\b"
+    r"|\btienen?\s+stock\b"
     r"|\ben\s+stock\b"
     r"|\bdisponibles?\b"
     r"|\ben\s+existencia\b"
@@ -274,10 +286,16 @@ def parse_candidate(text):
                 )
             )
         return paragraphs
-    blocks = [block.strip() for block in re.split(r"\n\s*\n", text)]
+    blocks = []
+    for block in (item.strip() for item in re.split(r"\n\s*\n", text)):
+        # "Precios del 5/11 en Tienda:" and its list are one statement.
+        if block and blocks and blocks[-1].endswith(":"):
+            blocks[-1] = f"{blocks[-1]}\n{block}"
+        elif block:
+            blocks.append(block)
     return [
         CandidateParagraph(id=f"p{index}", text=block)
-        for index, block in enumerate((b for b in blocks if b), start=1)
+        for index, block in enumerate(blocks, start=1)
     ]
 
 
@@ -285,9 +303,13 @@ def validate_candidate(evidence, text):
     """Return one result per paragraph; never raises on candidate content."""
     if not isinstance(evidence, TurnEvidence):
         raise TypeError("evidence must be a TurnEvidence")
-    return [
-        _validate_paragraph(evidence, paragraph) for paragraph in parse_candidate(text)
-    ]
+    results, subject = [], frozenset()
+    for paragraph in parse_candidate(text):
+        results.append(_validate_paragraph(evidence, paragraph, subject))
+        named = _piece_ids_in_text(evidence, strip_references(paragraph.text))
+        # "Veredicto: Encaja" talks about the piece the previous paragraph named.
+        subject = frozenset(named) or subject
+    return results
 
 
 # --------------------------------------------------------------------- helpers
@@ -450,7 +472,7 @@ def _money(text):
 def _numbers(text, blocked, *, subject, price_or_stock_context):
     found = []
     for start, end, match in _spans(_NUMBER_RE, text):
-        if _overlaps((start, end), blocked):
+        if _overlaps((start, end), blocked) or _LIST_MARK_RE.match(text, start):
             continue
         # Specs like "16 GB" or "3200 MHz" are general advice unless the
         # paragraph talks about a concrete piece/PC or about price/stock.
@@ -494,6 +516,17 @@ def _distinctive_run(text_tokens, name_tokens):
 
 
 def _piece_ids_in_text(evidence, text):
+    """The exact catalog name wins over any looser match of a sibling variant."""
+    norm = _norm(text)
+    exact = {
+        identity
+        for identity, piece in evidence.pieces.items()
+        if piece.normalized_name and piece.normalized_name in norm
+    }
+    return exact or _loose_piece_ids(evidence, text)
+
+
+def _loose_piece_ids(evidence, text):
     norm = _norm(text)
     tokens = _tokens(norm)
     found = set()
@@ -547,10 +580,20 @@ def _verdict_evidence_matches(evidence, evaluation, verdict, piece_ids):
 
 
 def _verdict_supported(evidence, verdict, piece_ids):
-    return any(
-        _verdict_evidence_matches(evidence, evaluation, verdict, piece_ids)
-        for evaluation in evidence.evaluations
-    )
+    def proved(pieces):
+        return any(
+            _verdict_evidence_matches(evidence, evaluation, verdict, pieces)
+            for evaluation in evidence.evaluations
+        )
+
+    # A short name can match several variants of one part, and each one is its
+    # own proposal: all must carry the verdict. Different parts must share one.
+    categories = {
+        getattr(evidence.pieces.get(item), "category", None) for item in piece_ids
+    }
+    if len(piece_ids) > 1 and len(categories) == 1:
+        return all(proved({item}) for item in piece_ids)
+    return proved(piece_ids)
 
 
 def _revision_supported(evidence, revision):
@@ -657,7 +700,7 @@ def _stock_supported(evidence, negative, positive, quantity, piece_ids):
 # ------------------------------------------------------------------- scanner
 
 
-def _scan_reasons(evidence, text, norm):
+def _scan_reasons(evidence, text, norm, inherited=frozenset()):
     reasons = []
 
     url_spans = _urls(text)
@@ -692,10 +735,15 @@ def _scan_reasons(evidence, text, norm):
         if not _revision_supported(evidence, int(raw)):
             reasons.append("uncovered_revision")
 
-    piece_ids = _piece_ids_in_text(evidence, text)
+    blocked.extend((start, end) for start, end, _ in _spans(_MODEL_RE, text))
+
+    piece_ids = _piece_ids_in_text(evidence, text) or inherited
     negative, positive, quantity = _stock_claims(norm)
 
     for _, amount, currency in money_tokens:
+        # Repeating the budget the person just typed is not a price claim.
+        if amount in evidence.stated_amounts:
+            continue
         if not _price_supported(evidence, amount, currency, norm, dates, piece_ids):
             reasons.append("uncovered_amount")
 
@@ -713,7 +761,7 @@ def _scan_reasons(evidence, text, norm):
         subject=subject,
         price_or_stock_context=price_or_stock_context,
     ):
-        if not _number_supported(evidence, value, norm):
+        if not _number_supported(evidence, value, norm, piece_ids):
             reasons.append("uncovered_number")
 
     verdicts = _verdicts(norm)
@@ -733,9 +781,24 @@ def _same_url(left, right):
     return left.rstrip("/") == right.rstrip("/")
 
 
-def _number_supported(evidence, value, norm):
+def _number_supported(evidence, value, norm, piece_ids=()):
     if value is None:
         return False
+    if value in evidence.stated_amounts or value in evidence.reference_figures:
+        return True
+    # "8 GB" next to a named piece repeats its own catalog name.
+    if value == value.to_integral_value():
+        own = re.compile(rf"(?<![\d.,]){int(value)}(?![\d])")
+        if any(
+            own.search(getattr(evidence.pieces.get(item), "name", None) or "")
+            for item in piece_ids
+        ):
+            return True
+    # A retrieved source may back a technical figure; it never backs a verdict.
+    if value == value.to_integral_value():
+        figure = re.compile(rf"(?<![\d.,]){int(value)}(?![\d.,]\d)")
+        if any(figure.search(citation.excerpt) for citation in evidence.citations):
+            return True
     if "presupuesto" in norm:
         budget = _to_decimal(evidence.budget_ars)
         if budget is not None and budget == value:
@@ -954,10 +1017,10 @@ def _dedupe(reasons):
     return tuple(seen)
 
 
-def _validate_paragraph(evidence, paragraph):
+def _validate_paragraph(evidence, paragraph, subject=frozenset()):
     text = strip_references(paragraph.text)
     norm = _norm(text)
-    reasons = _scan_reasons(evidence, text, norm)
+    reasons = _scan_reasons(evidence, text, norm, subject)
     for claim in paragraph.claims:
         reasons.extend(_claim_reasons(evidence, claim))
     deduped = _dedupe(reasons)
