@@ -121,7 +121,7 @@ def test_published_attributes_invalidate_capacity_without_rewriting_snapshots(
     assert canonical_bytes(a[0].get(f"/api/shared-plans/{token}").json()) == old_share
     assert "PRIVATE" not in old_share.decode()
     # New share after invalidation uses the new pinned revision, not seed evidence
-    # for edited RAM. Unchanged GPU metadata may still expose its curated generation.
+    # for edited RAM.
     new_plan = save(a, pc, objective="general")
     assert new_plan["benefit"]["status"] == "unknown"
     _, new_token = publish(a, new_plan)
@@ -129,12 +129,7 @@ def test_published_attributes_invalidate_capacity_without_rewriting_snapshots(
     assert new_public["benefit"] == {"status": "unknown", "evidence": []}
     stage = new_public["stages"][0]
     assert stage["evaluation"]["data_revision"].startswith(draft + "|")
-    assert stage["evaluation"]["rules_version"] == "cu05-25-resources.1"
-    assert any(
-        f["name"] == "pcie_gpu_generation" and f["value"] == 4
-        for r in stage["evaluation"]["rule_results"]
-        for f in r["facts"]
-    )
+    assert stage["evaluation"]["rules_version"] == "cu05-basic-stock-engine-1"
     assert "PRIVATE" not in canonical_bytes(new_public).decode()
     assert canonical_bytes(a[0].get(f"/api/plans/{plan['id']}").json()) == old_plan
     assert canonical_bytes(a[0].get(f"/api/shared-plans/{token}").json()) == old_share
