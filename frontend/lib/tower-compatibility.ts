@@ -5,8 +5,9 @@ import { towerKeys, towerUUID, type Tower, type TowerCategory } from "./towers";
 export type TowerEvaluation = {
   verdict: "compatible" | "incompatible" | "requiere_verificacion";
   rule_results: { rule_id: string; family: string; state: "pass" | "fail" | "unknown"; facts: JsonValue[]; evidence: JsonValue[]; conditions: JsonValue[]; missing_fields: JsonValue[] }[];
-  missing_fields: JsonValue[]; rules_version: "cu05-tower-stock-engine-1"; data_revision: string; pc_revision: string | number;
-  scope: { id: "cu05-tower-stock-1"; policy_version: "tower-stock-policy-1"; inventory_version: "tower-stock-inventory-1"; label: string; operating_regime: "stock_no_oc"; excludes: string[] };
+  // Las evaluaciones guardadas antes conservan el contrato `stock`; las nuevas traen solo las comprobaciones esenciales.
+  missing_fields: JsonValue[]; rules_version: "cu05-tower-stock-engine-1" | "cu05-tower-essential-engine-1"; data_revision: string; pc_revision: string | number;
+  scope: { id: "cu05-tower-stock-1" | "cu05-tower-essential-1"; policy_version: "tower-stock-policy-1" | "tower-essential-policy-1"; inventory_version: "tower-stock-inventory-1" | "tower-essential-inventory-1"; label: string; operating_regime: "stock_no_oc"; excludes: string[] };
   coverage: { required: JsonValue; implemented: JsonValue; evaluated: JsonValue; passed: JsonValue; failed: JsonValue; unknown: JsonValue; not_applicable: JsonValue; not_implemented: JsonValue; complete: boolean };
   additional_checks: { id: string; status: string; reason: string }[]; warnings: string[]; evaluated_configuration: Tower;
 };
@@ -14,9 +15,19 @@ export type TowerCandidate = { component_id: string | null; declared_model: stri
 export type TowerAction = { action: "replace_category" | "replace_line" | "add_line" | "remove_line"; category: TowerCategory; line_id: string | null; candidates: TowerCandidate[]; candidate_context?: { bios_version: string | null } };
 export type TowerSimulation = { expected_pc_revision: number; actions: TowerAction[] };
 export const towerRuleLabels: Record<string, string> = { T01: "CPU y BIOS", T02: "Memoria RAM", T03: "Interfaz de la gráfica", T04: "Largo de la gráfica", T05: "Fuente de alimentación", T06: "Conexiones", T07: "Formatos", T08: "Almacenamiento", T09: "Refrigeración del CPU", T10: "Ventiladores", T11: "Identificación y presencia", T12: "Recursos compartidos y potencia" };
+const towerScopeIds = ["cu05-tower-stock-1", "cu05-tower-essential-1"];
+/** Las evaluaciones nuevas no incluyen refrigeración, ventiladores ni recursos compartidos (T09, T10, T12). */
+export function isEssentialEvaluation(result: { rules_version: string; scope?: { id: string } }): boolean {
+  return result.rules_version === "cu05-tower-essential-engine-1" && result.scope?.id === "cu05-tower-essential-1";
+}
+export const essentialChecksNote = "Pasó las comprobaciones esenciales. La refrigeración y los ventiladores no se evalúan todavía.";
+/** Aclaración para gente común junto a «Encaja». No cambia el veredicto: solo se muestra si el servidor dijo `compatible`. */
+export function towerEssentialNote(result: { verdict: string; rules_version: string; scope?: { id: string } }): string | null {
+  return result.verdict === "compatible" && isEssentialEvaluation(result) ? essentialChecksNote : null;
+}
 export function towerResultLabel(result: TowerEvaluation): string {
-  if (result.scope?.id !== "cu05-tower-stock-1" || result.scope.operating_regime !== "stock_no_oc") return "Alcance no identificado: revisá el detalle del servidor";
-  const label = { compatible: "Compatible dentro del alcance torre stock", incompatible: "Hay incompatibilidades en tu torre", requiere_verificacion: "Faltan datos para comprobar tu torre" }[result.verdict];
+  if (!towerScopeIds.includes(String(result.scope?.id)) || result.scope.operating_regime !== "stock_no_oc") return "Alcance no identificado: revisá el detalle del servidor";
+  const label = { compatible: isEssentialEvaluation(result) ? "Compatible en las comprobaciones esenciales" : "Compatible dentro del alcance torre stock", incompatible: "Hay incompatibilidades en tu torre", requiere_verificacion: "Faltan datos para comprobar tu torre" }[result.verdict];
   // A contradictory/partial response must never acquire a green headline.
   if (result.verdict === "compatible" && (!result.coverage.complete || result.missing_fields.length || result.rule_results.some(rule => rule.state !== "pass"))) return "Resultado inconsistente o incompleto: requiere revisión del servidor";
   return label ?? "Estado del servidor no reconocido";

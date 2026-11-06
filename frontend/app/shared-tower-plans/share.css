@@ -15,9 +15,19 @@
 .share-manager .share-main > .share-card:first-child { padding: var(--space-6); border-radius: var(--radius-lg); box-shadow: var(--sombra-1); }
 .share-screen .share-links { margin-top: var(--space-7); display: grid; gap: var(--space-3); min-width: 0; }
 .share-screen .share-list { display: grid; gap: var(--space-3); padding: 0; margin: 0; list-style: none; }
-.share-screen .share-list > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-5); border: 1px solid var(--linea); border-radius: var(--radius-md); background: var(--papel-alto); min-width: 0; }
+.share-screen .share-list > li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-5); border: 1px solid var(--linea); border-radius: var(--radius-md); background: var(--papel-alto); min-width: 0; }
 .share-screen .share-list > li > div { min-width: 0; }
 .share-screen .share-list > li > button { max-width: 100%; white-space: normal; text-align: center; }
+.share-screen .share-ic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--pino-suave); color: var(--pino); }
+.share-screen .share-list > li.is-off { background: transparent; border-style: dashed; }
+.share-screen .share-list > li.is-off .share-ic { background: var(--papel-hundido); color: var(--tinta-suave); }
+.share-screen .share-list > li.is-off .share-link-name { color: var(--tinta-suave); }
+.share-screen .share-link-body { display: grid; gap: var(--space-1); min-width: 0; }
+.share-screen .share-link-name { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); font-weight: 700; }
+.share-screen .share-link-meta { font-size: 14px; line-height: 20px; color: var(--tinta-suave); overflow-wrap: anywhere; }
+.share-screen .share-pill { display: inline-flex; align-items: center; gap: 6px; font: 700 13px/16px var(--font-sans); color: var(--encaja); }
+.share-screen .share-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.share-screen .share-pill.is-off { color: var(--tinta-suave); }
 .share-screen button { max-width: 100%; white-space: normal; }
 .share-screen .share-state, .share-ribbon { background: var(--pino-suave); border-radius: var(--radius-pill); padding: var(--space-2) var(--space-3); width: fit-content; max-width: 100%; font-weight: 600; }
 .share-ribbon { padding: var(--space-3) var(--space-5); }
@@ -64,7 +74,8 @@
 @media (max-width: 1280px) { .share-manager .share-layout { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 700px) {
   .share-screen h1 { font-size: 36px; line-height: 40px; }
-  .share-screen .share-list > li { grid-template-columns: minmax(0, 1fr); }
+  .share-screen .share-list > li { grid-template-columns: 44px minmax(0, 1fr); }
+  .share-screen .share-list > li > button { grid-column: 1 / -1; }
   .share-manager .share-main > .share-card:first-child { padding: var(--space-4); }
   .share-screen .share-stage { grid-template-columns: 36px minmax(0, 1fr); padding: var(--space-4); }
   .share-screen .share-dot { width: 36px; height: 36px; font-size: 15px; }

@@ -1,11 +1,13 @@
 "use client";
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
+import { LogIn } from "lucide-react";
+import { Button } from "./uj";
 import { createGoogleSignIn, GIS_SCRIPT, type GIS, type GoogleConfig, type GoogleState } from "../lib/google-signin";
 import type { PublicUser } from "../lib/public-user";
 import { sessionChangedEvent } from "../lib/session-role";
 
-export default function GoogleSignIn({ onUser, onActiveChange }: { onUser: (user: PublicUser) => void; onActiveChange: (active: boolean) => void }) {
+export default function GoogleSignIn({ onUser, onActiveChange, register = false }: { onUser: (user: PublicUser) => void; onActiveChange: (active: boolean) => void; register?: boolean }) {
   const [config, setConfig] = useState<GoogleConfig | null>(null), [ready, setReady] = useState(false);
   const [state, setState] = useState<GoogleState>({ phase: "idle", message: "" });
   const target = useRef<HTMLDivElement>(null), controller = useRef<ReturnType<typeof createGoogleSignIn> | null>(null), userCallback = useRef(onUser), activeCallback = useRef(onActiveChange);
@@ -22,13 +24,14 @@ export default function GoogleSignIn({ onUser, onActiveChange }: { onUser: (user
   }, []);
   const enabled = config?.enabled === true && !!config.client_id;
   const active = ["preparing", "ready", "submitting"].includes(state.phase);
-  return <section aria-label="Acceso con Google" className="stack-sm">
-    <h2>Otra forma de entrar</h2><p>Google y tu cuenta local son cuentas distintas, aunque usen el mismo email. No se vinculan ni se sincronizan PCs automáticamente.</p>
+  const idle = state.phase === "error" || state.phase === "idle";
+  const label = idle ? (register ? "Crear cuenta con Google" : "Entrar con Google") : "Acceso con Google preparado";
+  return <section aria-label="Acceso con Google" className="grid min-w-0 gap-space-3">
     {enabled && <Script id="google-gis" src={GIS_SCRIPT} strategy="afterInteractive" onReady={() => setReady(true)} onError={() => { setReady(false); setState({ phase: "error", message: "No se pudo cargar el botón oficial de Google. Usá el acceso local." }); }} />}
-    {!enabled && <p>{config ? "Acceso con Google no habilitado en este servidor." : "Consultando disponibilidad de Google…"}</p>}
-    <button type="button" className="secondary" disabled={!enabled || !ready || active || state.phase === "success"} onClick={() => { if (target.current && config?.client_id) void controller.current?.prepare(config.client_id, target.current); }}>{state.phase === "error" || state.phase === "idle" ? "Preparar acceso con Google" : "Acceso con Google preparado"}</button>
-    <div ref={target} aria-label="Botón oficial de Google" />
-    {active && <button type="button" className="text-button" onClick={() => controller.current?.cancel()}>Cancelar acceso con Google</button>}
-    <p role="status">{state.message}</p>
+    <Button peso="secundario" icono={<LogIn className="size-5" />} disabled={!enabled || !ready || active || state.phase === "success"} onClick={() => { if (target.current && config?.client_id) void controller.current?.prepare(config.client_id, target.current); }}>{label}</Button>
+    {!enabled && <p className="m-0 text-chico text-tinta-suave">{config ? "El acceso con Google no está habilitado en este servidor." : "Consultando disponibilidad de Google…"}</p>}
+    <div ref={target} aria-label="Botón oficial de Google" className="grid justify-items-center empty:hidden" />
+    {active && <Button peso="quieto" chico onClick={() => controller.current?.cancel()}>Cancelar acceso con Google</Button>}
+    <p role="status" className="m-0 text-chico text-tinta-suave empty:hidden">{state.message}</p>
   </section>;
 }

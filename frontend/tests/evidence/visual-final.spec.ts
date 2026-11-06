@@ -21,8 +21,8 @@ test("@visual-core catálogo, PC, evaluaciones, mejoras, planes y publicación r
     phase = "account-empty";
     await page.goto("/account");
     await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeEnabled();
-    await expect(page.getByLabel("Email", { exact: true })).toHaveValue("");
-    await expect(page.getByLabel("Contraseña", { exact: true })).toHaveValue("");
+    await expect(page.getByLabel("Tu correo", { exact: true })).toHaveValue("");
+    await expect(page.getByLabel("Tu contraseña", { exact: true })).toHaveValue("");
     await captureBoth(page, directory, "01-cuenta-vacia");
     await loginBasic(page);
     await page.goto("/pcs");

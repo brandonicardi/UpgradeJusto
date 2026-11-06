@@ -9,6 +9,18 @@ export function pieceFacts(part: TowerComponent) {
   const facts = Object.entries(labels).filter(([key]) => Object.hasOwn(part.attributes, key)).map(([key, label]) => ({ label, value: part.attributes[key]?.trim() || "Falta un dato" }));
   return facts.length ? facts : [{ label: "Información de la pieza", value: "No tenemos ese dato todavía" }];
 }
+// Solo ordena la presentación: qué comprobaciones hablan de la categoría de la pieza. No decide ningún veredicto.
+const todas = Object.keys(pieceCategories);
+const ruleCategories: Record<string, string[]> = {
+  T01: ["cpu", "motherboard"], T02: ["ram", "motherboard", "cpu"], T03: ["gpu", "motherboard"], T04: ["gpu", "case"],
+  T05: ["psu", "gpu", "cpu"], T06: ["psu", "gpu", "motherboard"], T07: ["motherboard", "case"], T08: ["storage", "motherboard"],
+  T09: ["cooler", "cpu", "case"], T10: ["fan", "case"], T11: todas, T12: ["psu", "gpu", "cpu", "storage"],
+};
+/** Separa las comprobaciones en las de la categoría de la pieza y el resto. Conserva el orden y no descarta ninguna. */
+export function splitPieceChecks<T extends { rule_id: string }>(rules: T[], category: string) {
+  const related = rules.filter(rule => ruleCategories[rule.rule_id]?.includes(category));
+  return { related, others: rules.filter(rule => !related.includes(rule)) };
+}
 export const pieceState = { pass: "Encaja", fail: "No encaja", unknown: "Falta un dato" };
 export const pieceVerdict = { compatible: "Encaja", incompatible: "No encaja", requiere_verificacion: "Falta un dato" };
 const replaceWithPiece = (part: TowerComponent) => ({ action: "replace_category" as const, category: part.category, line_id: null, candidates: [{ component_id: part.id, declared_model: null, quantity: 1 }] });

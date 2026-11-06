@@ -14,9 +14,9 @@ export default async function Catalog({ searchParams }: { searchParams: Promise<
     <header className="catalog-head"><h1>Todas las piezas</h1><p>Buscá por lo que necesitás o por el nombre. Si elegís tu PC, te mostramos al lado de cada una si encaja.</p></header>
     {data ? <CatalogWorkbench key={towerQueryString(query)} data={data} query={query} /> : <Failure retryHref={`/catalog?${towerQueryString(query)}`} />}
     {data && <nav aria-label="Paginación" className="catalog-pagination">
-      {data.page > 1 && <Link className="secondary" href={`/catalog?${towerQueryString(query, data.page - 1)}`}>Página anterior</Link>}
+      {data.page > 1 && <Link href={`/catalog?${towerQueryString(query, data.page - 1)}`}>Página anterior</Link>}
       <span>Página {data.page}</span>
-      {data.page < 10000 && data.page * data.page_size < data.total && <Link className="secondary" href={`/catalog?${towerQueryString(query, data.page + 1)}`}>Página siguiente</Link>}
+      {data.page < 10000 && data.page * data.page_size < data.total && <Link href={`/catalog?${towerQueryString(query, data.page + 1)}`}>Página siguiente</Link>}
     </nav>}
     <footer className="catalog-foot"><span>Precios en pesos de tiendas argentinas, con la fecha en que los vimos. Las piezas sin precio reciente quedan al final con el orden de fotos y precios. Precios guardados, no reservas: comprobá disponibilidad antes de comprar.</span><Link href="/">¿No sabés qué buscar? Mirá lo que te conviene</Link></footer>
   </div>;

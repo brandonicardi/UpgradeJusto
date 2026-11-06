@@ -10,6 +10,7 @@ import {
 import type { PublicUser } from "../lib/public-user";
 
 const card = "grid min-w-0 content-start gap-space-4 rounded-lg border border-linea bg-papel-alto p-space-5 sm:p-space-6";
+const titulo = "m-0 font-display text-[22px] font-[650] leading-7";
 const acciones = "flex flex-wrap items-center gap-space-3";
 const confirmacion = "text-chico font-semibold text-encaja";
 
@@ -52,11 +53,11 @@ export function NameSection({ user, onUser }: { user: PublicUser; onUser: (user:
   }
 
   return <section className={card} aria-labelledby="cuenta-datos">
-    <h2 id="cuenta-datos" className="m-0 text-titular-m">Tus datos</h2>
+    <h2 id="cuenta-datos" className={titulo}>Tus datos</h2>
     <form onSubmit={submit} noValidate className="grid min-w-0 gap-space-4">
       <div className="grid min-w-0 gap-space-4 sm:grid-cols-2">
         <Field etiqueta="Cómo te llamamos" name="display_name" autoComplete="nickname" value={name} onChange={event => setName(event.target.value)}
-          ayuda={`Así te saludamos. Hasta ${DISPLAY_NAME_MAX} caracteres.`} error={fieldError || undefined} />
+          ayuda={`Opcional. Lo usamos para saludarte. Hasta ${DISPLAY_NAME_MAX} caracteres.`} error={fieldError || undefined} />
         <Field etiqueta="Tu correo" name="email" readOnly value={user.email ?? ""} ayuda="Con este entrás. Para cambiarlo, escribinos." />
       </div>
       {error && <Notice tono="no" titulo="No pudimos guardar">{error}</Notice>}
@@ -95,7 +96,7 @@ export function PasswordSection({ user }: { user: PublicUser }) {
   }
 
   return <section className={card} aria-labelledby="cuenta-contrasena">
-    <h2 id="cuenta-contrasena" className="m-0 text-titular-m">Contraseña</h2>
+    <h2 id="cuenta-contrasena" className={titulo}>Contraseña</h2>
     <form onSubmit={submit} noValidate className="grid min-w-0 gap-space-4">
       <div className="grid min-w-0 gap-space-4 sm:grid-cols-2">
         <Field etiqueta="La que usás ahora" name="current_password" type="password" autoComplete="current-password" />
@@ -127,7 +128,7 @@ export type DeleteViewProps = {
 export function DeleteView({ open, word, busy, error, needsPassword, onAsk, onWord, onCancel, onSubmit, formRef }: DeleteViewProps) {
   const ready = canConfirmDelete(word);
   return <section className="grid min-w-0 content-start gap-space-4 rounded-lg border border-dashed border-no-encaja bg-transparent p-space-5 sm:p-space-6" aria-labelledby="cuenta-borrar">
-    <h2 id="cuenta-borrar" className="m-0 text-titular-m text-no-encaja">Borrar tu cuenta</h2>
+    <h2 id="cuenta-borrar" className={`${titulo} text-no-encaja`}>Borrar tu cuenta</h2>
     <p className="m-0 text-cuerpo text-tinta-suave">Se borran tus PCs, planes y charlas, y se apagan todos tus enlaces. No se puede deshacer.</p>
     <div><Button id="borrar-pedir" peso="quieto" chico onClick={onAsk} aria-expanded={open} aria-controls="borrar-confirmar">Quiero borrar mi cuenta</Button></div>
     {open && <form id="borrar-confirmar" ref={formRef} onSubmit={onSubmit} noValidate autoComplete="off" className="grid min-w-0 gap-space-4">

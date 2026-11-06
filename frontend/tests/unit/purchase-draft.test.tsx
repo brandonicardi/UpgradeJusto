@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => undefined }) }));
 import { purchaseAdd, purchaseBudget, purchaseInput, purchasePlan, purchaseSubtotal, purchaseUnselected, type PurchaseLine } from "../../lib/purchase-draft";
 import type { TowerComponent } from "../../lib/tower-catalog";
 import type { Tower } from "../../lib/towers";
@@ -36,7 +38,7 @@ describe("purchase draft: explicit new configuration, not a fictitious existing 
   });
   it("renders explicit consent/partial empty state and both real entry routes without autosave", () => {
     const html = renderToStaticMarkup(<PurchaseBuilder />); expect(html).toContain("Todavía no hay compras"); expect(html).toContain("Elegí tu primera pieza"); expect(html).not.toContain("0 líneas sin cotización"); expect(html).toContain("Guardar configuración propuesta"); expect(html).toContain("no una PC que ya poseo"); expect(html).not.toContain('checked=""'); expect(html).not.toContain("500W"); expect(html).not.toContain("500GB");
-    const home = renderToStaticMarkup(<BeginnerEntry />); expect(home).toContain('href="/build"'); expect(home).toContain('href="/pcs"'); expect(home).toContain("Quiero armar una desde cero"); expect(home).toContain("No se pudo cargar una pieza"); expect(home).toContain("Esta lista no representa una PC guardada");
+    const home = renderToStaticMarkup(<BeginnerEntry />); expect(home).toContain('href="/build"'); expect(home).toContain('href="/pcs"'); expect(home).toContain("Armá una desde cero"); expect(home).not.toContain("Precio guardado");
   });
   it("never presents one priced CPU as the whole build total and discloses unselected categories", () => {
     const lines = [line("cpu")], subtotal = purchaseSubtotal(lines, "cash"); expect(subtotal).not.toHaveProperty("total_ars"); expect(purchaseUnselected(lines)).toHaveLength(8);

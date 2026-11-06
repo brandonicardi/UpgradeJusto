@@ -4,7 +4,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import PiecePrices from "../../components/catalog-piece-prices";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PieceFit from "../../components/catalog-piece-fit";
-import { pieceFacts, piecePlanDraft, simulatePiece } from "../../lib/catalog-piece";
+import { pieceFacts, piecePlanDraft, simulatePiece, splitPieceChecks } from "../../lib/catalog-piece";
+import { formatPieceARS, shortRetailDate } from "../../lib/retail-presentation";
 import { emptyTower, type Tower } from "../../lib/towers";
 import type { TowerComponent } from "../../lib/tower-catalog";
 import { mount, settle, type, click, button, unmountAll } from "./support/dom";
@@ -17,8 +18,46 @@ describe("ficha y simulación", () => {
   it("precio vigente con moneda, fecha y tienda sin redondear; importe ausente no es vigente", () => {
     const offer = { offer_id: "o", store: "venex" as const, product_id: "p", component_id: part.id, variant_key: "v", amount: "1234.56", currency: "ARS" as const, condition: "cash" as const, availability: "unknown" as const, stock_quantity: null, source_url: "https://venex.com.ar/p", observed_at: "2020-01-01T00:00:00Z", expires_at: "2099-01-01T00:00:00Z", status: "fresh" as const };
     const html = renderToStaticMarkup(<PiecePrices part={{ ...part, offers: [offer] }} compact />);
-    expect(html).toContain("ARS 1.234,56"); expect(html).toContain("Venex"); expect(html).toContain("visto el"); expect(html).not.toContain("El más bajo");
+    expect(html).toContain("ARS $ 1.234,56"); expect(html).toContain("visto el 31/12 en"); expect(html).toContain('<a href="https://venex.com.ar/p" target="_blank" rel="noopener noreferrer">Venex</a>'); expect(html).not.toContain("El más bajo");
+    expect(renderToStaticMarkup(<PiecePrices part={{ ...part, offers: [{ ...offer, amount: "910268.00", source_url: "javascript:x" }] }} compact />)).toMatch(/ARS \$ 910\.268<.*en Venex</);
+    const table = renderToStaticMarkup(<PiecePrices part={{ ...part, offers: [{ ...offer, observed_at: "2020-11-05T13:19:00Z", status: "stale" as const }] }} />);
+    expect(table).toContain("<td>05/11 · puede estar viejo · no es precio vigente</td>"); expect(table).not.toContain("a. m.");
     expect(renderToStaticMarkup(<PiecePrices part={{ ...part, offers: [{ ...offer, amount: null }] }} compact />)).toContain("Sin precio");
+  });
+  it("formatea precio y fecha como las maquetas", () => {
+    expect(formatPieceARS("910268.00")).toBe("ARS $ 910.268"); expect(formatPieceARS("1234.50")).toBe("ARS $ 1.234,50");
+    expect(formatPieceARS("12.5")).toBe("Importe no disponible"); expect(formatPieceARS(null)).toBe("Importe no disponible");
+    expect(shortRetailDate("2026-11-05T13:19:00Z")).toBe("05/11"); expect(shortRetailDate("2026-11-05")).toBe("05/11"); expect(shortRetailDate("nada")).toBe("Fecha no disponible");
+  });
+  it("separa las comprobaciones de la categoría sin perder ninguna ni cambiar el orden", () => {
+    const rules = ["T01", "T04", "T05", "T10", "T99"].map(rule_id => ({ rule_id }));
+    const { related, others } = splitPieceChecks(rules, "gpu");
+    expect(related.map(r => r.rule_id)).toEqual(["T04", "T05"]); expect(others.map(r => r.rule_id)).toEqual(["T01", "T10", "T99"]);
+    expect(related.length + others.length).toBe(rules.length);
+  });
+  it("las otras comprobaciones van en un desplegable con aria-expanded y se abre solo si alguna no encaja", async () => {
+    const sin = (state: string) => ({ verdict: "requiere_verificacion", rule_results: [{ rule_id: "T04", state }, { rule_id: "T10", state }], evaluated_configuration: { ...pc("uno"), lines: [] } });
+    for (const [state, abierto] of [["unknown", "false"], ["fail", "true"]]) {
+      vi.stubGlobal("fetch", vi.fn(async (url: string) => url.startsWith("/api/towers?") ? response({ items: [pc("uno")], total: 1 }) : url === "/api/auth/csrf" ? response({ csrf_token: "t" }) : response(sin(state))));
+      const host = await mount(<PieceFit part={part} catalogVersion="cat-v1" />); await settle();
+      await type(host.querySelector("select")!, "uno"); await settle();
+      const toggle = host.querySelector(".piece-more-toggle")!;
+      expect(toggle.getAttribute("aria-expanded")).toBe(abierto); expect(toggle.textContent).toContain(abierto === "true" ? "Ocultar" : "(1)");
+      expect(host.querySelectorAll(".piece-checks li")).toHaveLength(2);
+      await click(toggle as HTMLElement); expect(toggle.getAttribute("aria-expanded")).toBe(abierto === "true" ? "false" : "true");
+      await unmountAll();
+    }
+  });
+  it("con el contrato nuevo, «Encaja» aclara que la refrigeración no se evalúa y no hace falta T09, T10 ni T12", async () => {
+    const essential = (verdict: string) => ({ ...evaluation(verdict), rules_version: "cu05-tower-essential-engine-1", scope: { id: "cu05-tower-essential-1", operating_regime: "stock_no_oc" }, rule_results: ["T01", "T04", "T11"].map(rule_id => ({ rule_id, state: "pass" })) });
+    for (const [verdict, nota] of [["compatible", true], ["requiere_verificacion", false], ["incompatible", false]] as const) {
+      vi.stubGlobal("fetch", vi.fn(async (url: string) => url.startsWith("/api/towers?") ? response({ items: [pc("uno")], total: 1 }) : url === "/api/auth/csrf" ? response({ csrf_token: "t" }) : response(essential(verdict))));
+      const host = await mount(<PieceFit part={part} catalogVersion="cat-v1" />); await settle();
+      await type(host.querySelector("select")!, "uno"); await settle();
+      expect(host.textContent?.includes("Pasó las comprobaciones esenciales. La refrigeración y los ventiladores no se evalúan todavía.")).toBe(nota);
+      if (nota) expect(host.querySelector(".piece-verdict")?.textContent).toBe("Encaja");
+      await unmountAll();
+    }
   });
   it("solo presenta atributos documentados y faltantes", () => {
     expect(pieceFacts(part)[0].value).toBe("No tenemos ese dato todavía");

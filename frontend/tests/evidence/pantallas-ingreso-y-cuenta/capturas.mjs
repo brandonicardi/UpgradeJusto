@@ -169,7 +169,7 @@ for (const { ancho, alto } of ANCHOS) {
       await esperarAcceso(page);
       if (vista === "registro") {
         await page.getByRole("tab", { name: nombre }).click();
-        await page.getByText("Entre 12 y 128 caracteres", { exact: false }).first().waitFor({ state: "visible", timeout: TIMEOUT });
+        await page.getByText("12 caracteres o más", { exact: false }).first().waitFor({ state: "visible", timeout: TIMEOUT });
       }
       await capturar(page, vista, ancho, `${vista}-${ancho}.png`, resp);
     } catch (e) {
@@ -188,14 +188,14 @@ for (const { ancho, alto } of ANCHOS) {
     await page.goto(BASE_URL + "/account", { waitUntil: "domcontentloaded" });
     await esperarAcceso(page);
     await page.getByRole("tab", { name: "Crear cuenta" }).click();
-    await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Contraseña").fill(clave);
-    await page.getByRole("button", { name: "Registrar cuenta" }).click();
+    await page.getByLabel("Tu correo", { exact: true }).fill(email);
+    await page.getByLabel("Elegí una contraseña", { exact: true }).fill(clave);
+    await page.getByRole("button", { name: "Crear mi cuenta" }).click();
     // Tras registrar vuelve a la pestaña Entrar con aviso.
     await page.getByRole("tab", { name: "Entrar", selected: true }).waitFor({ timeout: TIMEOUT });
     await esperarAcceso(page);
-    await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Contraseña").fill(clave);
+    await page.getByLabel("Tu correo", { exact: true }).fill(email);
+    await page.getByLabel("Tu contraseña", { exact: true }).fill(clave);
     await page.getByRole("button", { name: "Entrar", exact: true }).click();
     await esperarCuenta(page);
     const resp = await page.goto(BASE_URL + "/account", { waitUntil: "domcontentloaded" });

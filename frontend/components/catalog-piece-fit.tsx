@@ -3,17 +3,19 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { Check, CircleHelp, X } from "lucide-react";
 import { loadCatalogPCs, catalogCategories } from "../lib/catalog-simulation";
-import { pieceState, pieceVerdict, piecePlanDraft, simulatePiece } from "../lib/catalog-piece";
-import { towerRuleLabels, type TowerEvaluation } from "../lib/tower-compatibility";
+import { pieceVerdict, piecePlanDraft, simulatePiece } from "../lib/catalog-piece";
+import { towerEssentialNote, type TowerEvaluation } from "../lib/tower-compatibility";
 import type { TowerPlanDraft, TowerPlanRead } from "../lib/tower-plans";
 import type { Tower } from "../lib/towers";
 import type { TowerComponent } from "../lib/tower-catalog";
 import PiecePrices from "./catalog-piece-prices";
+import PieceChecks from "./catalog-piece-checks";
 import TowerPlanEditor from "./tower-plan-editor";
 function PieceVerdict({ result }: { result: TowerEvaluation }) {
   const verdict = result.verdict;
   const Icon = verdict === "compatible" ? Check : verdict === "incompatible" ? X : CircleHelp;
-  return <strong className="piece-verdict" data-verdict={verdict}><Icon size={20} aria-hidden="true" />{pieceVerdict[verdict] ?? "Falta un dato"}</strong>;
+  const note = towerEssentialNote(result);
+  return <><strong className="piece-verdict" data-verdict={verdict}><Icon size={20} aria-hidden="true" />{pieceVerdict[verdict] ?? "Falta un dato"}</strong>{note && <p className="piece-source" data-essential-note>{note}</p>}</>;
 }
 export default function PieceFit({ part, catalogVersion }: { part: TowerComponent; catalogVersion: string | null }) {
   const [pcs, setPCs] = useState<Tower[]>([]), [access, setAccess] = useState("loading"), [selected, setSelected] = useState(""), [result, setResult] = useState<TowerEvaluation | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState(false), [expanded, setExpanded] = useState(false);
@@ -45,7 +47,7 @@ export default function PieceFit({ part, catalogVersion }: { part: TowerComponen
   return <><aside className="piece-side"><div className="piece-fit"><h2>¿Encaja en tu PC?</h2>
     {access === "loading" && <p>Cargando tus PCs…</p>}{access === "guest" && <p><Link href="/account">Entrá a tu cuenta</Link> para comprobarlo con tu PC.</p>}{access === "error" && <p role="alert">No pudimos cargar tus PCs. Volvé a intentar más tarde.</p>}
     {access === "ready" && (pcs.length ? <><label htmlFor="piece-pc">Elegí tu PC</label><select id="piece-pc" value={selected} onChange={event => void simulate(event.target.value)}><option value="">Elegí una PC</option>{pcs.map(pc => <option key={pc.id} value={pc.id}>{pc.name}</option>)}</select><p className="piece-source">Probamos el reemplazo de esta categoría por una unidad de esta pieza.</p></> : <p><Link href="/pcs">Agregá una PC</Link> para comprobar si encaja.</p>)}
-    <div aria-live="polite">{busy && <p>Comprobando tu PC con este cambio…</p>}{error && <p role="alert">No pudimos comprobar tu PC ahora. Probá de nuevo en un rato.</p>}{result && <><PieceVerdict result={result} /><ul className="piece-checks">{result.rule_results.map((rule, index) => { const Icon = rule.state === "pass" ? Check : rule.state === "fail" ? X : CircleHelp; return <li key={`${rule.rule_id}-${index}`} data-state={rule.state}><Icon size={20} aria-hidden="true" /><span>{towerRuleLabels[rule.rule_id] ?? "Comprobación de la pieza"}<small>{pieceState[rule.state] ?? "Falta un dato"}</small></span></li>; })}</ul></>}</div>
+    <div aria-live="polite">{busy && <p>Comprobando tu PC con este cambio…</p>}{error && <p role="alert">No pudimos comprobar tu PC ahora. Probá de nuevo en un rato.</p>}{result && <><PieceVerdict result={result} /><PieceChecks rules={result.rule_results} category={part.category} /></>}</div>
     <PiecePrices part={part} compact />
     {access === "ready" && pcs.length > 0 && <button type="button" className="piece-plan-button piece-primary" disabled={!canPlan} aria-expanded={planOpen} onClick={() => setPlanOpen(true)}>Sumar a mi plan</button>}
     {access === "ready" && pcs.length > 0 && !catalogVersion && <p className="piece-source">No pudimos consultar la versión del catálogo. Recargá la ficha para preparar un plan.</p>}

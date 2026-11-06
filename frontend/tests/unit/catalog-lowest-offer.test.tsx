@@ -30,8 +30,8 @@ describe("ficha: «El más bajo» lo marca el servidor", () => {
     const out = html("alta");
     expect(out.match(/El más bajo/g)).toHaveLength(1);
     const rows = out.split("<tr").slice(2);
-    expect(rows.find(row => row.includes("El más bajo"))).toContain("ARS 2.000,00");
-    expect(rows.find(row => row.includes("ARS 1.000,00"))).not.toContain("El más bajo");
+    expect(rows.find(row => row.includes("El más bajo"))).toContain("ARS $ 2.000<");
+    expect(rows.find(row => row.includes("ARS $ 1.000<"))).not.toContain("El más bajo");
   });
   it("sin id del servidor o con un id desconocido, ninguna oferta lleva la marca", () => {
     for (const lowest of [null, undefined, "otra"]) expect(html(lowest)).not.toContain("El más bajo");

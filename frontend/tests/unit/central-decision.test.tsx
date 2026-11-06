@@ -111,7 +111,7 @@ describe("central decision presentation, no domain inference", () => {
     pc.lines = [{ line_id: null, category: "ram", component_id: null, declared_model: "RAM declarada sin ficha", quantity: 2 }];
     const before = JSON.stringify(pc), html = renderToStaticMarkup(<TowerInventory pc={pc} />);
     expect((html.match(/<h3>/g) ?? [])).toHaveLength(towerKeys.length);
-    expect((html.match(/No sé \/ por confirmar/g) ?? [])).toHaveLength(7);
+    expect((html.match(/Falta un dato/g) ?? [])).toHaveLength(7);
     expect(html).toContain("No tengo (declarado)"); expect(html).toContain("Cantidad explícita: 2 módulos; capacidad total no calculada"); expect(html).not.toContain("GB"); expect(JSON.stringify(pc)).toBe(before);
   });
   it("keeps stage editor semantic selectors, explicit consent and disabled save after grid regrouping", () => {

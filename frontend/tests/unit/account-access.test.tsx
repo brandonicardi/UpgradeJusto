@@ -45,9 +45,27 @@ describe("pestañas de acceso", () => {
     }
   });
 
-  it("muestra la ayuda de 12 a 128 caracteres solo al crear la cuenta", () => {
-    expect(render({ tab: "register" })).toContain("Entre 12 y 128 caracteres");
-    expect(render({ tab: "login" })).not.toContain("128");
+  it("muestra la regla del largo de la contraseña, la que exige el servidor, solo al crear la cuenta", () => {
+    const registro = render({ tab: "register" });
+    expect(registro).toContain("12 caracteres o más");
+    expect(registro).toContain('maxLength="128"');
+    expect(registro).not.toContain("Al menos un número");
+    expect(render({ tab: "login" })).not.toContain("12 caracteres");
+  });
+
+  it("usa los rótulos de la maqueta y pide el nombre, opcional, solo al crear la cuenta", () => {
+    const entrar = render({ tab: "login" });
+    expect(entrar).toContain("Tu correo"); expect(entrar).toContain("Tu contraseña"); expect(entrar).toContain("Hola de nuevo");
+    expect(entrar).not.toContain("display_name"); expect(entrar).not.toContain("Crear mi cuenta</button>");
+    const registro = render({ tab: "register" });
+    expect(registro).toContain("Elegí una contraseña"); expect(registro).toContain("Crear mi cuenta</button>");
+    expect(registro).toContain("¿Cómo te llamamos?"); expect(registro).toContain("(opcional)"); expect(registro).toContain('name="display_name"');
+    expect(registro).toContain("Es gratis y te lleva un minuto.");
+  });
+
+  it("saluda por el nombre si lo escribieron al crear la cuenta", () => {
+    expect(render({ created: true, createdName: "Ana" })).toContain("¡Hola, Ana! Ya tenés tu cuenta.");
+    expect(render({ created: true })).toContain("¡Cuenta creada!");
   });
 
   it("conserva el correo escrito al cambiar de pestaña", () => {
@@ -127,7 +145,7 @@ describe("avisos de acceso", () => {
 
   it("anuncia la cuenta creada una sola vez: el aviso visual queda oculto a lectores de pantalla", () => {
     const markup = render({ created: true });
-    expect(markup).toContain("Cuenta creada. Ya podés entrar con tu email y tu contraseña.");
+    expect(markup).toContain("¡Cuenta creada! Ya podés entrar con tu correo y tu contraseña.");
     expect(markup.match(/role="status"/g)).toHaveLength(2);
     expect(markup).toMatch(/aria-hidden="true"><div role="status"/);
     const region = /<div role="status" aria-label="Estado de cuenta"[\s\S]*?<\/div><\/div><\/div>/.exec(markup)?.[0] ?? "";

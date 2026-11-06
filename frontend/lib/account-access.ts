@@ -15,12 +15,20 @@ export const PASSWORD_HELP: Record<AccessTab, string> = {
   register: `Entre ${PASSWORD_MIN} y ${PASSWORD_MAX} caracteres. Los espacios también cuentan.`,
 };
 
-export const CREATED_NOTICE = {
-  titulo: "Cuenta creada",
-  cuerpo: "Ya podés entrar con tu email y tu contraseña.",
-};
+/** Lo que pide el servidor (12 a 128 caracteres); no se inventan reglas que no se hacen cumplir. */
+export const PASSWORD_RULE = `${PASSWORD_MIN} caracteres o más`;
 
-export const CREATED_ANNOUNCEMENT = `${CREATED_NOTICE.titulo}. ${CREATED_NOTICE.cuerpo}`;
+export function createdNotice(name: string): { titulo: string; cuerpo: string } {
+  const who = name.trim();
+  return {
+    titulo: who ? `¡Hola, ${who}! Ya tenés tu cuenta.` : "¡Cuenta creada!",
+    cuerpo: "Ya podés entrar con tu correo y tu contraseña.",
+  };
+}
+
+export const CREATED_NOTICE = createdNotice("");
+
+export const createdAnnouncement = (name: string) => { const notice = createdNotice(name); return `${notice.titulo} ${notice.cuerpo}`; };
 
 /** Un único panel (se monta un solo formulario) que ambas pestañas controlan. */
 export const ACCESS_PANEL_ID = "acceso-panel";

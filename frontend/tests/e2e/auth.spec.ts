@@ -22,7 +22,8 @@ test("registro no autentica; login persiste en recarga y logout revoca", async (
   const mutation = (action: string) => page.waitForResponse(response =>
     response.url() === `${origin}/api/auth/${action}` && response.request().method() === "POST");
   // Uncontrolled input: avoid fill(value) call logs exposing the password on failure.
-  const enterPassword = () => page.getByLabel("Contraseña", { exact: true }).evaluate((field, value) => {
+  const passwordLabel = /^(Tu contraseña|Elegí una contraseña)$/;
+  const enterPassword = () => page.getByLabel(passwordLabel).evaluate((field, value) => {
     if (!(field instanceof HTMLInputElement)) throw new Error("Campo de contraseña no disponible");
     field.value = value;
   }, password);
@@ -40,22 +41,22 @@ test("registro no autentica; login persiste en recarga y logout revoca", async (
   expect(forbidden).toBe(403);
   // Teclado: la flecha derecha pasa de «Entrar» a «Crear cuenta» y muestra el registro.
   // Una contraseña escrita para entrar no puede pasar a la cuenta nueva al cambiar de pestaña.
-  await page.getByLabel("Contraseña", { exact: true }).evaluate(field => {
+  await page.getByLabel(passwordLabel).evaluate(field => {
     if (!(field instanceof HTMLInputElement)) throw new Error("Campo de contraseña no disponible");
     field.value = "texto-de-prueba";
   });
   await page.getByRole("tab", { name: "Entrar", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("tab", { name: "Crear cuenta", exact: true })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByLabel("Contraseña", { exact: true })).toHaveValue("");
-  await expect(page.getByRole("button", { name: "Registrar cuenta", exact: true })).toBeVisible();
+  await expect(page.getByLabel(passwordLabel)).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Crear mi cuenta", exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Entrar", exact: true }).click();
   await page.getByRole("tab", { name: "Crear cuenta", exact: true }).click();
-  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Tu correo", { exact: true }).fill(email);
   await enterPassword();
   const [registered] = await Promise.all([
     mutation("register"),
-    page.getByRole("button", { name: "Registrar cuenta", exact: true }).click(),
+    page.getByRole("button", { name: "Crear mi cuenta", exact: true }).click(),
   ]);
   expect(registered.status()).toBe(201);
   expect(await registered.request().headerValue("origin")).toBe(origin);

@@ -114,10 +114,10 @@ describe("Mi PC en nueve tarjetas", () => {
     expect(html).not.toContain("GB");
     const gpu = cardOf(html, "gpu"), cpu = cardOf(html, "cpu");
     expect(gpu).toContain('data-estado="absent"'); expect(gpu).toContain("No tengo (declarado)"); expect(gpu).not.toContain("No sé"); expect(gpu).toContain("border-dashed");
-    expect(cpu).toContain('data-estado="unknown"'); expect(cpu).toContain("No sé / por confirmar"); expect(cpu).not.toContain("No tengo"); expect(cpu).not.toContain("Presente"); expect(cpu).not.toContain("Encaja");
+    expect(cpu).toContain('data-estado="unknown"'); expect(cpu).toContain("Falta un dato"); expect(cpu).not.toContain("No tengo"); expect(cpu).not.toContain("Completo"); expect(cpu).not.toContain("Encaja");
     expect(cpu).toContain("border-revisar"); expect(gpu).not.toContain("border-revisar");
-    expect(html.match(/No sé \/ por confirmar/g)).toHaveLength(6); expect(html.match(/No tengo \(declarado\)/g)).toHaveLength(1); expect(html.match(/Presente/g)).toHaveLength(2);
-    expect(cpu).toContain(">Completar<"); expect(gpu).toContain(">Cambiar<"); expect(storage).toContain(">Cambiar<");
+    expect(html.match(/Falta un dato/g)).toHaveLength(6); expect(html.match(/No tengo \(declarado\)/g)).toHaveLength(1); expect(html.match(/Completo/g)).toHaveLength(2);
+    expect(cpu).toContain(">Completar<"); expect(gpu).toContain(">Agregar<"); expect(storage).toContain(">Cambiar<");
     expect(JSON.stringify(pc)).toBe(before);
   });
   it("sin acción de edición muestra la lectura sin botones", () => {

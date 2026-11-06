@@ -1,42 +1,66 @@
-import { describe, expect, it } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import BeginnerEntry from "../../components/beginner-entry";
+import HomeStart from "../../components/home-start";
+import { mount, unmountAll, click, button } from "./support/dom";
 
-describe("acciones de entrada38, sin contrato backend nuevo", () => {
-  it("presenta ayuda como acción primaria y mantiene las otras dos rutas", () => {
+const push = vi.hoisted(() => vi.fn());
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+afterEach(async () => { await unmountAll(); push.mockClear(); });
+
+describe("entrada como la maqueta de Inicio", () => {
+  it("arma la pantalla en el orden de la maqueta: presentación con la tarjeta, tres caminos y el recorrido", () => {
     const html = renderToStaticMarkup(<BeginnerEntry />);
-    expect(html).toContain('class="beginner-choice beginner-choice-primary"');
-    expect(html).toContain('href="#hardware-guide-title"');
-    expect(html).toContain("Recomendado si recién empezás");
-    for (const text of ["Necesito ayuda", "Conozco mis componentes", "Quiero pegar una lista"]) expect(html).toContain(text);
-    expect(html).toContain('href="/pcs"'); expect(html).toContain('href="/pcs/import"');
-    expect(html.indexOf("Necesito ayuda")).toBeLessThan(html.indexOf("Conozco mis componentes"));
+    expect(html).toContain("<h1"); expect(html).toContain("Tu PC puede dar"); expect(html).toContain("<mark");
+    for (const text of ["No hace falta saber de hardware.", "Revisamos que cada pieza encaje antes de sugerirla.", "Precios reales, con fecha y tienda."]) expect(html).toContain(text);
+    expect(html).toContain("¿Qué querés que tu PC haga mejor?"); expect(html).toContain("¿Cuánto querés gastar como máximo?");
+    const orden = ["Tu PC puede dar", "Paso 1 de 2", "¿Sabés qué tiene tu PC adentro?", "No sé qué tengo", "Sé qué piezas tiene", "Tengo una lista", "De tu PC a un plan que entendés", "Explorar el catálogo"].map(text => html.indexOf(text));
+    expect(orden.every(position => position >= 0)).toBe(true);
+    expect([...orden].sort((a, b) => a - b)).toEqual(orden);
   });
-  it("asocia privacidad a pegar y anclas a destinos enfocables", () => {
+  it("ofrece los tres caminos con sus destinos y la etiqueta de quien recién empieza", () => {
     const html = renderToStaticMarkup(<BeginnerEntry />);
-    expect(html).toContain('aria-describedby="beginner-paste-note"');
-    expect(html).toContain('id="beginner-paste-note"');
-    expect(html).toContain("Pegá sólo hardware, sin datos personales.");
-    expect(html).toContain('id="hardware-guide-title" tabindex="-1"');
-    expect(html).toContain('id="beginner-start-title" tabindex="-1"');
-    expect(html).toContain("Volver a las opciones para empezar");
+    expect(html).toContain("Si recién empezás");
+    expect(html).toContain('href="/pcs/import#ayuda"'); expect(html).toContain('href="/pcs"'); expect(html).toContain('href="/pcs/import"');
+    expect(html.indexOf("No sé qué tengo")).toBeLessThan(html.indexOf("Sé qué piezas tiene"));
+    expect(html).toContain('aria-describedby="beginner-paste-note"'); expect(html).toContain('id="beginner-paste-note"');
+    expect(html).toContain("Pegá lo que te pasó el vendedor o un programa.");
   });
-  it("sin catálogo muestra el estado sin datos con acceso al catálogo y deja los cuatro caminos", () => {
-    const html = renderToStaticMarkup(<BeginnerEntry sample={null} />);
-    expect(html).toContain("No se pudo cargar una pieza");
-    expect(html).toContain("No mostramos fotos ni precios inventados.");
-    expect(html).toContain('href="/catalog"');
-    for (const href of ['href="#hardware-guide-title"', 'href="/pcs"', 'href="/pcs/import"', 'href="/build"']) expect(html).toContain(href);
-    expect(html).not.toContain("Ver ficha y procedencia");
-  });
-  it("presenta la promesa sin ofrecer armado automático ni formularios que crean o envían", () => {
+  it("sigue ofreciendo armar desde cero y el catálogo, sin mostrar piezas ni precios inventados", () => {
     const html = renderToStaticMarkup(<BeginnerEntry />);
-    expect(html).toContain("<h1");
-    expect(html).toContain("Quiero mejorar mi PC");
-    expect(html).toContain("Tu PC puede dar");
-    expect(html).toContain("De tu PC a un plan que entendés");
-    expect(html).not.toContain("<form");
-    expect(html).not.toContain("<button");
-    expect(html).not.toContain("type=\"submit\"");
+    expect(html).toContain('href="/build"'); expect(html).toContain('href="/catalog"'); expect(html).toContain("Armá una desde cero");
+    expect(html).not.toContain("Explorá una pieza real"); expect(html).not.toContain("Precio guardado"); expect(html).not.toContain("Ficha y procedencia");
+  });
+});
+
+describe("tarjeta para empezar", () => {
+  const goals = ["Jugar mejor", "Trabajar más rápido", "Editar fotos y video", "Que abra todo más rápido"];
+  it("no deja avanzar sin elegir qué mejorar y lo dice en el botón", async () => {
+    const host = await mount(<HomeStart />);
+    const go = button(host, "Elegí qué querés mejorar") as HTMLButtonElement;
+    expect(go.disabled).toBe(true);
+    expect(host.textContent).toContain("Paso 1 de 2"); expect(host.textContent).toContain("Paso 2 de 2");
+    expect(host.textContent).toContain("Mirar sugerencias no cambia nada de tu PC guardada.");
+    for (const text of goals) expect(button(host, text)).not.toBeNull();
+    expect([...host.querySelectorAll('[aria-pressed="true"]')].map(item => item.textContent)).toEqual([]);
+    expect(host.querySelector('input[type="range"]')).not.toBeNull();
+    expect(host.textContent).toContain("$ 400.000"); expect(host.textContent).toContain("$ 100.000"); expect(host.textContent).toContain("$ 1.500.000");
+    for (const text of ["$ 250 mil", "$ 500 mil", "$ 1 millón"]) expect(button(host, text)).not.toBeNull();
+    expect(host.querySelector('input[type="text"]')).toBeNull();
+  });
+  it("con objetivo y monto va a «Lo que te conviene» con esos datos, y no manda identidad", async () => {
+    const host = await mount(<HomeStart />);
+    await click(button(host, "Jugar mejor")); await click(button(host, "$ 500 mil"));
+    const go = button(host, "Ver qué me conviene con $ 500.000") as HTMLButtonElement;
+    expect(go.disabled).toBe(false);
+    await click(go);
+    expect(push).toHaveBeenCalledWith("/conviene?objetivo=gaming&presupuesto=500000");
+    expect(String(push.mock.calls[0][0])).not.toMatch(/user|email|id=/);
+  });
+  it("elige un solo objetivo a la vez", async () => {
+    const host = await mount(<HomeStart />);
+    await click(button(host, "Jugar mejor")); await click(button(host, "Editar fotos y video"));
+    expect([...host.querySelectorAll('[aria-pressed="true"]')].map(item => item.textContent?.trim())).toEqual(["Editar fotos y video"]);
   });
 });

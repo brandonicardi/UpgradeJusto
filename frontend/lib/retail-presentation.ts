@@ -32,6 +32,20 @@ export function formatRetailARS(amount: string | null | undefined): string {
   const [integer, decimal] = amount.split(".");
   return `ARS ${integer.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${decimal}`;
 }
+// Formato de las maquetas: `ARS $ 910.268`; solo muestra centavos si los hay. Sin pasar por Number.
+export function formatPieceARS(amount: string | null | undefined): string {
+  if (typeof amount !== "string" || !/^(?:0|[1-9]\d*)\.\d{2}$/.test(amount)) return "Importe no disponible";
+  const [integer, decimal] = amount.split(".");
+  return `ARS $ ${integer.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}${decimal === "00" ? "" : `,${decimal}`}`;
+}
+// `dd/mm` en hora de Buenos Aires (las fechas sin hora se leen tal cual).
+export function shortRetailDate(value: string | null | undefined): string {
+  if (!value || !Number.isFinite(Date.parse(value))) return "Fecha no disponible";
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const parts = new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "numeric", timeZone: dateOnly ? "UTC" : "America/Argentina/Buenos_Aires" }).formatToParts(new Date(value));
+  const of = (type: string) => (parts.find(part => part.type === type)?.value ?? "").padStart(2, "0");
+  return `${of("day")}/${of("month")}`;
+}
 export function offerDisplayStatus(offer: RetailOffer, now: number): RetailOffer["status"] {
   if (offer.status !== "fresh") return offer.status;
   const observed = Date.parse(offer.observed_at), expires = Date.parse(offer.expires_at);

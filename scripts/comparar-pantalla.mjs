@@ -5,8 +5,11 @@
 //   node scripts/comparar-pantalla.mjs --todas [--reusar-sesion]
 // --todas prepara una sesión fresca: cuenta nueva, PC "La de casa" (el primer
 // componente real de cada categoría disponible en el catálogo), un plan real con
-// una acción y dos conversaciones de chat; luego compara Catalogo, Pieza, Compartir, PlanCompartido
-// (anónimo), Admin y Asistente en ese orden. Con --reusar-sesion toma lo guardado
+// una acción y dos conversaciones de chat; luego compara las 14 pantallas:
+// Inicio, Ingreso (sin sesión), Cuenta, MiPC, AgregarPC, Armar, Conviene, MiPlan,
+// Catalogo, Pieza, Compartir, PlanCompartido (anónimo), Admin y Asistente, a 1440
+// y 390. Al final imprime una tabla con la ruta, el archivo y la diferencia de
+// tamaño contra la maqueta. Con --reusar-sesion toma lo guardado
 // en .local/ si ya existe (y purga cualquier shareToken que el archivo viejo
 // todavía traiga). El enlace público se crea en memoria por corrida —el token no
 // se guarda, no se loguea ni aparece en rótulos— y se revoca en el `finally`.
@@ -38,6 +41,19 @@ let tokenActivo = null;
 const ocultar = texto =>
   tokenActivo ? String(texto).split(tokenActivo).join("«enlace»") : String(texto);
 
+// Alto real del PNG (IHDR) y peso, para comparar el largo de la maqueta con el
+// de la pantalla. El signo es siempre real menos maqueta.
+function altoPng(imagen) {
+  return imagen?.length > 24 && imagen.toString("ascii", 12, 16) === "IHDR" ? imagen.readUInt32BE(20) : null;
+}
+
+function diferenciaDeTamano(maqueta, real) {
+  const signo = valor => (valor > 0 ? `+${valor}` : String(valor));
+  const altoMaqueta = altoPng(maqueta), altoReal = altoPng(real);
+  const alto = altoMaqueta !== null && altoReal !== null ? `alto ${signo(altoReal - altoMaqueta)} px` : "alto ?";
+  return `${alto} · ${signo(Math.round((real.length - maqueta.length) / 1024))} KB`;
+}
+
 // Versiones viejas de .local/comparar-sesion.datos.json pueden traer shareToken:
 // se borra del archivo al arrancar, siempre. Nunca se lo usa ni se lo reescribe.
 function purgarTokenGuardado() {
@@ -52,17 +68,27 @@ function purgarTokenGuardado() {
   } catch { /* archivo ilegible: la próxima preparación lo reescribe sin token */ }
 }
 
-// El 4º elemento es el rótulo seguro que va en la captura lado a lado; si no se
-// pasa, se usa la ruta (nunca puede ser la de PlanCompartido con token real).
+// Las 14 pantallas del sistema de diseño, en el orden del índice. La ruta puede
+// ser null si falta el dato real (plan o pieza): se informa como omitida, nunca
+// se inventa un id. El 4º elemento es el rótulo seguro para la captura y la tabla.
+const ROTULO_ENLACE = "/shared-tower-plans/… (enlace temporal)";
+const ROTULO_ASISTENTE = "/chat · mensajes de muestra (fixture local, no es continuidad real)";
+
 const pantallas = (datos, enlace) => [
+  ["PantallaInicio", "/", true],
+  ["PantallaIngreso", "/account", true],
+  ["PantallaCuenta", "/account", false],
+  ["PantallaMiPC", "/pcs", false],
+  ["PantallaAgregarPC", "/pcs/import", false],
+  ["PantallaArmar", "/build", false],
+  ["PantallaConviene", "/pcs", false],
+  ["PantallaMiPlan", datos?.planId ? `/tower-plans/${datos.planId}` : null, false],
   ["PantallaCatalogo", "/catalog", false],
-  ["PantallaPieza", `/catalog/${datos.partId}`, false],
-  ["PantallaCompartir", `/tower-plans/${datos.planId}/shares`, false],
-  ...(enlace
-    ? [["PantallaPlanCompartido", `/shared-tower-plans/${enlace.token}`, true, "/shared-tower-plans/… (enlace temporal)"]]
-    : []),
+  ["PantallaPieza", datos?.partId ? `/catalog/${datos.partId}` : null, false],
+  ["PantallaCompartir", datos?.planId ? `/tower-plans/${datos.planId}/shares` : null, false],
+  ["PantallaPlanCompartido", enlace ? `/shared-tower-plans/${enlace.token}` : null, true, ROTULO_ENLACE],
   ["PantallaAdmin", "/admin", false],
-  ["PantallaAsistente", "/chat", false, "/chat · mensajes de muestra (fixture local, no es continuidad real)"],
+  ["PantallaAsistente", "/chat", false, ROTULO_ASISTENTE],
 ];
 
 // El email generado no es un secreto, pero no se imprime completo: solo "admin sí/no".
@@ -85,12 +111,12 @@ async function prepararSesion(browser) {
   const page = await contexto.newPage();
   await page.goto(`${base}/account`, { waitUntil: "domcontentloaded" });
   await page.getByRole("tab", { name: "Crear cuenta" }).click({ timeout: 30000 });
-  await page.getByLabel("Email", { exact: true }).fill(email);
-  await page.getByLabel("Contraseña", { exact: true }).fill(clave);
-  await page.getByRole("button", { name: "Registrar cuenta" }).click();
+  await page.getByLabel("Tu correo", { exact: true }).fill(email);
+  await page.getByLabel("Elegí una contraseña", { exact: true }).fill(clave);
+  await page.getByRole("button", { name: "Crear mi cuenta" }).click();
   await page.getByText("Cuenta creada", { exact: false }).first().waitFor({ timeout: 25000 });
-  await page.getByLabel("Email", { exact: true }).fill(email);
-  await page.getByLabel("Contraseña", { exact: true }).fill(clave);
+  await page.getByLabel("Tu correo", { exact: true }).fill(email);
+  await page.getByLabel("Tu contraseña", { exact: true }).fill(clave);
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await page.getByRole("heading", { name: "Tu cuenta", exact: true }).waitFor({ timeout: 25000 });
   console.log(`admin: ${concederAdmin(email) ? "sí" : "no (PantallaAdmin puede rechazar)"}`);
@@ -278,10 +304,40 @@ async function elegirOpcion(select, texto) {
   return true;
 }
 
+// Abre la PC de prueba en /pcs y espera la torre. Devuelve false si la pestaña
+// no existe: la captura sigue y lo informa la preparación.
+async function abrirPcDePrueba(page) {
+  const pestana = page.locator(".pcs-tab", { hasText: "La de casa" }).first();
+  if (!(await pestana.count())) return false;
+  await pestana.click({ timeout: 10000 });
+  await page.waitForTimeout(1500);
+  return true;
+}
+
 // Debe correr dentro del contexto real ya cargado; nunca aborta la captura.
 async function prepararPagina(page, nombre) {
   try {
-    if (nombre === "PantallaCatalogo") {
+    if (nombre === "PantallaMiPC") {
+      await abrirPcDePrueba(page);
+    } else if (nombre === "PantallaConviene") {
+      // Mismos datos reales que MiPC, más un pedido real de propuestas. Si el
+      // servidor no devuelve ninguna, se informa: no se inventan propuestas.
+      await abrirPcDePrueba(page);
+      const formulario = page.locator('form[aria-label="Objetivo y presupuesto de torre"]');
+      await formulario.waitFor({ timeout: 20000 });
+      await formulario.getByLabel("Objetivo de mejora").selectOption("gaming");
+      await formulario.getByLabel("Presupuesto ARS (punto decimal, sin miles)").fill("500000.00");
+      await formulario.getByRole("button", { name: "Buscar propuestas para mi torre" }).click({ timeout: 15000 });
+      try {
+        await page.locator('section[aria-label="Propuestas de torre del servidor"]').waitFor({ timeout: 90000 });
+        console.log("PantallaConviene: propuestas reales del servidor");
+      } catch {
+        const aviso = await page.locator('[role="alert"]').first().textContent({ timeout: 3000 }).catch(() => "");
+        console.log(`PantallaConviene: el servidor no devolvió propuestas${aviso ? ` (${aviso.trim().slice(0, 160)})` : ""}; no se inventan datos`);
+      }
+    } else if (nombre === "PantallaMiPlan") {
+      await page.locator('section[aria-label="Detalle de plan de torre"]').waitFor({ timeout: 30000 });
+    } else if (nombre === "PantallaCatalogo") {
       const selector = page.locator(".catalog-bar select").first();
       if (await selector.count() && await elegirOpcion(selector, "La de casa")) {
         await page.waitForTimeout(2500); // deja terminar los /simulate que dispara la selección
@@ -377,6 +433,7 @@ async function comparar(browser, nombre, ruta, sinSesion, etiqueta) {
   const maqueta = path.join(root, "docs/sistema-diseno/componentes", nombre, "preview.html");
   if (!fs.existsSync(maqueta)) throw new Error(ocultar(`No existe la maqueta ${nombre}`));
   const estado = !sinSesion && fs.existsSync(sesion) ? sesion : undefined;
+  const capturas = [];
   for (const [ancho, alto] of anchos) {
     const izquierda = await foto(browser, pathToFileURL(maqueta).href, ancho, alto);
     const derecha = await foto(browser, base + ruta, ancho, alto, estado, nombre);
@@ -385,7 +442,20 @@ async function comparar(browser, nombre, ruta, sinSesion, etiqueta) {
     const archivo = await unir(browser, nombre, ancho, izquierda.imagen, derecha.imagen, ocultar(etiqueta ?? ruta));
     const errores = [...new Set(derecha.errores)].slice(0, 5);
     console.log(ocultar(`${nombre} ${ancho}: ${path.relative(root, archivo)} | desborde ${derecha.desborde}px | errores ${errores.length ? errores.join(" / ").slice(0, 300) : "ninguno"}`));
+    capturas.push({
+      ancho,
+      archivo: path.basename(archivo),
+      diferencia: diferenciaDeTamano(izquierda.imagen, derecha.imagen),
+    });
   }
+  return capturas;
+}
+
+// Tabla final de --todas: una fila por pantalla y una celda por ancho.
+function imprimirResumen(filas) {
+  const comparadas = filas.filter(fila => fila.ok).length;
+  console.log(`\nResumen: ${comparadas} de ${filas.length} pantallas comparadas a 1440 y 390.`);
+  console.table(filas, ["pantalla", "ruta", "archivo", "diferencia de tamaño"]);
 }
 
 fs.mkdirSync(salida, { recursive: true });
@@ -412,9 +482,7 @@ try {
     } catch {
       console.log("Enlace temporal no disponible: se omite PantallaPlanCompartido");
     }
-    for (const [nombre, ruta, sinSesion, etiqueta] of pantallas(datos, enlace)) {
-      await comparar(browser, nombre, ruta, sinSesion, etiqueta);
-    }
+    imprimirResumen(await compararTodas(browser, datos, enlace));
   } else {
     const [nombre, ruta] = argumentos;
     if (!nombre || !ruta) throw new Error("Uso: node scripts/comparar-pantalla.mjs PantallaX /ruta [--sin-sesion] | --todas [--reusar-sesion]");
@@ -431,4 +499,33 @@ try {
     console.log("No se pudo revocar el enlace temporal: revocalo a mano o da de baja la cuenta de prueba");
   }
   await browser.close();
+}
+
+// Recorre las 14 pantallas sin abortar por una sola: lo que falta se informa en
+// la tabla final, nunca se rellena con datos inventados.
+async function compararTodas(browser, datos, enlace) {
+  const filas = [];
+  for (const [nombre, ruta, sinSesion, etiqueta] of pantallas(datos, enlace)) {
+    const rotulo = ocultar(etiqueta ?? ruta ?? "(sin ruta)");
+    if (!ruta) {
+      filas.push({ pantalla: nombre, ruta: rotulo, archivo: "-", "diferencia de tamaño": "no disponible: falta el dato real", ok: false });
+      console.log(ocultar(`${nombre}: sin ruta real; se omite`));
+      continue;
+    }
+    try {
+      const capturas = await comparar(browser, nombre, ruta, sinSesion, etiqueta);
+      filas.push({
+        pantalla: nombre,
+        ruta: rotulo,
+        archivo: capturas.map(captura => captura.archivo).join(", "),
+        "diferencia de tamaño": capturas.map(captura => `${captura.ancho}px: ${captura.diferencia}`).join(" · "),
+        ok: true,
+      });
+    } catch (fallo) {
+      const mensaje = ocultar(fallo instanceof Error ? fallo.message : String(fallo));
+      filas.push({ pantalla: nombre, ruta: rotulo, archivo: "-", "diferencia de tamaño": `error: ${mensaje}`, ok: false });
+      console.log(ocultar(`${nombre}: no se pudo comparar (${mensaje})`));
+    }
+  }
+  return filas;
 }

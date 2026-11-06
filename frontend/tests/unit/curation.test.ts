@@ -33,6 +33,19 @@ describe("CU02/CU10 contrato cerrado", () => {
     }
     for (const [path, method] of [[`/api/admin/revisions/${id}/sql`, "POST"], ["/api/admin/bootstrap", "POST"], [`/api/admin/revisions/${id}/publish`, "GET"], [`/api/admin/revisions/${id}/sources/${row}`, "POST"], ["/api/admin/revisions/not-uuid/prices", "GET"]]) expect(sign(path, method)).toBeNull();
   });
+  it("permite el tablero solo con GET y el precio manual solo con POST", () => {
+    const sign = (path: string, method: string) => signedProxyHeaders("127.0.0.1", method, path, "s".repeat(32));
+    expect(sign("/api/admin/dashboard", "GET")).not.toBeNull();
+    expect(sign("/api/admin/dashboard", "POST")).toBeNull();
+    expect(sign("/api/admin/dashboard?limit=100", "GET")).toBeNull();
+    expect(sign("/api/admin/prices", "POST")).not.toBeNull();
+    expect(sign("/api/admin/prices", "GET")).toBeNull();
+    expect(sign("/api/admin/prices", "PATCH")).toBeNull();
+    expect(adminGatewayPath("/api/admin/dashboard", "GET")).toBe(true);
+    expect(adminGatewayPath("/api/admin/dashboard", "POST")).toBe(false);
+    expect(adminGatewayPath("/api/admin/prices", "POST")).toBe(true);
+    expect(adminGatewayPath("/api/admin/prices", "GET")).toBe(false);
+  });
   it("rechaza IDs ajenos, traversal, encoding y métodos fuera del contrato", () => {
     const root = `/api/admin/revisions/${id}`;
     const paths = [

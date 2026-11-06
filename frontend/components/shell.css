@@ -1,0 +1,23 @@
+/* Encabezado común a todas las pantallas (igual que las maquetas del sistema de diseño). */
+.app-shell.v0-integrated .sidebar { max-width: 1280px; margin-inline: auto; width: 100%; box-sizing: border-box; padding: var(--space-5) var(--space-7); display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--space-4); height: auto; min-height: 0; background: var(--papel); border: 0; }
+.app-shell.v0-integrated .brand { font-size: 24px; line-height: 30px; }
+.app-shell.v0-integrated .nav-links { display: flex; flex-direction: row; flex-wrap: nowrap; flex-basis: auto; width: auto; margin: 0 0 0 auto; gap: var(--space-2); height: auto; }
+.app-shell.v0-integrated .nav-links a { color: var(--tinta); font-size: 16px; font-weight: 600; padding: var(--space-2) var(--space-3); border: 0; border-radius: var(--radius-pill); }
+.app-shell.v0-integrated .nav-links a:hover { background: var(--papel-hundido); }
+.app-shell.v0-integrated .nav-links a[aria-current] { background: var(--pino-suave); }
+/* «Tu cuenta» y «Administración» no están en las maquetas: quedan como enlaces discretos a la derecha. */
+.app-shell.v0-integrated .v0-utility { flex: none; gap: var(--space-3); }
+.app-shell.v0-integrated .v0-utility a { font-size: 14px; font-weight: 600; }
+.app-shell.v0-integrated .v0-utility a[aria-current] { color: var(--tinta); text-decoration: underline; }
+
+/* En las pantallas con maqueta de ancho fijo (catálogo y ficha) el contenido va centrado en 1280 px. */
+.catalog-shell.v0-integrated main, .entry-shell.v0-integrated main { padding: 0 var(--space-7); max-width: 1280px; }
+
+@media(max-width: 700px) {
+  .app-shell.v0-integrated .sidebar { padding-inline: var(--space-4); flex-wrap: wrap; }
+  .app-shell.v0-integrated .nav-links a:not([aria-current]) { display: none; }
+  .app-shell.v0-integrated .nav-links a { flex: none; }
+  .app-shell.v0-integrated .nav-links.is-open { flex-basis: 100%; order: 3; flex-wrap: wrap; margin: 0; }
+  .app-shell.v0-integrated .nav-links.is-open a { display: inline-flex; }
+  .catalog-shell.v0-integrated main, .entry-shell.v0-integrated main { padding-inline: var(--space-4); }
+}
