@@ -46,10 +46,24 @@ export function checkRows(item: TowerRecommendationItem): { id: string; label: s
   return item.evaluation.rule_results.map(rule => ({ id: rule.rule_id, label: towerRuleLabels[rule.rule_id] ?? "Otra comprobación", estado: estados[rule.state] ?? "requiere_verificacion" }));
 }
 
-/** Por qué se descartó: nombra las comprobaciones que fallaron; si no hay, dice lo que sabemos. */
+/**
+ * Por qué se descartó, con el motivo real: no encaja (nombra las comprobaciones que fallaron), se pasa del
+ * presupuesto o no mejora. Si no hay motivo claro, lo decimos sin inventarlo.
+ */
+/** La mejora real más cercana cuando ninguna entra en el presupuesto: encaja, mejora de verdad y solo falla el precio. */
+export function closestOverBudget<T extends { status: string; evaluation: { verdict: string }; cost: { within_budget?: boolean | null; total_ars?: string | null }; benefit: { status: string; before?: string | null; after?: string | null } }>(items: T[]): T | null {
+  const mejora = (item: T) => Number(item.benefit.after) / Number(item.benefit.before) - 1;
+  return items.find(item => item.status === "rejected" && item.evaluation.verdict === "compatible" && item.cost.within_budget === false && item.benefit.status === "supported" && mejora(item) >= 0.1) ?? null;
+}
+
 export function discardReason(item: TowerRecommendationItem): string {
   const fallaron = checkRows(item).filter(row => row.estado === "incompatible").map(row => row.label.toLowerCase());
-  return fallaron.length ? `no pasó: ${fallaron.join(", ")}.` : "no la pudimos aprobar para tu PC.";
+  if (item.evaluation.verdict === "incompatible" || fallaron.length) {
+    return fallaron.length ? `no encaja: no pasó ${fallaron.join(", ")}.` : "no encaja con tu PC.";
+  }
+  if (item.cost.within_budget === false) return "se pasa del presupuesto.";
+  if (item.benefit.status === "not_an_improvement") return "no mejora tu PC según la referencia.";
+  return "no la pudimos aprobar para tu PC.";
 }
 
 /** «Antes → Después» solo si la API trae los dos datos; la referencia nunca es una promesa de FPS. */

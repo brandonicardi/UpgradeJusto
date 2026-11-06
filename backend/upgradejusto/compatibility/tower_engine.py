@@ -25,6 +25,8 @@ def _validated_specs(spec):
         "board_formats",
         "psu_formats",
         "cooler_sockets",
+        "supported_generations",
+        "memory_types_supported",
     }
     integer_lists = {"jedec_mts", "fan_supported_sizes_mm"}
     booleans = {"ecc", "buffered", "pcie_backward_compatible", "stock_cooler_included"}

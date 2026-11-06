@@ -11,25 +11,34 @@ export const homeGoals: ReadonlyArray<{ key: GoalKey; text: string; objective: A
 ];
 
 // Enteros guardados como texto, como pide el sistema de diseño: nunca `float`.
+// `min`, `max` y `step` son el rango VISUAL del deslizador. `admitido` es lo que se acepta al escribir o en la URL.
 export const homeBudget = {
-  min: "100000", max: "1500000", step: "50000", initial: "400000", currency: "ARS",
-  presets: [{ valor: "250000", texto: "$ 250 mil" }, { valor: "500000", texto: "$ 500 mil" }, { valor: "1000000", texto: "$ 1 millón" }],
+  min: "100000", max: "5000000", step: "50000", initial: "400000", currency: "ARS",
+  admitido: { min: "1", max: "999999999999" },
+  presets: [{ valor: "500000", texto: "$ 500 mil" }, { valor: "1000000", texto: "$ 1 millón" }, { valor: "2000000", texto: "$ 2 millones" }],
 } as const;
 
 export function goalByKey(key: string | null | undefined) {
   return homeGoals.find(goal => goal.key === key) ?? null;
 }
 
-/** Un monto válido es un entero dentro del rango del deslizador. Cualquier otra cosa se descarta, no se corrige. */
+/** Un monto válido es un entero positivo de hasta 12 dígitos, sin ceros al frente. Lo demás se descarta, no se corrige. */
 export function validBudget(raw: string | null | undefined): string | null {
-  if (typeof raw !== "string" || !/^[1-9]\d{0,9}$/.test(raw)) return null;
-  const value = BigInt(raw);
-  return value >= BigInt(homeBudget.min) && value <= BigInt(homeBudget.max) ? raw : null;
+  if (typeof raw !== "string" || !/^[1-9]\d{0,11}$/.test(raw)) return null;
+  return raw;
 }
 
 export function convieneHref(goal: GoalKey, budget: string): string {
   return `/conviene?objetivo=${goal}&presupuesto=${budget}`;
 }
+
+/** Mismo objetivo y presupuesto, pero para armar una PC desde cero. */
+export function buildHref(goal: GoalKey, budget: string): string {
+  return `/build?objetivo=${goal}&presupuesto=${budget}`;
+}
+
+/** Qué hace la persona después de elegir: mejorar la PC que tiene (por defecto) o armar una primera PC. */
+export type HomePath = "mejorar" | "armar";
 
 /** Lee `?objetivo=&presupuesto=`. Devuelve `null` si falta algo o no es válido: la pantalla pide los datos de nuevo. */
 export function parseConvieneQuery(params: { get(name: string): string | null }): { goal: (typeof homeGoals)[number]; budget: string } | null {

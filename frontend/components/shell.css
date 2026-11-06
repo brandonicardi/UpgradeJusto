@@ -5,10 +5,11 @@
 .app-shell.v0-integrated .nav-links a { color: var(--tinta); font-size: 16px; font-weight: 600; padding: var(--space-2) var(--space-3); border: 0; border-radius: var(--radius-pill); }
 .app-shell.v0-integrated .nav-links a:hover { background: var(--papel-hundido); }
 .app-shell.v0-integrated .nav-links a[aria-current] { background: var(--pino-suave); }
-/* «Tu cuenta» y «Administración» no están en las maquetas: quedan como enlaces discretos a la derecha. */
-.app-shell.v0-integrated .v0-utility { flex: none; gap: var(--space-3); }
-.app-shell.v0-integrated .v0-utility a { font-size: 14px; font-weight: 600; }
-.app-shell.v0-integrated .v0-utility a[aria-current] { color: var(--tinta); text-decoration: underline; }
+/* «Tu cuenta» y «Administración» usan el mismo estilo de botón que el menú principal. */
+.app-shell.v0-integrated .v0-utility { flex: none; gap: var(--space-2); }
+.app-shell.v0-integrated .v0-utility a { color: var(--tinta); font-size: 16px; font-weight: 600; padding: var(--space-2) var(--space-3); border: 0; border-bottom: 2px solid transparent; border-radius: var(--radius-pill); }
+.app-shell.v0-integrated .v0-utility a:hover { background: var(--papel-hundido); }
+.app-shell.v0-integrated .v0-utility a[aria-current] { background: var(--pino-suave); }
 
 /* En las pantallas con maqueta de ancho fijo (catálogo y ficha) el contenido va centrado en 1280 px. */
 .catalog-shell.v0-integrated main, .entry-shell.v0-integrated main { padding: 0 var(--space-7); max-width: 1280px; }

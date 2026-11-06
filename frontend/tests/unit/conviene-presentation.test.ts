@@ -34,8 +34,15 @@ describe("propuestas de «Lo que te conviene»", () => {
       { id: "T04", label: "Largo de la gráfica", estado: "compatible" },
       { id: "T08", label: "Almacenamiento", estado: "requiere_verificacion" },
     ]);
-    expect(discardReason(propuesta)).toBe("no pasó: fuente de alimentación.");
+    expect(discardReason(propuesta)).toBe("no encaja: no pasó fuente de alimentación.");
     expect(discardReason(item({ key: "y", status: "rejected", rules: [] }))).toBe("no la pudimos aprobar para tu PC.");
+  });
+  it("cada descarte dice su motivo real: no encaja, se pasa del presupuesto o no mejora", () => {
+    const pasado = item({ key: "p", status: "rejected", rules: [] }) as unknown as { cost: { within_budget: boolean } };
+    pasado.cost.within_budget = false;
+    expect(discardReason(pasado as unknown as TowerRecommendationItem)).toBe("se pasa del presupuesto.");
+    expect(discardReason(item({ key: "n", status: "rejected", rules: [], benefit: { status: "not_an_improvement" } }))).toBe("no mejora tu PC según la referencia.");
+    expect(discardReason(item({ key: "i", verdict: "incompatible", rules: [] }))).toBe("no encaja con tu PC.");
   });
   it("los motivos no prometen FPS ni inventan una mejora que la API no trae", () => {
     expect(benefitReasons(item({ key: "a" }))[0]).toBe("La referencia pasa de A a B.");

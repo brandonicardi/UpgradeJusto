@@ -1,0 +1,893 @@
+{
+ "version": 1,
+ "consulted_on": "2026-11-06",
+ "sources": [
+  {
+   "source_id": "REF-BLENDER-CPU",
+   "url": "https://opendata.blender.org/benchmarks/query/?device_type=CPU&blender_version=4.5.0&group_by=device_name&response_type=datatables",
+   "locator": "Blender Open Data 4.5.0, mediana de samples/minute por CPU"
+  }
+ ],
+ "cpus": [
+  {
+   "model": "Athlon 3000G",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 28.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 3 3200G",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 45.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 3 4100",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Ryzen 5 3400G",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 68.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 3500X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 85.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 4500",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 123.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 5500",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 138.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 5600",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 149.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 5600X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 151.2,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 5600GE",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Ryzen 5 5600GT",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 157.2,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 5600T",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 131.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 5600XT",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 152.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 5800X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Ryzen 5 5800X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Ryzen 7 5700",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 187.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 5700G",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 187.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 5700GE",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Ryzen 7 5700X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 214.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 5755GE",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Ryzen 7 5800XT",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 212.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 5800X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 209.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 5900X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 305.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 5900XT",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 363.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 5950X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 391.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 7600X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 204.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 7600X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 239.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 8400F",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 186.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 8500G",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 153.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 8600G",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 184.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 9600",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 237.3,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 9600X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 262.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 7700",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 265.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 7700X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 279.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 7700X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Ryzen 7 7800X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 264.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 8700F",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 240.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 8700G",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 250.2,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 9700X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 309.3,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 9800X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 333.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 9850X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 345.2,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 7900",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 411.1,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 7900X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 413.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 7900X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 402.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 7950X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 550.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 9900X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 501.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 9900X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 473.1,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 9950X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 625.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 9950X3D",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 663.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 9950X3D2",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 687.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 1600",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 96.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 2600",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 107.1,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 5 3600",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 130.3,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 1700",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 116.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 2700X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 144.3,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 7 3700X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 173.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 3900X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 268.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Ryzen 9 3950X",
+   "vendor": "amd",
+   "tdp_w": null,
+   "perf_index": 353.3,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Pentium G4560",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Pentium Gold G5400",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 31.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Celeron G4900",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "perf_source": null
+  },
+  {
+   "model": "Core i3 10100",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 74.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 10400",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 116.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 11400",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 127.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 11600K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 144.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 11700K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 198.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 11900K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 228.3,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 13400",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 191.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 13600K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 302.3,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 13700K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 386.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 13900K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 484.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 5 235",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 309.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 7 265",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 375.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i3 12100",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 96.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i3 12100F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 105.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i3 14100",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 116.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i3 14100F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 118.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 12400",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 74.1,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 12400F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 154.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 12600K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 222.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 12600KF",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 272.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 14400",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 198.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 14400F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 202.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 14600K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 301.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i5 14600KF",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 309.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 12700",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 224.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 12700F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 236.2,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 12700K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 285.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 12700KF",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 292.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 14700",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 299.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 14700F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 294.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 14700K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 441.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i7 14700KF",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 445.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 12900",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 309.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 12900F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 294.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 12900KF",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 346.1,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 14900",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 317.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 14900F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 320.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 14900K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 507.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core i9 14900KF",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 496.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 5 225",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 227.5,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 5 225F",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 212.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 5 245K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 317.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 5 245KF",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 340.3,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 5 250K PLUS",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 432.6,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 5 250KF PLUS",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 433.4,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 7 265K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 237.8,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 7 265KF",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 475.9,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 9 285",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 482.7,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  },
+  {
+   "model": "Core Ultra 9 285K",
+   "vendor": "intel",
+   "tdp_w": null,
+   "perf_index": 562.0,
+   "tdp_source": null,
+   "perf_source": "REF-BLENDER-CPU"
+  }
+ ]
+}

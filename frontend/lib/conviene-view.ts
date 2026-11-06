@@ -83,7 +83,10 @@ export function benefitLine(item: Pick<TowerRecommendationItem, "benefit">): str
   if (benefit.status === "not_an_improvement") return "Según la referencia, este cambio no mejora lo que ya tenés.";
   if (benefit.status !== "supported") return "Todavía no tenemos una referencia para medir cuánto mejora.";
   if (!benefit.before || !benefit.after) return "La referencia respalda una mejora.";
-  return /\bGB\b/.test(benefit.label ?? "") ? `Tu memoria pasa de ${benefit.before} GB a ${benefit.after} GB.` : `En la referencia, el puntaje pasa de ${benefit.before} a ${benefit.after}.`;
+  if (/\bGB\b/.test(benefit.label ?? "")) return `Tu memoria pasa de ${benefit.before} GB a ${benefit.after} GB.`;
+  const before = Number(benefit.before), after = Number(benefit.after);
+  if (!(before > 0) || !(after > 0)) return `En la referencia, el puntaje pasa de ${benefit.before} a ${benefit.after}.`;
+  return `Rinde cerca de ${Math.round((after / before - 1) * 100)} % más que lo que tenés, según un índice de referencia. No es una promesa de FPS.`;
 }
 
 /** Los motivos de la tarjeta principal: la mejora, lo que se revisó y la aclaración de que no es una promesa. */

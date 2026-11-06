@@ -24,7 +24,7 @@ export default function BeginnerEntry() {
     <section aria-label="Tu PC puede dar más" className="grid min-w-0 items-start gap-space-6 pb-space-7 pt-space-6 min-[1001px]:grid-cols-[minmax(0,1fr)_minmax(0,560px)] min-[1001px]:gap-space-7 min-[1001px]:pt-space-8">
       <div>
         <h1 className="m-0 max-w-[12ch] font-display text-[36px] font-bold leading-10 tracking-[-0.03em] min-[641px]:text-[48px] min-[641px]:leading-[52px] min-[1001px]:text-[64px] min-[1001px]:leading-[66px]">Tu PC puede dar <mark className="rounded-sm bg-lima px-[.12em] text-sobre-lima">más</mark>.</h1>
-        <p className="m-0 mt-space-5 max-w-[34ch] text-cuerpo-l text-tinta-suave min-[641px]:text-[20px] min-[641px]:leading-[30px]">Contanos qué querés hacer y cuánto querés gastar. Te decimos qué conviene cambiar, cuánto cuesta y si encaja con lo que ya tenés.</p>
+        <p className="m-0 mt-space-5 max-w-[34ch] text-cuerpo-l text-tinta-suave min-[641px]:text-[20px] min-[641px]:leading-[30px]">Contanos qué querés hacer y cuánto querés gastar. Si ya tenés una PC, te decimos qué conviene cambiar, cuánto cuesta y si encaja. Si todavía no tenés una, te ayudamos a armarla.</p>
         <ul className="m-0 mt-space-6 grid list-none gap-space-3 p-0">{PROMESAS.map(text => <li key={text} className="flex items-start gap-space-3"><Check aria-hidden="true" className="mt-[2px] size-6 flex-none text-pino" strokeWidth={2.25} /><span>{text}</span></li>)}</ul>
       </div>
       <HomeStart />

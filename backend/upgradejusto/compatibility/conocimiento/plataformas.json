@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "consulted_on": "2026-11-06",
+  "sources": [
+    {"source_id": "REF-AMD-AM4", "url": "https://www.amd.com/en/products/processors/chipsets/am4.html", "locator": "AMD Socket AM4 Platform: chipset y soporte de procesadores"},
+    {"source_id": "REF-AMD-AM5", "url": "https://www.amd.com/en/products/processors/chipsets/am5.html", "locator": "AMD Socket AM5 Platform: chipset y soporte de procesadores"},
+    {"source_id": "REF-INTEL-CHIPSETS", "url": "https://www.intel.com/content/www/us/en/products/details/chipsets.html", "locator": "Intel Chipsets: socket y generaciones admitidas"}
+  ],
+  "platforms": [
+    {"socket": "AM4", "memory": ["DDR4"], "source": "REF-AMD-AM4", "chipsets": {
+      "A320": ["zen", "zen+", "zen2"],
+      "B350": ["zen", "zen+", "zen2", "zen3"],
+      "X370": ["zen", "zen+", "zen2", "zen3"],
+      "B450": ["zen", "zen+", "zen2", "zen3"],
+      "X470": ["zen", "zen+", "zen2", "zen3"],
+      "A520": ["zen2", "zen3"],
+      "B550": ["zen2", "zen3"],
+      "X570": ["zen+", "zen2", "zen3"]
+    }},
+    {"socket": "AM5", "memory": ["DDR5"], "source": "REF-AMD-AM5", "chipsets": {
+      "A620": ["zen4", "zen5"], "B650": ["zen4", "zen5"], "B650E": ["zen4", "zen5"],
+      "X670": ["zen4", "zen5"], "X670E": ["zen4", "zen5"], "B840": ["zen4", "zen5"],
+      "B850": ["zen4", "zen5"], "X870": ["zen4", "zen5"], "X870E": ["zen4", "zen5"]
+    }},
+    {"socket": "LGA1151", "memory": ["DDR4"], "source": "REF-INTEL-CHIPSETS", "chipsets": {
+      "H310": ["intel8", "intel9"], "B360": ["intel8", "intel9"], "B365": ["intel8", "intel9"],
+      "H370": ["intel8", "intel9"], "Z370": ["intel8", "intel9"], "Z390": ["intel8", "intel9"]
+    }},
+    {"socket": "LGA1200", "memory": ["DDR4"], "source": "REF-INTEL-CHIPSETS", "chipsets": {
+      "H410": ["intel10"], "B460": ["intel10"], "H470": ["intel10", "intel11"], "Z490": ["intel10", "intel11"],
+      "H510": ["intel10", "intel11"], "B560": ["intel10", "intel11"], "H570": ["intel10", "intel11"], "Z590": ["intel10", "intel11"]
+    }},
+    {"socket": "LGA1700", "memory": ["DDR4", "DDR5"], "source": "REF-INTEL-CHIPSETS", "chipsets": {
+      "H610": ["intel12", "intel13", "intel14"], "B660": ["intel12", "intel13", "intel14"],
+      "H670": ["intel12", "intel13", "intel14"], "Z690": ["intel12", "intel13", "intel14"],
+      "B760": ["intel12", "intel13", "intel14"], "H770": ["intel12", "intel13", "intel14"],
+      "Z790": ["intel12", "intel13", "intel14"]
+    }},
+    {"socket": "LGA1851", "memory": ["DDR5"], "source": "REF-INTEL-CHIPSETS", "chipsets": {
+      "H810": ["ultra2"], "B860": ["ultra2"], "Z890": ["ultra2"]
+    }}
+  ],
+  "generations": {
+    "zen": {"socket": "AM4", "memory": ["DDR4"]},
+    "zen+": {"socket": "AM4", "memory": ["DDR4"]},
+    "zen2": {"socket": "AM4", "memory": ["DDR4"]},
+    "zen3": {"socket": "AM4", "memory": ["DDR4"]},
+    "zen4": {"socket": "AM5", "memory": ["DDR5"]},
+    "zen5": {"socket": "AM5", "memory": ["DDR5"]},
+    "intel8": {"socket": "LGA1151", "memory": ["DDR4"]},
+    "intel9": {"socket": "LGA1151", "memory": ["DDR4"]},
+    "intel10": {"socket": "LGA1200", "memory": ["DDR4"]},
+    "intel11": {"socket": "LGA1200", "memory": ["DDR4"]},
+    "intel12": {"socket": "LGA1700", "memory": ["DDR4", "DDR5"]},
+    "intel13": {"socket": "LGA1700", "memory": ["DDR4", "DDR5"]},
+    "intel14": {"socket": "LGA1700", "memory": ["DDR4", "DDR5"]},
+    "ultra2": {"socket": "LGA1851", "memory": ["DDR5"]}
+  }
+}

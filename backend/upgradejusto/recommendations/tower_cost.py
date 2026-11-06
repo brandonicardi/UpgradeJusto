@@ -102,7 +102,7 @@ def classify(evaluation, benefit, cost, dependencies):
         evaluation.verdict == "compatible"
         and not evaluation.missing_fields
         and {r.rule_id for r in evaluation.rule_results} == set(ESSENTIAL_REQUIRED)
-        and all(r.state == "pass" for r in evaluation.rule_results)
+        and all(r.state in ("pass", "not_applicable") for r in evaluation.rule_results)
     )
     if (
         green

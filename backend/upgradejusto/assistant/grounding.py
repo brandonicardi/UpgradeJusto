@@ -159,9 +159,7 @@ _VERDICT_RE = re.compile(
     r"|(?P<compatible>\bcompatible\b|\bencaja\b)"
 )
 
-_REVISION_RE = re.compile(
-    r"\brevisi[oó]n\s+(\d+)\b|\brev\.?\s*(\d+)\b", re.IGNORECASE
-)
+_REVISION_RE = re.compile(r"\brevisi[oó]n\s+(\d+)\b|\brev\.?\s*(\d+)\b", re.IGNORECASE)
 
 _STOCK_DOUBT_RE = re.compile(
     r"\bno\s+se\s+si\s+(?:hay\s+)?(?:stock|disponible|disponibilidad)\b"

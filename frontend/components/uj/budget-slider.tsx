@@ -15,9 +15,12 @@ export type BudgetSliderProps = {
   valor: string;
   atajos: AtajoDePresupuesto[];
   onCambio: (valor: string) => void;
+  /** Montos que se admiten al escribirlos. Si no se pasan, se usa el rango del deslizador (min y max). */
+  minimoAdmitido?: string;
+  maximoAdmitido?: string;
   /**
-   * Versión de las pantallas de inicio y de armado: ocupa todo el ancho, la pregunta es el título de la
-   * tarjeta y no muestra el campo para escribir (el deslizador y los atajos alcanzan, también con teclado).
+   * Versión de las pantallas de inicio y de armado: ocupa todo el ancho y la pregunta es el título de la tarjeta.
+   * El campo para escribir el monto se muestra en ambas versiones.
    */
   enTarjeta?: boolean;
   /** Qué tipo de título lleva la pregunta en la versión de tarjeta. */
@@ -73,7 +76,7 @@ const ATAJO =
   "aria-pressed:border-pino aria-pressed:bg-pino-suave " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
 
-export function BudgetSlider({ min, max, paso, moneda, valor, atajos, onCambio, enTarjeta = false, pregunta = "¿Cuánto querés gastar como máximo?" }: BudgetSliderProps) {
+export function BudgetSlider({ min, max, minimoAdmitido = min, maximoAdmitido = max, paso, moneda, valor, atajos, onCambio, enTarjeta = false, pregunta = "¿Cuánto querés gastar como máximo?" }: BudgetSliderProps) {
   const id = useId();
   const idCampo = `${id}-campo`;
   const idError = `${id}-error`;
@@ -83,7 +86,7 @@ export function BudgetSlider({ min, max, paso, moneda, valor, atajos, onCambio, 
 
   function escribir(texto: string) {
     setBorrador(texto);
-    setError(escribirMonto(texto, { min, max, onCambio }));
+    setError(escribirMonto(texto, { min: minimoAdmitido, max: maximoAdmitido, onCambio }));
   }
 
   function terminar() {
@@ -136,7 +139,7 @@ export function BudgetSlider({ min, max, paso, moneda, valor, atajos, onCambio, 
           </button>
         ))}
       </div>
-      {!enTarjeta && <div className="grid max-w-[420px] gap-space-1">
+      <div className="grid max-w-[420px] gap-space-1">
         <label htmlFor={idCampo} className="text-chico text-tinta-suave">
           Escribí el monto
         </label>
@@ -155,7 +158,7 @@ export function BudgetSlider({ min, max, paso, moneda, valor, atajos, onCambio, 
         <p id={idError} aria-live="polite" className="m-0 min-h-5 text-chico text-no-encaja">
           {error}
         </p>
-      </div>}
+      </div>
     </div>
   );
 }

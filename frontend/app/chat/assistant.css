@@ -37,18 +37,26 @@
 .assistant-trigger { display: flex; align-items: center; gap: var(--space-2); border-radius: var(--radius-pill); box-shadow: var(--sombra-2); padding: 0 var(--space-5) 0 var(--space-4); min-height: 56px; border: 0; background: var(--pino); color: var(--sobre-pino); font-weight: 700; cursor: pointer; }
 .assistant-trigger:hover { background: var(--pino-hover); }
 .assistant-trigger:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
-.assistant-panel { width: min(420px, calc(100vw - var(--space-6))); max-height: calc(100dvh - 160px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--linea); border-radius: var(--radius-lg); background: var(--papel-alto); color: var(--tinta); box-shadow: var(--sombra-2); }
+.assistant-panel { width: min(420px, calc(100vw - var(--space-6))); height: min(640px, calc(100dvh - 160px)); max-height: calc(100dvh - 160px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--linea); border-radius: var(--radius-lg); background: var(--papel-alto); color: var(--tinta); box-shadow: var(--sombra-2); }
 .assistant-panel-head { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4); border-bottom: 1px solid var(--linea); flex: 0 0 auto; }
 .assistant-panel-head > div { flex: 1; min-width: 0; }
 .assistant-panel-head small { display: block; color: var(--tinta-suave); font-size: var(--text-chico); }
 .assistant-icon { display: grid; place-items: center; min-width: 40px; min-height: 40px; padding: var(--space-2); border-radius: var(--radius-pill); color: var(--tinta); background: transparent; border: 0; }
-.assistant-panel-body { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
-.assistant-workspace.is-compact { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
-.is-compact .assistant-thread { min-height: 0; border-radius: 0; box-shadow: none; grid-template-rows: 1fr auto; }
-.is-compact .assistant-messages { padding: var(--space-4); }
-.is-compact .assistant-composer-area { padding: var(--space-4); }
-.assistant-manage { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--linea); }
+/* El panel tiene altura fija: solo se desplazan los mensajes; la caja de texto queda abajo. */
+.assistant-panel-body { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.assistant-workspace.is-compact { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 0; }
+.is-compact .assistant-thread { flex: 1 1 auto; min-height: 0; border-radius: 0; box-shadow: none; grid-template-rows: minmax(0, 1fr) auto; }
+.is-compact .assistant-messages { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-4); }
+.is-compact .assistant-composer-area { flex: none; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); border-top: 1px solid var(--linea); max-height: 45%; overflow-y: auto; overscroll-behavior: contain; }
+.is-compact .assistant-composer-area > * { margin: 0; }
+.is-compact .assistant-suggest > div { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.is-compact .assistant-suggest button { flex: none; }
+.is-compact .assistant-privacy-note { text-align: left; font-size: 12px; line-height: 16px; }
+.is-compact .assistant-composer { border-radius: var(--radius-pill); }
+.assistant-manage { flex: none; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--linea); }
 .assistant-manage .assistant-conversations { padding-top: var(--space-3); }
+.assistant-manage .assistant-conversations { max-height: 170px; overflow-y: auto; overscroll-behavior: contain; }
+.assistant-manage summary { cursor: pointer; font-weight: 700; }
 /* Pantalla del asistente según su maqueta */
 .assistant-workspace:not(.is-compact) { grid-template-columns: 260px minmax(0, 1fr) 300px; padding-top: var(--space-4); }
 .assistant-conversations { align-content: start; position: sticky; top: var(--space-5); }

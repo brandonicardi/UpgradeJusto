@@ -186,6 +186,7 @@
 :root { color-scheme: light; --bg:var(--papel); --card:var(--papel-alto); --raised:var(--papel-hundido); --text:var(--tinta); --muted:var(--tinta-suave); --accent:var(--pino); --line:var(--linea); }
 @layer base {
   * { box-sizing:border-box; }
+  html { scrollbar-gutter:stable; }
   body { margin:0; background:var(--papel); color:var(--tinta); font:16px/1.5 var(--font-figtree),system-ui,-apple-system,sans-serif; }
   a { color:var(--pino); text-underline-offset:.2em; }
   button,input,select,textarea { font:inherit; }

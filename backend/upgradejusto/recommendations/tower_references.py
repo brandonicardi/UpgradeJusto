@@ -4,6 +4,10 @@ from decimal import Decimal
 
 from upgradejusto.compatibility.basic_manufacturer import resolve_stock_specs
 from upgradejusto.compatibility.basic_specs import resolve_basic_specs
+from upgradejusto.compatibility.reference_knowledge import (
+    merge_reference,
+    reference_specs,
+)
 from upgradejusto.compatibility.tower_technical_resolver import (
     resolve_published_technical,
 )
@@ -163,6 +167,42 @@ def reference(component, catalog, objective, workload):
     return None
 
 
+def line_specs(line, catalog):
+    """Same evidence the engine reads, for a catalog part or a typed model."""
+    category = getattr(line.category, "value", str(line.category))
+    component = catalog.get(line.component_id) if line.component_id else None
+    if component is None:
+        return reference_specs(category, getattr(line, "declared_model", None))
+    published = resolve_published_technical(
+        component, catalog, resolve_stock_specs(component, catalog)
+    ).specs
+    return merge_reference(published, reference_specs(category, component.name))
+
+
+def index_reference(line, catalog):
+    """Relative index by chip or model: one scale, so never mixed with curated."""
+    specs = line_specs(line, catalog)
+    score = specs.fact("perf_index")
+    if score is None:
+        return None
+    ref = specs.evidence("perf_index")[0]
+    return {
+        "matched_mpn": None,
+        "identity_version": IDENTITY_VERSION,
+        "identity_kind": "reference_by_name",
+        "model": specs.fact("reference_chip")
+        or line.declared_model
+        or line.component_id,
+        "score": str(score),
+        "source_url": ref.url,
+        "version": ref.locator,
+        "observed_on": ref.consulted_on,
+        "workload": "relative-index",
+        "unit": "relative index, NOT FPS",
+        "limitations": "Reference chip or model, not the exact variant or your PC",
+    }
+
+
 def benefit(before, after, catalog, objective, workload):
     category = {"gaming": "gpu", "productivity": "cpu", "general": "ram"}[objective]
     old = [line for line in before.lines if line.category == category]
@@ -186,17 +226,13 @@ def benefit(before, after, catalog, objective, workload):
                 return result
             total = Decimal(0)
             for line in lines:
-                component = catalog.get(line.component_id)
-                if component is None:
-                    return result
-                # Same published facts the engine reads, retail pieces included.
-                specs = resolve_published_technical(
-                    component, catalog, resolve_stock_specs(component, catalog)
-                ).specs
+                # Same facts the engine reads, retail pieces included.
+                specs = line_specs(line, catalog)
                 value = specs.fact("capacity_gb")
                 if value is None:
                     return result
-                total += Decimal(str(value)) * line.quantity
+                modules = specs.fact("kit_modules") or 1
+                total += Decimal(str(value)) * line.quantity * modules
                 refs.extend(
                     r.model_dump(mode="json") for r in specs.evidence("capacity_gb")
                 )
@@ -215,6 +251,8 @@ def benefit(before, after, catalog, objective, workload):
         reference(catalog.get(line.component_id), catalog, objective, workload)
         for line in (old[0], new[0])
     ]
+    if any(r is None for r in refs):
+        refs = [index_reference(line, catalog) for line in (old[0], new[0])]
     if any(r is None for r in refs):
         return result
     return {

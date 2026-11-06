@@ -7,7 +7,7 @@ import { IconoDeCategoria } from "../../components/uj/part-card";
 import { formatearMonto } from "../../components/uj/monto";
 import TowerPlanEditor from "../../components/tower-plan-editor";
 import { createPreviewMetadataLoader, type MetadataSnapshot } from "../../lib/preview-metadata";
-import { budgetBarPercent, cheapestFirst, checkRows, discardReason, groupProposals, proposalOffer } from "../../lib/conviene-presentation";
+import { budgetBarPercent, cheapestFirst, checkRows, closestOverBudget, discardReason, groupProposals, proposalOffer } from "../../lib/conviene-presentation";
 import { altLabel, benefitLine, budgetState, categoryNames, chooseMain, convieneDraft, introLine, joinLabels, maxDiscardedShown, metadataQueriesFor, moneyText, pcAfterChange, planDraftFor, planLead, proposalCategory, swapSides, unknownChecks, whyReasons, workloadNote } from "../../lib/conviene-view";
 import { goalByKey, type GoalKey } from "../../lib/home-goals";
 import { proposalTitle } from "../../lib/recommendation-card-presentation";
@@ -18,6 +18,13 @@ import { towerRequest, type Tower, type TowerPage } from "../../lib/towers";
 
 type PcState = { phase: "loading" } | { phase: "none" } | { phase: "error"; message: string } | { phase: "ready"; pc: Tower };
 const sinDatos: MetadataSnapshot = { status: "active", entries: new Map() };
+
+/** Sin propuestas, el motivo es el que devuelve la API. Si no trae ninguno, se dice que no hubo datos suficientes. */
+function noProposalsReason(result: { limitations: string[]; missing_fields: string[] }): string {
+  if (result.missing_fields.some(field => field.startsWith("benefit:"))) return "No pudimos identificar la pieza que querés cambiar. Revisá en Mi PC que el modelo esté bien escrito.";
+  if (result.missing_fields.length) return "Faltan datos de tu PC para buscar propuestas. Completalos en Mi PC y volvemos a buscar.";
+  return "No encontramos un cambio que mejore tu PC con estos criterios.";
+}
 
 function Prices({ item }: { item: TowerRecommendationItem }) {
   const offer = proposalOffer(item);
@@ -66,6 +73,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
   const names = metadata?.result === result && metadata ? metadata.snapshot : sinDatos;
 
   const groups = useMemo(() => groupProposals(result?.items ?? []), [result]);
+  const closest = useMemo(() => closestOverBudget(result?.items ?? []), [result]);
   const { main, others } = chooseMain([...(groups.principal ? [groups.principal] : []), ...groups.alternativas], chosenKey);
   const shownAlts = sort === "baratas" ? cheapestFirst(others) : others;
   const cheapest = others.length > 1 ? cheapestFirst(others).find(item => item.cost.total_ars !== null)?.key ?? null : null;
@@ -104,7 +112,8 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
 
     {!working && !failed && pcState.phase === "none" && <div className="cv-status"><Notice tono="info" titulo="Todavía no cargaste tu PC">Para decirte qué te conviene necesitamos saber qué piezas tiene. Cargala y volvé: la comparamos con lo que pediste.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/pcs">Cargar mi PC</Link></div></div>}
 
-    {!working && !failed && pc && !main && <div className="cv-status"><Notice tono="info" titulo="No encontramos un cambio que podamos respaldar">Con esta PC y este presupuesto no hay una propuesta que encaje y que podamos comprobar. Probá con otro presupuesto o completá los datos de tu PC.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link><Link className="cv-btn cv-btn-secundario" href="/pcs">Completar mi PC</Link></div></div>}
+    {!working && !failed && pc && !main && result && result.items.length === 0 && <div className="cv-status"><Notice tono="info" titulo="No hubo propuestas para tu PC">{noProposalsReason(result)}</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link><Link className="cv-btn cv-btn-secundario" href="/pcs">Completar mi PC</Link></div></div>}
+    {!working && !failed && pc && !main && result && result.items.length > 0 && <div className="cv-status"><Notice tono="no" titulo="Todas las propuestas se descartaron">Ninguna encaja con tu PC tal como está. Abajo te contamos el motivo de cada una.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link><Link className="cv-btn cv-btn-secundario" href="/pcs">Completar mi PC</Link></div></div>}
 
     {main && swap && <section className="cv-main" aria-label="Sugerencia principal">
       <article className="cv-upgrade">
@@ -177,10 +186,12 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
       })}</div>
     </section>}
 
-    {main && groups.descartadas.length > 0 && <details className="cv-ruled">
-      <summary><X className="cv-icon" aria-hidden="true" style={{ width: 20, height: 20 }} />{groups.descartadas.length === 1 ? "Descartamos 1 opción porque no encaja en tu PC" : `Descartamos ${groups.descartadas.length} opciones porque no encajan en tu PC`}</summary>
-      <ul>{groups.descartadas.slice(0, maxDiscardedShown).map(item => <li key={item.key}><Verdict estado="incompatible" /><span><strong>{swapSides(item, pc, names).nueva}</strong> — {discardReason(item)}</span></li>)}</ul>
-      {groups.descartadas.length > maxDiscardedShown && <p className="cv-tech">{`Y ${groups.descartadas.length - maxDiscardedShown} más que tampoco encajan.`}</p>}
+    {!working && !failed && !main && closest && <div className="cv-status"><Notice tono="info" titulo="Con este presupuesto no llega">{`La mejora real más cercana es ${swapSides(closest, pc, names).nueva}, por ${formatearMonto(closest.cost.total_ars ?? "")}. ${benefitLine(closest)}`}</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link></div></div>}
+
+    {groups.descartadas.length > 0 && <details className="cv-ruled" open={!main}>
+      <summary><X className="cv-icon" aria-hidden="true" style={{ width: 20, height: 20 }} />{groups.descartadas.length === 1 ? "Descartamos 1 opción" : `Descartamos ${groups.descartadas.length} opciones`}</summary>
+      <ul>{groups.descartadas.slice(0, maxDiscardedShown).map(item => <li key={item.key}><Verdict estado={item.evaluation.verdict} /><span><strong>{swapSides(item, pc, names).nueva}</strong> — {discardReason(item)}</span></li>)}</ul>
+      {groups.descartadas.length > maxDiscardedShown && <p className="cv-tech">{`Y ${groups.descartadas.length - maxDiscardedShown} más que tampoco sirven.`}</p>}
     </details>}
 
     {main && <section className="cv-sec" aria-label="Qué sigue"><div className="cv-next">

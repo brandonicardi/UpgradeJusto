@@ -43,11 +43,16 @@ describe("tarjeta para empezar", () => {
     expect(host.textContent).toContain("Paso 1 de 2"); expect(host.textContent).toContain("Paso 2 de 2");
     expect(host.textContent).toContain("Mirar sugerencias no cambia nada de tu PC guardada.");
     for (const text of goals) expect(button(host, text)).not.toBeNull();
-    expect([...host.querySelectorAll('[aria-pressed="true"]')].map(item => item.textContent)).toEqual([]);
+    expect([...host.querySelectorAll('[role="group"][aria-labelledby="inicio-objetivo"] [aria-pressed="true"]')].map(item => item.textContent)).toEqual([]);
     expect(host.querySelector('input[type="range"]')).not.toBeNull();
-    expect(host.textContent).toContain("$ 400.000"); expect(host.textContent).toContain("$ 100.000"); expect(host.textContent).toContain("$ 1.500.000");
-    for (const text of ["$ 250 mil", "$ 500 mil", "$ 1 millón"]) expect(button(host, text)).not.toBeNull();
-    expect(host.querySelector('input[type="text"]')).toBeNull();
+    expect(host.textContent).toContain("$ 400.000"); expect(host.textContent).toContain("$ 100.000"); expect(host.textContent).toContain("$ 5.000.000");
+    for (const text of ["$ 500 mil", "$ 1 millón", "$ 2 millones"]) expect(button(host, text)).not.toBeNull();
+    expect(button(host, "$ 250 mil")).toBeNull();
+    // El campo para escribir el monto se muestra también en la tarjeta de inicio.
+    expect(host.querySelector('input[type="text"]')).not.toBeNull();
+    // Por defecto la persona mejora la PC que tiene; la otra opción es armar una primera PC.
+    expect(button(host, /^Mejorar la PC que tengo/)?.getAttribute("aria-pressed")).toBe("true");
+    expect(button(host, /^Armar mi primera PC/)?.getAttribute("aria-pressed")).toBe("false");
   });
   it("con objetivo y monto va a «Lo que te conviene» con esos datos, y no manda identidad", async () => {
     const host = await mount(<HomeStart />);
@@ -58,9 +63,15 @@ describe("tarjeta para empezar", () => {
     expect(push).toHaveBeenCalledWith("/conviene?objetivo=gaming&presupuesto=500000");
     expect(String(push.mock.calls[0][0])).not.toMatch(/user|email|id=/);
   });
+  it("con «Armar mi primera PC» navega a /build con el mismo objetivo y presupuesto", async () => {
+    const host = await mount(<HomeStart />);
+    await click(button(host, /^Armar mi primera PC/)); await click(button(host, "Jugar mejor")); await click(button(host, "$ 1 millón"));
+    await click(button(host, "Armar mi PC con $ 1.000.000"));
+    expect(push).toHaveBeenCalledWith("/build?objetivo=gaming&presupuesto=1000000");
+  });
   it("elige un solo objetivo a la vez", async () => {
     const host = await mount(<HomeStart />);
     await click(button(host, "Jugar mejor")); await click(button(host, "Editar fotos y video"));
-    expect([...host.querySelectorAll('[aria-pressed="true"]')].map(item => item.textContent?.trim())).toEqual(["Editar fotos y video"]);
+    expect([...host.querySelectorAll('[role="group"][aria-labelledby="inicio-objetivo"] [aria-pressed="true"]')].map(item => item.textContent?.trim())).toEqual(["Editar fotos y video"]);
   });
 });

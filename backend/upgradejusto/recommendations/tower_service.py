@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 from itertools import product
+from types import SimpleNamespace
 from uuid import uuid5
 
 from upgradejusto.compatibility.tower_application import apply_tower_actions
@@ -16,9 +17,17 @@ from upgradejusto.pcs.service import PCError
 
 from .tower_cost import classify, incremental_cost, select_offer
 from .tower_models import TowerPreviewItem, TowerPreviewResponse
-from .tower_references import IDENTITY_VERSION, REFERENCE_VERSION, benefit
+from .tower_references import (
+    IDENTITY_VERSION,
+    REFERENCE_VERSION,
+    benefit,
+    line_specs,
+)
 
-SEARCH_VERSION = "tower-recommend-search-1"
+SEARCH_VERSION = "tower-recommend-search-2"
+# Below this, the change is not worth the money or the work of installing it.
+MIN_GAIN_PERCENT = Decimal(10)
+MAX_REJECTED_SHOWN = 6
 MAX_EVALUATIONS = 128
 DEPENDENCY_OPTIONS = 2
 LIMITATIONS = [
@@ -30,6 +39,24 @@ LIMITATIONS = [
     "Thermal compound is required only with sourced operation evidence, never universally.",
     "Complete catalog scanned; bounded search128 evaluations, two cheapest fresh options per dependency category; not exhaustive optimum.",
 ]
+
+
+def gain_percent(score):
+    if score.get("status") != "supported":
+        return None
+    before, after = Decimal(str(score["before"])), Decimal(str(score["after"]))
+    return (after - before) / before * 100 if before > 0 else None
+
+
+def value_score(gain, price, budget):
+    """Gain weighted by the share of budget it uses: explainable, not a black box.
+
+    The square root keeps a big upgrade ahead of a tiny cheap one, while two
+    similar gains still resolve in favor of the one that costs less.
+    """
+    if gain is None or price is None or price <= 0 or budget <= 0:
+        return Decimal(0)
+    return gain / (price / budget).sqrt()
 
 
 def replacement(component, quantity=1):
@@ -69,16 +96,41 @@ def simulate(tower, actions, catalog):
     return result
 
 
+def too_many_modules(component, quantity, catalog):
+    """Two kits of four sticks is never a home PC, whatever the board says."""
+    line = SimpleNamespace(
+        category=component.category, component_id=component.id, declared_model=None
+    )
+    return (line_specs(line, catalog).fact("kit_modules") or 1) * quantity > 4
+
+
+def cheapest_per_wattage(options, catalog):
+    """A bigger PSU is the usual extra: the two cheapest of one size never help."""
+    seen, selected = set(), []
+    for option in options:
+        line = SimpleNamespace(
+            category=option[2].category, component_id=option[1], declared_model=None
+        )
+        watts = line_specs(line, catalog).fact("continuous_power_w")
+        if watts is not None and watts >= 550 and watts not in seen:
+            seen.add(watts)
+            selected.append(option)
+    return selected[:3] or options
+
+
 def automatic_actions(tower, catalog, request, now):
     category = {"general": "ram", "gaming": "gpu", "productivity": "cpu"}[
         request.objective
     ]
     primary = []
+    budget = Decimal(request.budget_ars)
     # Scan ALL records before applying evaluation bound; no first50/60 truncation.
     for component in sorted(catalog.values(), key=lambda c: c.id):
         if component.category != category:
             continue
         for quantity in (1, 2, 4) if category == "ram" else (1,):
+            if category == "ram" and too_many_modules(component, quantity, catalog):
+                continue
             actions = [replacement(component, quantity)]
             try:
                 after = simulate(tower, actions, catalog)
@@ -97,10 +149,11 @@ def automatic_actions(tower, catalog, request, now):
                 quantity=quantity,
             )
             price = Decimal(offer.amount) * quantity if offer else Decimal("Infinity")
-            primary.append((price, component.id, quantity, actions))
-    primary.sort(key=lambda item: item[:3])
+            value = value_score(gain_percent(score), price, budget)
+            primary.append((price > budget, -value, price, component.id, actions))
+    primary.sort(key=lambda item: item[:4])
     # Preserve coverage of distinct primaries before spending budget on bundles.
-    for _, _, _, actions in primary:
+    for *_, actions in primary:
         yield actions
     # Dependencies are explicit paid replacement actions, never implicit freebies.
     groups = []
@@ -120,6 +173,8 @@ def automatic_actions(tower, catalog, request, now):
             if offer:
                 options.append((Decimal(offer.amount), component.id, component))
         options.sort(key=lambda item: item[:2])
+        if dependency == "psu":
+            options = cheapest_per_wattage(options, catalog)
         groups.append(
             [None] + [replacement(p) for _, _, p in options[:DEPENDENCY_OPTIONS]]
         )
@@ -135,7 +190,7 @@ def automatic_actions(tower, catalog, request, now):
         extras = [action for action in group if action is not None]
         if not extras:
             continue
-        for _, _, _, actions in primary:
+        for *_, actions in primary:
             yield actions + extras
 
 
@@ -332,13 +387,28 @@ def preview_snapshot(tower, catalog, version, request, now):
                 missing_fields=sorted(set(missing)),
             )
         )
-    items.sort(
-        key=lambda item: (
-            {"recommended": 0, "requires_verification": 1, "rejected": 2}[item.status],
-            Decimal(item.cost["total_ars"] or "Infinity"),
-            item.key,
-        )
-    )
+    budget = Decimal(request.budget_ars)
+
+    def rank(item):
+        gain = gain_percent(item.benefit)
+        price = Decimal(item.cost["total_ars"] or "Infinity")
+        value = value_score(gain, price if price.is_finite() else None, budget)
+        minor = gain is None or gain < MIN_GAIN_PERCENT
+        status = {"recommended": 0, "requires_verification": 1, "rejected": 2}
+        if item.status == "rejected":
+            # What fits but costs a bit more is the useful thing to show first.
+            fits = item.evaluation.verdict != "incompatible"
+            return (2, not fits, False, price, price, item.key)
+        return (status[item.status], minor, False, -value, price, item.key)
+
+    items.sort(key=rank)
+    if request.mode == "automatic":
+        # Without a current price nothing can be proposed: rule 5, no guessing.
+        priced = [item for item in items if item.cost["total_ars"] is not None]
+        items = priced or items
+        rejected = [item for item in items if item.status == "rejected"]
+        items = [item for item in items if item.status != "rejected"]
+        items.extend(rejected[:MAX_REJECTED_SHOWN])
     missing = (
         [] if items else ["benefit:no_applicable_curated_reference_or_exact_identity"]
     )

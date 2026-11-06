@@ -6,7 +6,7 @@ import { useAssistant } from "./assistant-provider";
 import { ChatSuggestions } from "./uj/chat-bubble";
 import Markdown from "./markdown";
 import { citationText } from "../lib/assistant";
-import { conversationDay, toolNameLabel, toolStatusLabel } from "../lib/assistant-presentation";
+import { cleanAssistantText, conversationDay, toolNameLabel, toolStatusLabel } from "../lib/assistant-presentation";
 import { assistantScreen } from "../lib/assistant-suggestions";
 import { statusLabel } from "./use-chat-session";
 import TowerChatContext from "./tower-chat-context";
@@ -60,23 +60,24 @@ export default function AssistantWorkspace({ pathname, compact = false }: { path
           {c.history && <section aria-label="Mensajes guardados">{firstMessage && <span className="assistant-day">{conversationDay(firstMessage.created_at, new Date())}</span>}<ol className="assistant-message-list">{c.history.items.map(message => <li key={message.id}>
             {message.role === "user"
               ? <div className="msg-user">{message.status !== "completed" && <p className="assistant-message-state">{statusLabel(message.status)}</p>}<Markdown content={message.content} /></div>
-              : <div className="msg-bot"><div className="who"><i aria-hidden="true" />Asistente</div>{message.status !== "completed" && <p className="assistant-message-state">{statusLabel(message.status)}</p>}<div className="bot-text"><Markdown content={message.content} /></div><Citations values={Array.isArray(message.citations) ? message.citations : []} /></div>}
+              : <div className="msg-bot"><div className="who"><i aria-hidden="true" />Asistente</div>{message.status !== "completed" && <p className="assistant-message-state">{statusLabel(message.status)}</p>}<div className="bot-text"><Markdown content={cleanAssistantText(message.content)} /></div><Citations values={Array.isArray(message.citations) ? message.citations : []} /></div>}
           </li>)}</ol><nav aria-label="Páginas de mensajes">{c.history.page > 1 && <button type="button" className="text-button" disabled={c.busy} onClick={() => c.operation(async () => { await c.loadMessages(c.selected!.id, c.history!.page - 1); })}>Mensajes anteriores</button>}{c.history.page * c.history.page_size < c.history.total && <button type="button" className="text-button" disabled={c.busy} onClick={() => c.operation(async () => { await c.loadMessages(c.selected!.id, c.history!.page + 1); })}>Mensajes siguientes</button>}</nav></section>}
           {c.live && <section aria-label="Respuesta provisional"><div className="msg-bot"><div className="who"><i aria-hidden="true" />Asistente</div>
             {c.live.tools.length > 0 && <ul className="did" aria-label="Lo que revisó el asistente">{c.live.tools.map((tool, index) => <li key={index}>{tool.status === "completed" ? <Check aria-hidden="true" size={14} strokeWidth={2.25} /> : tool.status === "failed" || tool.status === "interrupted" ? <X aria-hidden="true" size={14} strokeWidth={2.25} /> : <Loader2 aria-hidden="true" size={14} strokeWidth={2.25} />}{toolNameLabel(tool.name)}<span className="sr-only">: {toolStatusLabel(tool.status)}</span></li>)}</ul>}
-            <p className="assistant-message-state">{c.live.status === "pending" ? "Escribiendo… respuesta provisional, todavía no guardada" : c.live.status}</p><div className="bot-text" aria-live="polite"><Markdown content={c.live.content} /></div><Citations values={c.live.citations} /></div></section>}
+            <p className="assistant-message-state">{c.live.status === "pending" ? "Escribiendo… respuesta provisional, todavía no guardada" : c.live.status}</p><div className="bot-text" aria-live="polite"><Markdown content={cleanAssistantText(c.live.content)} /></div><Citations values={c.live.citations} /></div></section>}
         </> : <div className="assistant-welcome"><h2>Una buena mejora empieza con una buena pregunta.</h2><p>Creá una charla y contanos qué querés conseguir. Si faltan datos, te ayudamos a identificarlos.</p></div>}
       </div>
       <div className="assistant-composer-area">
         {c.streaming && <button type="button" className="assistant-stop" onClick={c.stop}><Square aria-hidden="true" size={14} /> Detener respuesta</button>}
         {compact && c.selected && <details><summary>PC y criterios para esta pregunta</summary><AssistantSelection /></details>}
-        <ChatSuggestions sugerencias={screen.questions} onElegir={question => { c.editContent(question); input.current?.focus(); }} />
+        <div className="assistant-suggest"><ChatSuggestions sugerencias={screen.questions} onElegir={question => { c.editContent(question); input.current?.focus(); }} /></div>
+        {compact && <p className="assistant-help assistant-privacy-note">No escribas contraseñas ni datos personales. El asistente puede equivocarse.</p>}
         <form aria-label="Enviar mensaje al asistente" className="assistant-composer" onSubmit={c.send}>
           <label className="sr-only" htmlFor="assistant-message">Mensaje al asistente</label><textarea ref={input} id="assistant-message" rows={1} required maxLength={8000} value={c.content} disabled={c.busy || c.conflict} onChange={event => c.editContent(event.target.value)} placeholder="Preguntá lo que quieras sobre tu PC" />
           <button type="submit" className="assistant-send" disabled={!c.selected || c.busy || c.conflict} aria-label="Enviar"><SendHorizontal aria-hidden="true" size={18} strokeWidth={2.25} /></button>
         </form>
         {!c.selected && <p className="assistant-help">Creá o elegí una charla antes de enviar. Las sugerencias solo completan tu pregunta.</p>}
-        <p className="assistant-help">No escribas contraseñas ni datos personales. El asistente puede equivocarse al explicar; si algo encaja lo decide nuestro revisor.</p>
+        {!compact && <p className="assistant-help">No escribas contraseñas ni datos personales. El asistente puede equivocarse al explicar; si algo encaja lo decide nuestro revisor.</p>}
         {c.conflict && <><p>Hay una solicitud ya registrada. Recuperá el historial y revisá la PC antes de redactar otra pregunta.</p><button type="button" disabled={c.busy} onClick={c.newQuestion}>Redactar una pregunta nueva sin reenviar</button></>}
         {c.selected && <details className="assistant-privacy"><summary>Privacidad y opciones de la charla</summary><p>Los mensajes y los datos que elijas se envían al proveedor configurado. Las consultas no guardan PCs ni planes: no modifican tu PC ni tus planes.</p><button className="text-button" type="button" disabled={c.busy} onClick={() => c.setDeleting(true)}>Preparar borrado de conversación</button>{c.deleting && <form aria-label="Confirmar borrado de conversación" onSubmit={c.remove}><fieldset disabled={c.busy}><legend>Eliminar historial privado</legend><label><input type="checkbox" required />Confirmo eliminar esta conversación y sus mensajes, no PCs ni planes</label><button type="submit">Eliminar conversación definitivamente</button><button type="button" className="secondary" onClick={() => c.setDeleting(false)}>Cancelar borrado</button></fieldset></form>}</details>}
       </div>

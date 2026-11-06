@@ -1,0 +1,998 @@
+{
+ "version": 1,
+ "consulted_on": "2026-11-06",
+ "sources": [
+  {
+   "source_id": "nvidia_30",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/",
+   "locator": "Tabla RTX 30: 'Graphics Card Power (W)' -> tdp_w; 'Required System Power (W)' -> psu_w. Para RTX 3080 la pagina muestra '350 / 320' y se usa 350."
+  },
+  {
+   "source_id": "nvidia_40_4070",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+   "locator": "Tabla 'Total Graphics Power (W)' y 'Required System Power (W)' de RTX 4070 family"
+  },
+  {
+   "source_id": "nvidia_40_4080",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/",
+   "locator": "Tabla 'Total Graphics Power (W)' y 'Required System Power (W)' de RTX 4080 family"
+  },
+  {
+   "source_id": "nvidia_40_4090",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/",
+   "locator": "Fila RTX 4090: Total Graphics Power (W) y Required System Power (W)"
+  },
+  {
+   "source_id": "nvidia_50_5060",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5060-family/",
+   "locator": "Tabla 'Total Graphics Power (W)' y 'Required System Power (W)' de RTX 5060 Ti y RTX 5060"
+  },
+  {
+   "source_id": "nvidia_50_5070",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5070-family/",
+   "locator": "Tabla 'Total Graphics Power (W)' y 'Required System Power (W)' de RTX 5070 Ti y RTX 5070"
+  },
+  {
+   "source_id": "nvidia_50_5080",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5080/",
+   "locator": "Fila RTX 5080: Total Graphics Power (W) y Required System Power (W)"
+  },
+  {
+   "source_id": "nvidia_50_5090",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/",
+   "locator": "Fila RTX 5090: Total Graphics Power (W) y Required System Power (W)"
+  },
+  {
+   "source_id": "intel_b580_spec",
+   "url": "https://www.intel.com/content/www/us/en/products/sku/241598/intel-arc-b580-graphics/specifications.html",
+   "locator": "Campo 'TBP' = 190 W (la pagina no muestra TGP; se usa como tdp_w). 'Minimum Power Supply Unit' = 600 W NO se usa como psu_w porque es minimo, no recomendado."
+  },
+  {
+   "source_id": "passmark_gpu",
+   "url": "https://www.videocardbenchmark.net/gpu_list.php",
+   "locator": "Columna 'G3D Mark' (valor crudo, sin normalizar; escala unica para todas las filas de este archivo). Radeon RX 470/570 aparece combinada en la fuente. Para RTX 3060 se usa la fila 'GeForce RTX 3060' (16882) y para RTX 3060 12GB la fila homonima (16696)."
+  },
+  {
+   "source_id": "amd_rx_6400",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6400.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6500-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6500-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6600",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6600.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6600-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6600-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6650-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6650-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6700-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6700-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6750-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6750-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6800",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6800.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6800-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6800-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6900-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6900-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_6950-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/6000-series/amd-radeon-rx-6950-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_7600",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7600.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_7600-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7600-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_7700-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7700-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_7800-xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7800-xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_7900-gre",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900-gre.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_7900xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_7900xtx",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xtx.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_9060",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9060.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_9060xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9060xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_9070",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9070.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_9070-gre",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9070-gre.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "amd_rx_9070xt",
+   "url": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9070xt.html",
+   "locator": "AMD: Typical Board Power y Minimum PSU Recommendation"
+  },
+  {
+   "source_id": "nvidia_40_4060",
+   "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+   "locator": "Specs: Total Graphics Power y Required System Power"
+  }
+ ],
+ "gpus": [
+  {
+   "chip": "GTX 1050 Ti",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 6368,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "GTX 1060",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 10012,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "GTX 1070",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 13509,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "GTX 1080",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 15605,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "GTX 1650",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 7864,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "GTX 1660",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 11610,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "GTX 1660 Super",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 12654,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "GTX 1660 Ti",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 12548,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 2060",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 14070,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 2070",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 16053,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 2080",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 18566,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3050 6GB",
+   "vendor": "nvidia",
+   "tdp_w": 70,
+   "psu_w": 300,
+   "perf_index": 10738,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3050 8GB",
+   "vendor": "nvidia",
+   "tdp_w": 130,
+   "psu_w": 550,
+   "perf_index": 12454,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3060",
+   "vendor": "nvidia",
+   "tdp_w": 170,
+   "psu_w": 550,
+   "perf_index": 16882,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3060 12GB",
+   "vendor": "nvidia",
+   "tdp_w": 170,
+   "psu_w": 550,
+   "perf_index": 16696,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3060 Ti",
+   "vendor": "nvidia",
+   "tdp_w": 200,
+   "psu_w": 600,
+   "perf_index": 20208,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3070",
+   "vendor": "nvidia",
+   "tdp_w": 220,
+   "psu_w": 650,
+   "perf_index": 22060,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3070 Ti",
+   "vendor": "nvidia",
+   "tdp_w": 290,
+   "psu_w": 750,
+   "perf_index": 23156,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3080",
+   "vendor": "nvidia",
+   "tdp_w": 350,
+   "psu_w": 750,
+   "perf_index": 24967,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3080 Ti",
+   "vendor": "nvidia",
+   "tdp_w": 350,
+   "psu_w": 750,
+   "perf_index": 26723,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3090",
+   "vendor": "nvidia",
+   "tdp_w": 350,
+   "psu_w": 750,
+   "perf_index": 26458,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 3090 Ti",
+   "vendor": "nvidia",
+   "tdp_w": 450,
+   "psu_w": 850,
+   "perf_index": 29191,
+   "tdp_source": "nvidia_30",
+   "psu_source": "nvidia_30",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4060",
+   "vendor": "nvidia",
+   "tdp_w": 115,
+   "psu_w": 550,
+   "perf_index": 19477,
+   "tdp_source": "nvidia_40_4060",
+   "psu_source": "nvidia_40_4060",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4060 Ti",
+   "vendor": "nvidia",
+   "tdp_w": 165,
+   "psu_w": 550,
+   "perf_index": 22595,
+   "tdp_source": "nvidia_40_4060",
+   "psu_source": "nvidia_40_4060",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4070",
+   "vendor": "nvidia",
+   "tdp_w": 200,
+   "psu_w": 650,
+   "perf_index": 26853,
+   "tdp_source": "nvidia_40_4070",
+   "psu_source": "nvidia_40_4070",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4070 Super",
+   "vendor": "nvidia",
+   "tdp_w": 220,
+   "psu_w": 650,
+   "perf_index": 29938,
+   "tdp_source": "nvidia_40_4070",
+   "psu_source": "nvidia_40_4070",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4070 Ti",
+   "vendor": "nvidia",
+   "tdp_w": 285,
+   "psu_w": 700,
+   "perf_index": 31508,
+   "tdp_source": "nvidia_40_4070",
+   "psu_source": "nvidia_40_4070",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4070 Ti Super",
+   "vendor": "nvidia",
+   "tdp_w": 285,
+   "psu_w": 700,
+   "perf_index": 31849,
+   "tdp_source": "nvidia_40_4070",
+   "psu_source": "nvidia_40_4070",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4080",
+   "vendor": "nvidia",
+   "tdp_w": 320,
+   "psu_w": 750,
+   "perf_index": 34440,
+   "tdp_source": "nvidia_40_4080",
+   "psu_source": "nvidia_40_4080",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4080 Super",
+   "vendor": "nvidia",
+   "tdp_w": 320,
+   "psu_w": 750,
+   "perf_index": 34202,
+   "tdp_source": "nvidia_40_4080",
+   "psu_source": "nvidia_40_4080",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 4090",
+   "vendor": "nvidia",
+   "tdp_w": 450,
+   "psu_w": 850,
+   "perf_index": 38023,
+   "tdp_source": "nvidia_40_4090",
+   "psu_source": "nvidia_40_4090",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 5050",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 16709,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 5060",
+   "vendor": "nvidia",
+   "tdp_w": 145,
+   "psu_w": 550,
+   "perf_index": 20586,
+   "tdp_source": "nvidia_50_5060",
+   "psu_source": "nvidia_50_5060",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 5060 Ti 8GB",
+   "vendor": "nvidia",
+   "tdp_w": 180,
+   "psu_w": 600,
+   "perf_index": 21793,
+   "tdp_source": "nvidia_50_5060",
+   "psu_source": "nvidia_50_5060",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 5060 Ti 16GB",
+   "vendor": "nvidia",
+   "tdp_w": 180,
+   "psu_w": 600,
+   "perf_index": 22634,
+   "tdp_source": "nvidia_50_5060",
+   "psu_source": "nvidia_50_5060",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 5070",
+   "vendor": "nvidia",
+   "tdp_w": 250,
+   "psu_w": 650,
+   "perf_index": 28680,
+   "tdp_source": "nvidia_50_5070",
+   "psu_source": "nvidia_50_5070",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 5070 Ti",
+   "vendor": "nvidia",
+   "tdp_w": 300,
+   "psu_w": 750,
+   "perf_index": 32330,
+   "tdp_source": "nvidia_50_5070",
+   "psu_source": "nvidia_50_5070",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 5080",
+   "vendor": "nvidia",
+   "tdp_w": 360,
+   "psu_w": 850,
+   "perf_index": 35648,
+   "tdp_source": "nvidia_50_5080",
+   "psu_source": "nvidia_50_5080",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX 5090",
+   "vendor": "nvidia",
+   "tdp_w": 575,
+   "psu_w": 1000,
+   "perf_index": 39004,
+   "tdp_source": "nvidia_50_5090",
+   "psu_source": "nvidia_50_5090",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RTX A400",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": null
+  },
+  {
+   "chip": "RTX A1000",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": null
+  },
+  {
+   "chip": "RTX PRO 2000",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": null
+  },
+  {
+   "chip": "RTX PRO 4000",
+   "vendor": "nvidia",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": null,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": null
+  },
+  {
+   "chip": "RX 570",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 7904,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 580",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 8781,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 5500 XT",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 9039,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 5600 XT",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 13378,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 5700",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 14193,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 5700 XT",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 16018,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6400",
+   "vendor": "amd",
+   "tdp_w": 53,
+   "psu_w": 350,
+   "perf_index": 7754,
+   "tdp_source": "amd_rx_6400",
+   "psu_source": "amd_rx_6400",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6500 XT",
+   "vendor": "amd",
+   "tdp_w": 113,
+   "psu_w": 400,
+   "perf_index": 9614,
+   "tdp_source": "amd_rx_6500-xt",
+   "psu_source": "amd_rx_6500-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6600",
+   "vendor": "amd",
+   "tdp_w": 132,
+   "psu_w": 450,
+   "perf_index": 15030,
+   "tdp_source": "amd_rx_6600",
+   "psu_source": "amd_rx_6600",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6600 XT",
+   "vendor": "amd",
+   "tdp_w": 160,
+   "psu_w": 500,
+   "perf_index": 16446,
+   "tdp_source": "amd_rx_6600-xt",
+   "psu_source": "amd_rx_6600-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6650 XT",
+   "vendor": "amd",
+   "tdp_w": 180,
+   "psu_w": 500,
+   "perf_index": 17099,
+   "tdp_source": "amd_rx_6650-xt",
+   "psu_source": "amd_rx_6650-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6700",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 18848,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6700 XT",
+   "vendor": "amd",
+   "tdp_w": 230,
+   "psu_w": 650,
+   "perf_index": 19712,
+   "tdp_source": "amd_rx_6700-xt",
+   "psu_source": "amd_rx_6700-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6750 XT",
+   "vendor": "amd",
+   "tdp_w": 250,
+   "psu_w": 650,
+   "perf_index": 20702,
+   "tdp_source": "amd_rx_6750-xt",
+   "psu_source": "amd_rx_6750-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6800",
+   "vendor": "amd",
+   "tdp_w": 250,
+   "psu_w": 650,
+   "perf_index": 22041,
+   "tdp_source": "amd_rx_6800",
+   "psu_source": "amd_rx_6800",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6800 XT",
+   "vendor": "amd",
+   "tdp_w": 300,
+   "psu_w": 750,
+   "perf_index": 25118,
+   "tdp_source": "amd_rx_6800-xt",
+   "psu_source": "amd_rx_6800-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6900 XT",
+   "vendor": "amd",
+   "tdp_w": 300,
+   "psu_w": 850,
+   "perf_index": 26638,
+   "tdp_source": "amd_rx_6900-xt",
+   "psu_source": "amd_rx_6900-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 6950 XT",
+   "vendor": "amd",
+   "tdp_w": 335,
+   "psu_w": 850,
+   "perf_index": 28066,
+   "tdp_source": "amd_rx_6950-xt",
+   "psu_source": "amd_rx_6950-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7600",
+   "vendor": "amd",
+   "tdp_w": 165,
+   "psu_w": 550,
+   "perf_index": 16431,
+   "tdp_source": "amd_rx_7600",
+   "psu_source": "amd_rx_7600",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7600 XT",
+   "vendor": "amd",
+   "tdp_w": 190,
+   "psu_w": 600,
+   "perf_index": 17366,
+   "tdp_source": "amd_rx_7600-xt",
+   "psu_source": "amd_rx_7600-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7650 GRE",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 17895,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7700",
+   "vendor": "amd",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 20520,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7700 XT",
+   "vendor": "amd",
+   "tdp_w": 245,
+   "psu_w": 700,
+   "perf_index": 22786,
+   "tdp_source": "amd_rx_7700-xt",
+   "psu_source": "amd_rx_7700-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7800 XT",
+   "vendor": "amd",
+   "tdp_w": 263,
+   "psu_w": 700,
+   "perf_index": 24479,
+   "tdp_source": "amd_rx_7800-xt",
+   "psu_source": "amd_rx_7800-xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7900 GRE",
+   "vendor": "amd",
+   "tdp_w": 260,
+   "psu_w": null,
+   "perf_index": 27473,
+   "tdp_source": "amd_rx_7900-gre",
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7900 XT",
+   "vendor": "amd",
+   "tdp_w": 315,
+   "psu_w": 750,
+   "perf_index": 29128,
+   "tdp_source": "amd_rx_7900xt",
+   "psu_source": "amd_rx_7900xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 7900 XTX",
+   "vendor": "amd",
+   "tdp_w": 355,
+   "psu_w": 800,
+   "perf_index": 31473,
+   "tdp_source": "amd_rx_7900xtx",
+   "psu_source": "amd_rx_7900xtx",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 9060",
+   "vendor": "amd",
+   "tdp_w": 132,
+   "psu_w": 450,
+   "perf_index": 17667,
+   "tdp_source": "amd_rx_9060",
+   "psu_source": "amd_rx_9060",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 9060 XT 8GB",
+   "vendor": "amd",
+   "tdp_w": 160,
+   "psu_w": 450,
+   "perf_index": 19711,
+   "tdp_source": "amd_rx_9060xt",
+   "psu_source": "amd_rx_9060xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 9060 XT 16GB",
+   "vendor": "amd",
+   "tdp_w": 160,
+   "psu_w": 450,
+   "perf_index": 20138,
+   "tdp_source": "amd_rx_9060xt",
+   "psu_source": "amd_rx_9060xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 9070",
+   "vendor": "amd",
+   "tdp_w": 220,
+   "psu_w": 650,
+   "perf_index": 25384,
+   "tdp_source": "amd_rx_9070",
+   "psu_source": "amd_rx_9070",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 9070 GRE",
+   "vendor": "amd",
+   "tdp_w": 220,
+   "psu_w": 650,
+   "perf_index": 23273,
+   "tdp_source": "amd_rx_9070-gre",
+   "psu_source": "amd_rx_9070-gre",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "RX 9070 XT",
+   "vendor": "amd",
+   "tdp_w": 304,
+   "psu_w": 750,
+   "perf_index": 26925,
+   "tdp_source": "amd_rx_9070xt",
+   "psu_source": "amd_rx_9070xt",
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "Arc A380",
+   "vendor": "intel",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 6328,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "Arc A580",
+   "vendor": "intel",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 12075,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "Arc A750",
+   "vendor": "intel",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 12637,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "Arc A770",
+   "vendor": "intel",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 13379,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "Arc B570",
+   "vendor": "intel",
+   "tdp_w": null,
+   "psu_w": null,
+   "perf_index": 14171,
+   "tdp_source": null,
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  },
+  {
+   "chip": "Arc B580",
+   "vendor": "intel",
+   "tdp_w": 190,
+   "psu_w": null,
+   "perf_index": 16110,
+   "tdp_source": "intel_b580_spec",
+   "psu_source": null,
+   "perf_source": "passmark_gpu"
+  }
+ ]
+}

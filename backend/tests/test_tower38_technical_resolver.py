@@ -14,6 +14,7 @@ from upgradejusto.compatibility.basic_manufacturer import (
     resolve_stock_specs,
 )
 from upgradejusto.compatibility.basic_specs import BasicSpecs
+from upgradejusto.compatibility.reference_knowledge import REFERENCE_VERSION
 from upgradejusto.compatibility.tower_contract import (
     NominalResource,
     SharedLimit,
@@ -305,7 +306,13 @@ def test_no_envelope_exact_legacy_revision_specs_and_verdict():
         {spec.import_digest for spec in basics.values() if spec.import_digest}
     )
     revision = "|".join(
-        ("synthetic-historical", MANUFACTURER_VERSION, ADAPTER_VERSION, *digests)
+        (
+            "synthetic-historical",
+            MANUFACTURER_VERSION,
+            ADAPTER_VERSION,
+            REFERENCE_VERSION,
+            *digests,
+        )
     )
     expected = TowerTechnicalEvidenceDTO(
         data_revision=revision,

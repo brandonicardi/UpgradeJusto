@@ -12,6 +12,7 @@ from .basic_contract import AdditionalCheck
 from .basic_evaluation import Check as BasicCheck
 from .basic_evaluation import _basic_cpu_support
 from .models import Coverage, Fact, PartInstance, ResolvedConfiguration
+from .reference_knowledge import is_reference_ref
 from .tower_contract import (
     ESSENTIAL_REQUIRED,
     ESSENTIAL_RULES_VERSION,
@@ -33,6 +34,26 @@ PHYSICAL_SPACE_NOT_EVALUATED = (
     "Espacio físico no evaluado: faltan medidas. Chequeá que entre en tu gabinete."
 )
 PHYSICAL_SPACE_CHECK_ID = "tower_physical_space_not_evaluated"
+# What varies between models of the same chip or chipset: disclosed, not approved.
+CONNECTORS_NOT_EVALUATED = (
+    "Conectores no evaluados: varían según el modelo. "
+    "Chequeá que tu fuente tenga los cables que pide la placa de video."
+)
+STORAGE_NOT_EVALUATED = (
+    "Lugar para discos no evaluado: varía según el modelo. "
+    "Chequeá que tu placa y tu gabinete tengan lugar para el disco."
+)
+MEMORY_LIMITS_NOT_EVALUATED = (
+    "Ranuras y memoria máxima no evaluadas: varían según el modelo de placa."
+)
+BIOS_MAY_BE_NEEDED = (
+    "La placa admite esta generación; algunas necesitan BIOS actualizada."
+)
+REFERENCE_CHECK_ID = "tower_reference_data"
+REFERENCE_DATA_NOTICE = (
+    "Evaluado según datos de referencia por familia de hardware, "
+    "no con la ficha exacta de cada modelo."
+)
 # Closed list of published attributes these rules read for each category.
 # The admin dashboard uses it to flag missing data; no rule logic depends on it.
 ESSENTIAL_ATTRIBUTES = {
@@ -64,8 +85,28 @@ ESSENTIAL_ATTRIBUTES = {
 }
 
 
+def _reference_support(cpu, board):
+    """Same socket and a chipset that lists the CPU generation, from sourced tables."""
+    check = BasicCheck("B01")
+    socket = check.read(cpu, "socket", "cpu.socket")
+    board_socket = check.read(board, "socket", "motherboard.socket")
+    generation = check.read(cpu, "cpu_generation", "cpu.generation")
+    admitted = check.read(
+        board, "supported_generations", "motherboard.supported_generations"
+    )
+    check.failed = socket != board_socket or generation not in admitted
+    return check.result(("Socket y generación por chipset", BIOS_MAY_BE_NEEDED))
+
+
 def _support_rule(config, cpu, board):
-    """Exact model row; the BIOS is neither read nor judged."""
+    """Exact model row first; else the reference table. The BIOS is not judged."""
+    if (
+        config.cpu_support is None
+        and None not in (cpu.fact("socket"), board.fact("socket"))
+        and cpu.fact("cpu_generation") is not None
+        and board.fact("supported_generations") is not None
+    ):
+        return _reference_support(cpu, board)
     result = _basic_cpu_support(config, cpu, board, evaluate_bios=False)
     sockets = cpu.fact("socket"), board.fact("socket")
     if None in sockets or sockets[0] == sockets[1]:
@@ -93,16 +134,25 @@ def _support_rule(config, cpu, board):
 
 def _memory_rule(cpu, board, modules):
     check = BasicCheck("B02")
+    supported = cpu.fact("memory_types_supported")
     types = [
         value
         for value in (
-            check.read(cpu, "memory_type", "cpu.memory_type"),
+            check.read(
+                cpu, "memory_type", "cpu.memory_type", required=supported is None
+            ),
             check.read(board, "memory_type", "motherboard.memory_type"),
         )
         if value is not None
     ]
-    slots = check.read(board, "slots", "motherboard.ram_slots")
-    maximum = check.read(board, "max_total_gb", "motherboard.max_total_gb")
+    # A chipset says nothing about slots or maximum: only a model datasheet does.
+    by_reference = board.fact("chipset") is not None
+    slots = check.read(
+        board, "slots", "motherboard.ram_slots", required=not by_reference
+    )
+    maximum = check.read(
+        board, "max_total_gb", "motherboard.max_total_gb", required=not by_reference
+    )
     module_max = check.read(
         board, "max_module_gb", "motherboard.max_module_gb", required=False
     )
@@ -138,11 +188,14 @@ def _memory_rule(cpu, board, modules):
                 check.failed = True
     if len(set(types)) > 1 or (slots is not None and count > slots):
         check.failed = True
+    if supported is not None and any(kind not in supported for kind in types):
+        check.failed = True
     if maximum is not None and total > maximum:
         check.failed = True
-    return check.result(
-        ("Generación DDR y límites de la placa; velocidades y ECC no se evalúan",)
-    )
+    notes = ("Generación DDR y límites de la placa; velocidades y ECC no se evalúan",)
+    if by_reference and (slots is None or maximum is None):
+        notes = (*notes, MEMORY_LIMITS_NOT_EVALUATED)
+    return check.result(notes)
 
 
 def _interface_rule(board, gpu):
@@ -353,6 +406,23 @@ def _physical_space(result):
     )
 
 
+def _varies_by_model(result, reason, by_reference, prefixes):
+    """Reference data cannot prove it: disclosed, never approved, never a failure."""
+    if (
+        not by_reference
+        or result.state != "unknown"
+        or not all(field.startswith(prefixes) for field in result.missing_fields)
+    ):
+        return result
+    return result.model_copy(
+        update={
+            "state": "not_applicable",
+            "missing_fields": (),
+            "conditions": (*result.conditions, reason),
+        }
+    )
+
+
 def evaluate_tower_essential(tower, evidence):
     """Tower/TowerCreate duck type; evidence is resolved by a server adapter only."""
     if tower.schema_version != 2 or not evidence.data_revision.strip():
@@ -364,7 +434,8 @@ def evaluate_tower_essential(tower, evidence):
         identity = str(line.line_id) if line.line_id is not None else f"line:{index}"
         category = getattr(line.category, "value", str(line.category))
         groups.setdefault(category, []).append((identity, line.quantity))
-        item = evidence.components.get(line.component_id) if line.component_id else None
+        key = line.component_id or f"declared:{index}"
+        item = evidence.components.get(key)
         if (
             item is None
             or item.category != category
@@ -445,20 +516,25 @@ def evaluate_tower_essential(tower, evidence):
         identity = f"T{index:02}"
         if identity in ("T04", "T07"):
             rule = _physical_space(rule)
+        if identity == "T06":
+            rule = _varies_by_model(
+                rule,
+                CONNECTORS_NOT_EVALUATED,
+                gpu.fact("reference_chip") is not None,
+                ("gpu.", "psu.", "motherboard."),
+            )
         results.append(_tower_rule(rule, identity))
+    drives = [
+        (identity, specs[identity], quantity)
+        for identity, quantity in groups.get("storage", ())
+    ]
     results.append(
         _tower_rule(
-            _case_dependent(
-                _storage_rule(
-                    [
-                        (identity, specs[identity], quantity)
-                        for identity, quantity in groups.get("storage", ())
-                    ],
-                    board,
-                    case,
-                    psu,
-                ),
-                assembled,
+            _varies_by_model(
+                _case_dependent(_storage_rule(drives, board, case, psu), assembled),
+                STORAGE_NOT_EVALUATED,
+                board.fact("chipset") is not None,
+                ("motherboard.", "case.", "psu."),
             )
         )
     )
@@ -486,6 +562,24 @@ def evaluate_tower_essential(tower, evidence):
                 reason=PHYSICAL_SPACE_NOT_EVALUATED,
             ),
         )
+    if any(is_reference_ref(ref) for r in results for ref in r.evidence):
+        notices = (
+            *notices,
+            AdditionalCheck(
+                id=REFERENCE_CHECK_ID,
+                status="outside_scope",
+                reason=REFERENCE_DATA_NOTICE,
+            ),
+        )
+    for reason, check_id in (
+        (CONNECTORS_NOT_EVALUATED, "tower_connectors_not_evaluated"),
+        (STORAGE_NOT_EVALUATED, "tower_storage_not_evaluated"),
+    ):
+        if any(reason in r.conditions for r in results):
+            notices = (
+                *notices,
+                AdditionalCheck(id=check_id, status="outside_scope", reason=reason),
+            )
     return TowerEvaluationResult(
         verdict="incompatible"
         if ids("fail")

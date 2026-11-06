@@ -139,7 +139,7 @@ export default function PCs({ nueva: abrirNueva = false }: { nueva?: boolean }) 
 
       <aside className="pcs-side">
         {seleccionada && !borrador && <>
-          <div className="pcs-card pcs-act"><h2>¿Qué querés hacer con esta PC?</h2><p>Te mostramos qué conviene cambiar según tu objetivo y presupuesto.</p><Link href={rutaConviene}>Ver qué me conviene</Link></div>
+          <div className="pcs-card pcs-act"><h2>¿Qué querés hacer con esta PC?</h2><p>Te mostramos qué conviene cambiar según tu objetivo y presupuesto.</p><Link href={`${rutaConviene}?pc=${encodeURIComponent(seleccionada.id)}`}>Ver qué me conviene</Link></div>
           <EstadoDeArmado key={`${seleccionada.id}-${seleccionada.revision}-assembly`} pc={seleccionada} ocupado={ocupado} onGuardar={guardarArmado} />
           <EncajeDeLaPc key={`${seleccionada.id}-${seleccionada.revision}`} pc={seleccionada} />
         </>}

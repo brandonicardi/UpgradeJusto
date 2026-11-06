@@ -27,11 +27,24 @@ const cm = (mm: number) => `${(mm / 10).toLocaleString("es-AR", { maximumFractio
 
 /** Los datos técnicos viajan como texto JSON dentro de los atributos de la pieza; si no se pueden leer, no hay detalle. */
 export function datosTecnicos(attributes: Record<string, unknown> | null | undefined): Datos {
+  return { ...datosDeReferencia(attributes), ...datosDeFabricante(attributes) };
+}
+
+function datosDeFabricante(attributes: Record<string, unknown> | null | undefined): Datos {
   const crudo = attributes?.tower_stock_v1;
   try {
     const leido = typeof crudo === "string" ? JSON.parse(crudo) : crudo;
     const datos = (leido as { data?: unknown } | null)?.data;
     return datos && typeof datos === "object" ? (datos as Datos) : {};
+  } catch { return {}; }
+}
+
+/** Datos generales por familia de hardware; el dato del fabricante, si existe, siempre manda. */
+export function datosDeReferencia(attributes: Record<string, unknown> | null | undefined): Datos {
+  const crudo = attributes?.reference_facts;
+  try {
+    const leido = typeof crudo === "string" ? JSON.parse(crudo) : crudo;
+    return leido && typeof leido === "object" ? (leido as Datos) : {};
   } catch { return {}; }
 }
 
@@ -47,7 +60,7 @@ export function detalleDePieza(category: TowerCategory, attributes: Record<strin
   if (category === "cpu") { agregar(texto(d.socket) && `zócalo ${texto(d.socket)}`); agregar(texto(d.memory_type) && `memoria ${texto(d.memory_type)}`); }
   if (category === "motherboard") { agregar(texto(d.socket) && `zócalo ${texto(d.socket)}`); agregar(texto(d.form_factor) && `formato ${texto(d.form_factor)}`); agregar(numero(d.slots) !== null && `${numero(d.slots)} lugares de memoria`); }
   if (category === "ram") { agregar(texto(d.memory_type)); agregar(numero(d.capacity_gb) !== null && `${numero(d.capacity_gb)} GB por módulo`); agregar(cantidad > 1 && `${cantidad} módulos`); }
-  if (category === "gpu") agregar(numero(d.length_mm) !== null && `${cm(numero(d.length_mm)!)} de largo`);
+  if (category === "gpu") { agregar(numero(d.length_mm) !== null && `${cm(numero(d.length_mm)!)} de largo`); agregar(numero(d.recommended_psu_w) !== null && `pide fuente de ${numero(d.recommended_psu_w)} W`); }
   if (category === "psu") { agregar(numero(d.continuous_power_w) !== null && `${numero(d.continuous_power_w)} W`); agregar(texto(d.form_factor) && `formato ${texto(d.form_factor)}`); }
   if (category === "case") agregar(numero(d.gpu_limit_mm) !== null && `Placas de video de hasta ${cm(numero(d.gpu_limit_mm)!)}`);
   if (category === "storage") { agregar(texto(d.storage_interface)); agregar(texto(d.storage_form) && `formato ${texto(d.storage_form)}`); agregar(cantidad > 1 && `${cantidad} unidades`); }

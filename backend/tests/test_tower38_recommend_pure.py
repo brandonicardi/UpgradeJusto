@@ -260,7 +260,9 @@ def test_cpu_reference_workload_identity_and_no_demo_id_whitelist():
     assert gain["after"] == "214.38925258002163"
     assert gain["source"][1]["samples"] == 424
     assert gain["source"][1]["raw_sha256"].startswith("12ef15")
-    assert benefit(before, after, data, "productivity", None)["status"] == "unknown"
+    general = benefit(before, after, data, "productivity", None)
+    assert general["status"] == "supported"
+    assert general["workload"] == "relative-index"
     assert (
         reference(
             new.model_copy(update={"name": "Similar 5700X"}),
@@ -775,7 +777,7 @@ def test_closed_request_manual_comparison_and_decimal_budget():
     result = preview_snapshot(tower(old), data, "synthetic", manual, NOW)
     assert (
         result.mode == "manual_comparison"
-        and result.items[0].benefit["status"] == "unknown"
+        and result.items[0].benefit["status"] == "supported"
     )
     assert result.items[0].status == "requires_verification"
     for changes in (

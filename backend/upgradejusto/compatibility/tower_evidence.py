@@ -2,25 +2,48 @@
 
 from .basic_manufacturer import MANUFACTURER_VERSION, resolve_stock_specs
 from .models import CpuSupportInput
+from .reference_knowledge import (
+    REFERENCE_VERSION,
+    merge_reference,
+    reference_specs,
+)
 from .tower_contract import TowerComponentEvidence, TowerTechnicalEvidenceDTO
 from .tower_technical_resolver import resolve_published_technical
 
 ADAPTER_VERSION = "tower-publication-adapter-1"
 
 
+def declared_key(index):
+    return f"declared:{index}"
+
+
 def resolve_tower_evidence(tower, catalog, dataset_version):
     resolved = {}
     selected = {}
     technical_revisions = set()
-    for line in tower.lines:
+    declared = {}
+    for index, line in enumerate(tower.lines):
         component = catalog.get(line.component_id) if line.component_id else None
+        if line.component_id is None and getattr(line, "declared_model", None):
+            # A typed model gets reference facts only: it stays a declaration.
+            category = getattr(line.category, "value", str(line.category))
+            specs = reference_specs(category, line.declared_model)
+            if specs.fields:
+                declared[declared_key(index)] = (category, line.declared_model, specs)
         if component is None or component.category != line.category:
             continue
         selected.setdefault(line.category.value, []).append((line, component))
         technical = resolve_published_technical(
             component, catalog, resolve_stock_specs(component, catalog)
         )
-        resolved[component.id] = (component, technical.specs)
+        source_url = component.sources[0].url if component.sources else None
+        reference = reference_specs(
+            component.category.value, component.name, source_url
+        )
+        resolved[component.id] = (
+            component,
+            merge_reference(technical.specs, reference),
+        )
         if technical.revision_token is not None:
             technical_revisions.add(technical.revision_token)
     digests = sorted(
@@ -31,6 +54,7 @@ def resolve_tower_evidence(tower, catalog, dataset_version):
             dataset_version,
             MANUFACTURER_VERSION,
             ADAPTER_VERSION,
+            REFERENCE_VERSION,
             *digests,
             *sorted(technical_revisions),
         )
@@ -62,10 +86,16 @@ def resolve_tower_evidence(tower, catalog, dataset_version):
     return TowerTechnicalEvidenceDTO(
         data_revision=revision,
         components={
-            identity: TowerComponentEvidence(
-                component.category.value, component.name, revision, spec
-            )
-            for identity, (component, spec) in resolved.items()
+            **{
+                identity: TowerComponentEvidence(
+                    component.category.value, component.name, revision, spec
+                )
+                for identity, (component, spec) in resolved.items()
+            },
+            **{
+                identity: TowerComponentEvidence(category, model, revision, spec)
+                for identity, (category, model, spec) in declared.items()
+            },
         },
         cpu_support=support,
     )
