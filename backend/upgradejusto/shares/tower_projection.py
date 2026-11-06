@@ -527,7 +527,7 @@ class TowerPublicProjection:
             # honestly disclosed as unmeasured, and only with a reason.
             require(
                 all(
-                    rule["rule_id"] in ("T04", "T07", "T08")
+                    rule["rule_id"] in ("T04", "T06", "T07", "T08")
                     and bool(rule.get("conditions"))
                     for rule in not_applicable
                 )

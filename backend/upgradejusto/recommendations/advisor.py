@@ -23,6 +23,8 @@ SYSTEM = (
     "datos. No hagas cuentas ni nombres montos de dinero: ya están en pantalla. El "
     "único número que podés usar es el porcentaje de mejora de la lista."
 )
+# It explains value. Fit is the engine's word and performance is never promised.
+BANNED = re.compile(r"compatib|encaj|\bfps\b|garantiz|funciona|el doble", re.I)
 GOALS = {
     "gaming": "jugar mejor",
     "productivity": "trabajar más rápido",
@@ -85,7 +87,8 @@ def validated(raw, options, budget):
         # What is left of the budget is the one sum a person would expect to read.
         allowed.add(str(int(Decimal(str(budget))) - int(option["price"])))
     if (
-        key not in {option["key"] for option in options}
+        BANNED.search(reason)
+        or key not in {option["key"] for option in options}
         or not 10 <= len(reason) <= 320
         or numbers(reason) - allowed
     ):

@@ -146,17 +146,17 @@ _PRICE_WORDS = ("precio", "presupuesto", "cuesta", "cuestan", "sale", "vale", "o
 
 _VERDICT_RE = re.compile(
     r"(?P<incompatible>"
-    r"\bno\s+(?:es\s+|resulta\s+|seria\s+)?compatible\b"
-    r"|\bincompatible\b"
-    r"|\bno\s+encaja\b"
-    r"|\bno\s+entra\b"
+    r"\bno\s+(?:es\s+|son\s+|resulta\s+|resultan\s+|seria\s+|serian\s+)?compatibles?\b"
+    r"|\bincompatibles?\b"
+    r"|\bno\s+encajan?\b"
+    r"|\bno\s+entran?\b"
     r")"
     r"|(?P<requiere>"
     r"\bfalta\s+un\s+dato\b"
     r"|\bfaltan\s+datos\b"
     r"|\brequiere\s+verificacion\b"
     r")"
-    r"|(?P<compatible>\bcompatible\b|\bencaja\b)"
+    r"|(?P<compatible>\bcompatibles?\b|\bencajan?\b)"
 )
 
 _REVISION_RE = re.compile(r"\brevisi[oó]n\s+(\d+)\b|\brev\.?\s*(\d+)\b", re.IGNORECASE)

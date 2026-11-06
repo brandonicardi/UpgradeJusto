@@ -81,16 +81,20 @@ Navegador ──► Next.js (frontend, :3000, proxy con sesión + CSRF)
     auth  pcs  catalog  compatibility  recommendations  plans  shares  administration
                   │                 ▲
                   │                 │ (MCP stdio, solo lectura, verifica propiedad)
-              assistant ── LangGraph ──► Groq / Ollama (LLM)
+              assistant ── LangGraph ──► Groq / Ollama / llama.cpp (LLM)
                                          PostgreSQL 18 + pgvector (datos y RAG)
 ```
+
+Dentro del motor, `compatibility/` decide con las reglas y completa datos desde las tablas de
+conocimiento general (`compatibility/conocimiento/`). `recommendations/` ordena las propuestas y
+arma la primera PC; el modelo local, si está activo, solo elige entre propuestas ya verificadas.
 
 | Capa | Stack |
 |---|---|
 | Frontend | Next.js 16 + React 19 + Tailwind 4 (App Router; `app/api/**` hace de proxy, el navegador nunca habla directo con FastAPI) |
 | Backend | FastAPI + SQLAlchemy + Alembic, Python 3.12 con `uv`; capas router → servicio → repositorio, dominio puro sin HTTP ni BD |
 | Base de datos | PostgreSQL 18 con `pgvector` (datos y embeddings para RAG) |
-| Asistente | LangChain + LangGraph; proveedor Groq por defecto, Ollama opcional |
+| Asistente | LangChain + LangGraph; proveedor Groq por defecto; Ollama o llama.cpp (local) opcionales |
 | Infraestructura | Docker Compose (base, backend y frontend en un solo comando) |
 
 El detalle de cada decisión está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
@@ -110,6 +114,47 @@ El detalle de cada decisión está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA
   El modelo no puede pedir la PC de otra persona.
 - El veredicto de compatibilidad siempre lo calcula el motor determinístico; el
   modelo solo lo interpreta y lo explica.
+
+## Conocimiento de hardware
+
+Cuando una pieza llega con nombre pero sin ficha completa (por ejemplo «Ryzen 5 5600» o
+«RTX 3060»), el motor completa solo lo que falta, con una fuente por cada dato.
+
+- Tablas en `backend/upgradejusto/compatibility/conocimiento/`: `plataformas.json` (zócalos,
+  chipsets y generaciones), `gpus.json` (potencia recomendada de fuente, consumo e índice de
+  rendimiento) y `cpus.json` (consumo e índice de rendimiento). Las fuentes son AMD, NVIDIA,
+  PassMark (GPU) y Blender Open Data (CPU).
+- Orden de confianza: dato del fabricante, luego referencia, y si no hay nada, desconocido. Un
+  nombre ambiguo o contradictorio no aporta datos.
+- Lo que sale de una referencia se rotula «según datos de referencia». Lo que varía por modelo
+  (conectores, espacio en el gabinete, lugar para discos, ranuras) aparece como aviso «Chequeá…»
+  y no bloquea. Una incompatibilidad real domina.
+- Los índices de rendimiento son relativos: la app no publica FPS.
+- El documento que lee el chat se genera desde las mismas tablas, con el manifiesto del RAG:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m upgradejusto.assistant.reference_doc --config <manifiesto-rag> --write-doc ..\docs\conocimiento-hardware.md
+```
+
+  En Docker el RAG no está activo, porque necesita el modelo de embeddings local.
+
+## IA local (opcional)
+
+La app funciona sin IA local: sin ella, el chat usa Groq y el recomendador usa su orden
+determinístico. Para usar llama.cpp con Vulkan:
+
+1. Binario en `.tools/llama.cpp/` y modelo en `.tools/models/` (las dos carpetas están
+   ignoradas por Git). El modelo de referencia es `Qwen3.5-27B-UD-IQ3_XXS.gguf`.
+2. Levantarlo con `scripts\llama-local.ps1`. Escucha solo en `127.0.0.1:8081`.
+3. Activar lo que quieras en `.env`:
+   - `UJ_LOCAL_ADVISOR=1`: el recomendador le pide elegir una opción entre propuestas ya
+     verificadas. Una clave fuera de la lista, un número inventado, un timeout o el modelo
+     apagado dejan el orden determinístico.
+   - `UJ_CHAT_PROVIDER=llamacpp`: el chat usa el modelo local. El valor por defecto es `groq`;
+     `ollama` también es válido.
+
+Medido en una RX 9070 XT: ~35 tok/s, ~2 s por elección y tool calling correcto.
 
 ---
 
@@ -191,20 +236,39 @@ rediseño visual) y cinco prompts abreviados de referencia.
 
 ---
 
+## Setup de IA del proyecto
+
+Los agentes desarrollan el proyecto; el producto no depende de ellos. Lo que hace falta para
+reproducir el entorno:
+
+- **OpenSpec:** `openspec/` tiene las specs vigentes (`specs/`) y los cambios (`changes/`). El ciclo
+  se dispara con los comandos `/opsx-propose`, `/opsx-apply` y `/opsx-archive` (`.opencode/commands/`).
+  Node y el CLI de `openspec` deben estar en el PATH.
+- **Agentes:** `.opencode/agents/*.md`, uno por rol. Cada archivo declara su modelo en el encabezado;
+  la tabla de la sección «AI Engineering» muestra cuál usa cada uno. El revisor es de otra familia
+  de modelos a propósito.
+- **Skills:** `.opencode/skills/` (flujo de OpenSpec y diseño de frontend).
+- **MCP:** `.mcp.json` en la raíz tiene los servidores del proyecto (upgradejusto, Context7 y
+  GitHub). `opencode.json` (ignorado por Git) agrega Engram. Detalle en [`docs/MCP.md`](docs/MCP.md).
+- **Un modelo por tarea:** cada agente usa el modelo más barato que rinde para su trabajo. Un solo
+  agente escribe en cada carpeta a la vez.
+
+---
+
 ## Servidores MCP (Model Context Protocol)
 
 El entorno usa 4 servidores MCP (detalle en [`docs/MCP.md`](docs/MCP.md)):
 
 | Servidor | Tipo | Configuración | Rol |
 |---|---|---|---|
-| **Context7** | Externo (remoto) | `opencode.json` → `https://mcp.context7.com/mcp` | Documentación vigente de FastAPI, LangChain, Next.js, OpenSpec, `uv`, etc., antes de escribir código. |
-| **GitHub** | Externo (local) | `.opencode/scripts/github-mcp.ps1` | Consultar el repositorio, PRs y Actions con el token de `gh`. |
+| **Context7** | Externo (remoto) | `.mcp.json` (y `opencode.json`) → `https://mcp.context7.com/mcp` | Documentación vigente de FastAPI, LangChain, Next.js, OpenSpec, `uv`, etc., antes de escribir código. |
+| **GitHub** | Externo (local) | `.mcp.json` → `.opencode/scripts/github-mcp.ps1` | Consultar el repositorio, PRs y Actions con el token de `gh`. |
 | **Engram** | Local | `opencode.json` | Memoria persistente de decisiones entre sesiones de agentes. |
-| **upgrade-mcp** | Propio (producto) | `backend/upgradejusto/assistant/mcp_server.py` | Herramientas de solo lectura del chat (CU08). |
+| **upgrade-mcp** | Propio (producto) | `.mcp.json` → `backend/upgradejusto/assistant/mcp_server.py` | Herramientas de solo lectura del chat (CU08). |
 
-La configuración de desarrollo va en `opencode.json`, que está **ignorado por Git**
-(ver `.gitignore`) porque tiene rutas propias de cada máquina. Estructura de ejemplo,
-con placeholders en lugar de rutas personales:
+La configuración de desarrollo va en `.mcp.json` (versionado, sin rutas personales). `opencode.json`
+es local y está **ignorado por Git** (ver `.gitignore`) porque tiene rutas propias de cada máquina.
+Estructura de ejemplo de ese archivo, con placeholders en lugar de rutas personales:
 
 ```json
 {
@@ -252,11 +316,12 @@ Las pruebas de integración con PostgreSQL usan la base de Docker levantada
 |---|---|
 | `backend/` | FastAPI, motor de compatibilidad, asistente, migraciones y pruebas (ver `backend/AGENTS.md`). |
 | `frontend/` | Next.js 16, sistema de diseño y pruebas unitarias/E2E (ver `frontend/AGENTS.md`). |
-| `docs/` | Documentación: arquitectura, MCP, prompts y sistema de diseño. |
+| `docs/` | Documentación: arquitectura, MCP, prompts, sistema de diseño y `conocimiento-hardware.md` (generado desde las tablas). |
 | `data/` | Lotes de ofertas de demostración (CompraGamer y Venex) con su manifiesto. |
 | `openspec/` | Specs vigentes (`specs/`) e histórico de cambios (`changes/archive/`). |
 | `scripts/` | Arranque en Docker (`docker/`), utilidades de desarrollo y carga de datos. |
 | `.opencode/` | Agentes, comandos, skills y scripts de OpenCode (se versiona). |
+| `.mcp.json` | Servidores MCP del proyecto (raíz, se versiona). |
 | `material-privado/`, `.local/`, `.tools/` | Carpetas privadas, ignoradas por Git; nunca se publican. |
 
 ## Entregables

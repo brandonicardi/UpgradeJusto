@@ -150,3 +150,40 @@ def test_conflicted_fact_stays_conflicted():
     base = BasicSpecs({}, {"socket": (REF,)}, frozenset({"socket"}))
     merged = merge_reference(base, reference_specs("cpu", NAMES["cpu"]))
     assert merged.fact("socket") is None
+
+
+def test_a320_with_zen3_is_a_question_not_a_failure():
+    names = {
+        **NAMES,
+        "cpu": "Procesador AMD Ryzen 5 5500 AM4",
+        "motherboard": "Mother Gigabyte GA-A320M-H AM4",
+    }
+    result = evaluate(names)
+    assert "T01" in result.coverage.unknown
+    assert result.verdict == "requiere_verificacion"
+
+
+def test_laptop_and_old_chips_are_not_desktop_am4():
+    assert not reference_specs("cpu", "AMD Athlon X4 860K").fields
+    assert not reference_specs("cpu", "AMD Ryzen 5 5600H").fields
+    assert not reference_specs("cpu", "Intel Core i7-12700H").fields
+    assert reference_specs("cpu", "AMD Athlon 3000G").fields["socket"] == "AM4"
+
+
+def test_chip_published_per_memory_size_is_found():
+    specs = reference_specs("gpu", "Placa de Video ASUS RTX 3050 6GB GDDR6 OC")
+    assert specs.fields["reference_chip"] == "RTX 3050 6GB"
+
+
+def test_kit_counts_all_its_sticks():
+    board = BasicSpecs(
+        {"memory_type": "DDR4", "slots": 2, "max_total_gb": 32},
+        {key: (REF,) for key in ("memory_type", "slots", "max_total_gb")},
+        frozenset(),
+    )
+    merged = merge_reference(
+        board, reference_specs("motherboard", NAMES["motherboard"])
+    )
+    names = {**NAMES, "ram": "Memoria Patriot DDR4 64GB (2x32GB) 3200MHz"}
+    specs = {**specs_for(names), "motherboard": merged}
+    assert "T02" in evaluate(names, specs).coverage.failed

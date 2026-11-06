@@ -30,6 +30,9 @@ AMD_SERIES = {
     "8": "zen4",
     "9": "zen5",
 }
+# Laptop chips (U, H, HS, HX) come soldered: a desktop socket would be false.
+DESKTOP_RYZEN = {"", "X", "X3D", "XT", "G", "GE", "GT", "F", "T", "E"}
+DESKTOP_INTEL = {"", "K", "KF", "KS", "F", "T", "S", "TE"}
 INTEL_ENTRY = {"G49": 8, "G54": 8, "G55": 9, "G59": 10, "G64": 10, "G69": 12, "G74": 12}
 
 
@@ -96,8 +99,12 @@ def cpu_identity(text):
     if ryzen:
         tier, series, suffix = ryzen.groups()
         generation = amd_generation(series, suffix)
-        return (f"Ryzen {tier} {series}{suffix}", generation) if generation else None
-    if re.search(r"\bATHLON\b", text):
+        if suffix not in DESKTOP_RYZEN or generation is None:
+            return None
+        return (f"Ryzen {tier} {series}{suffix}", generation)
+    if re.search(
+        r"\bATHLON (?:GOLD |SILVER )?(?:3000G|200GE|220GE|240GE|300GE|320GE)\b", text
+    ):
         return ("Athlon", "zen")
     ultra = re.search(r"\bCORE ULTRA ([3579]) (2\d{2})([A-Z]{0,2})\b", text)
     if ultra:
@@ -107,7 +114,7 @@ def cpu_identity(text):
     if core:
         tier, series, suffix = core.groups()
         generation = int(series[:-3])
-        if 8 <= generation <= 14:
+        if 8 <= generation <= 14 and suffix in DESKTOP_INTEL:
             return (f"Core i{tier} {series}{suffix}", f"intel{generation}")
         return None
     entry = re.search(r"\b(?:CELERON|PENTIUM(?: GOLD)?) (G\d{4})", text)
@@ -214,6 +221,12 @@ def board_facts(built, text):
     built.add("socket", platform["socket"], source)
     built.add("chipset", chipset, source)
     built.add("supported_generations", generations, source)
+    # Works only on some boards and BIOS: a question, not a yes or a no.
+    built.add(
+        "verify_generations",
+        tuple(platform.get("verify", {}).get(chipset, ())) or None,
+        source,
+    )
     built.add("pcie_slot", "PCIe x16", source)
     built.add("module_type", "UDIMM", source)
     if len(platform["memory"]) == 1:
@@ -244,9 +257,9 @@ def gpu_row(text):
     key = gpu_key(text)
     if key is None:
         return None
-    memory = re.search(r"\b(8|16)\s?GB\b", text)
+    memory = re.search(r"\b(\d{1,2})\s?GB\b", text)
     sized = f"{key} {memory.group(1)}GB".upper() if memory else None
-    return gpu_rows().get(key.upper()) or gpu_rows().get(sized)
+    return gpu_rows().get(sized) or gpu_rows().get(key.upper())
 
 
 def gpu_facts(built, text):

@@ -19,7 +19,9 @@ objetivo de uso y presupuesto. Trabajo final del curso de Arquitectura de Agente
    compatibilidad. El LLM interpreta y explica; nunca emite el veredicto.
 2. Veredictos: `compatible`, `incompatible`, `requiere_verificacion`. Una
    incompatibilidad domina; sin evidencia suficiente → `requiere_verificacion`.
-   Desconocido nunca equivale a cero, falso ni compatible.
+   Desconocido nunca equivale a cero, falso ni compatible. Una referencia por
+   familia con fuente cuenta como evidencia y se rotula «según datos de referencia»;
+   lo que varía por modelo exacto se avisa («Chequeá…») y no bloquea.
 3. Identidad y propiedad se resuelven en el servidor (también en herramientas MCP).
    Nunca aceptar un `user_id` enviado por el cliente o el modelo.
 4. Simular no modifica la PC guardada. Una extracción es una propuesta editable que

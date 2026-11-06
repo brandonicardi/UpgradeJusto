@@ -76,7 +76,7 @@ export default function AssistantWorkspace({ pathname, compact = false }: { path
         {(!compact || !c.history?.items.length) && <div className="assistant-suggest"><ChatSuggestions sugerencias={screen.questions} onElegir={question => { c.editContent(question); input.current?.focus(); }} /></div>}
         {compact && <p className="assistant-help assistant-privacy-note">No escribas contraseñas ni datos personales. El asistente puede equivocarse.</p>}
         <form aria-label="Enviar mensaje al asistente" className="assistant-composer" onSubmit={c.send}>
-          <label className="sr-only" htmlFor="assistant-message">Mensaje al asistente</label><textarea ref={input} id="assistant-message" rows={1} required maxLength={8000} value={c.content} disabled={c.busy || c.conflict} onChange={event => c.editContent(event.target.value)} placeholder="Preguntá lo que quieras sobre tu PC" />
+          <label className="sr-only" htmlFor="assistant-message">Mensaje al asistente</label><textarea ref={input} id="assistant-message" rows={1} required maxLength={8000} value={c.content} disabled={c.busy || c.conflict} onChange={event => c.editContent(event.target.value)} placeholder="Preguntá sobre tu PC" />
           <button type="submit" className="assistant-send" disabled={c.busy || c.conflict} aria-label="Enviar"><SendHorizontal aria-hidden="true" size={18} strokeWidth={2.25} /></button>
         </form>
         {!compact && <p className="assistant-help">No escribas contraseñas ni datos personales. El asistente puede equivocarse al explicar; si algo encaja lo decide nuestro revisor.</p>}

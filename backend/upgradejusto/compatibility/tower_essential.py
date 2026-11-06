@@ -94,7 +94,11 @@ def _reference_support(cpu, board):
     admitted = check.read(
         board, "supported_generations", "motherboard.supported_generations"
     )
-    check.failed = socket != board_socket or generation not in admitted
+    doubtful = board.fact("verify_generations") or ()
+    if socket == board_socket and generation in doubtful:
+        check.missing.append("cpu_support.depends_on_board_and_bios")
+    else:
+        check.failed = socket != board_socket or generation not in admitted
     return check.result(("Socket y generación por chipset", BIOS_MAY_BE_NEEDED))
 
 
@@ -181,9 +185,11 @@ def _memory_rule(cpu, board, modules):
             and buffered != board_buffered
         ):
             check.failed = True
-        count += quantity
+        # A kit sold as one line brings several sticks.
+        sticks = quantity * (spec.fact("kit_modules") or 1)
+        count += sticks
         if capacity is not None:
-            total += capacity * quantity
+            total += capacity * sticks
             if module_max is not None and capacity > module_max:
                 check.failed = True
     if len(set(types)) > 1 or (slots is not None and count > slots):

@@ -133,7 +133,7 @@ def compatible(evaluation):
         and evaluation.coverage.complete
         and not evaluation.missing_fields
         and {r.rule_id for r in evaluation.rule_results} == set(ESSENTIAL_REQUIRED)
-        and all(r.state == "pass" for r in evaluation.rule_results)
+        and all(r.state in ("pass", "not_applicable") for r in evaluation.rule_results)
     )
 
 

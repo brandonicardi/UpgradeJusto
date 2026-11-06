@@ -49,6 +49,14 @@ def test_what_is_left_of_the_budget_is_a_given_number():
     assert advise(OPTIONS, "gaming", "1500000", post=post)["key"] == "a"
 
 
+def test_model_cannot_talk_about_fit_or_promise_performance():
+    for reason in (
+        "Es compatible con tu placa y anda bien.",
+        "Rinde el doble de FPS seguro.",
+    ):
+        assert advise(OPTIONS, "gaming", "1500000", post=reply("a", reason)) is None
+
+
 def test_malformed_answer_is_ignored():
     assert validated("no es json", OPTIONS, "1500000") is None
     assert validated('{"key": 1, "reason": 2}', OPTIONS, "1500000") is None

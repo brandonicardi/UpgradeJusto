@@ -98,7 +98,7 @@ export function parsePublicTowerShare(value: unknown): PublicTowerShare {
     const sameIds = (left: readonly string[], right: readonly string[]) => left.length === right.length && left.every((id, index) => id === right[index]);
     const notApplicable = idsWithState("not_applicable");
     // `not_applicable` nace con la política 2 y solo para espacio físico o dependencia del gabinete.
-    if (notApplicable.length && (contract !== essentialTowerContract2 || notApplicable.some(id => !["T04", "T07", "T08"].includes(id)))) return invalid();
+    if (notApplicable.length && (contract !== essentialTowerContract2 || notApplicable.some(id => !["T04", "T06", "T07", "T08"].includes(id)))) return invalid();
     // La cobertura publicada debe describir exactamente las reglas, sin ocultar ni inventar estados.
     if (!sameIds(item.evaluation.coverage.passed, idsWithState("pass")) || !sameIds(item.evaluation.coverage.failed, idsWithState("fail")) || !sameIds(item.evaluation.coverage.unknown, idsWithState("unknown")) || !sameIds(item.evaluation.coverage.not_applicable, notApplicable)) return invalid();
     if (!sameIds(item.evaluation.coverage.evaluated, [...idsWithState("pass"), ...idsWithState("fail")])) return invalid();

@@ -122,12 +122,13 @@ def test_proposal_is_complete_compatible_and_within_budget(monkeypatch):
     assert chosen["ram"] == "ram-1", "the board asks for DDR4, even if DDR5 is cheaper"
 
 
-def test_cpu_without_cooler_gets_one(monkeypatch):
+def test_cpu_without_cooler_is_disclosed_not_guessed(monkeypatch):
     patched(monkeypatch)
     data = catalog()
     del data["cpu-0"]
     result = first_build(data, "v", "gaming", Decimal(1300000), NOW)
-    assert "cooler" in {line["category"] for line in result["lines"]}
+    assert "cooler" not in {line["category"] for line in result["lines"]}
+    assert any("no trae cooler" in notice for notice in result["notices"])
 
 
 def test_small_budget_says_so_instead_of_inventing(monkeypatch):

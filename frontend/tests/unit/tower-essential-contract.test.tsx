@@ -173,8 +173,8 @@ describe("planes compartidos: los dos contratos conviven", () => {
     const parsed = parsePublicTowerShare(storage);
     expect(parsed.stages[0].evaluation.coverage.not_applicable).toEqual(["T04", "T07", "T08"]);
   });
-  it("la versión 2 solo acepta not_applicable en T04, T07 o T08", () => {
-    for (const ruleId of ["T01", "T02", "T03", "T05", "T06", "T11"]) {
+  it("la versión 2 solo acepta not_applicable en T04, T06, T07 o T08", () => {
+    for (const ruleId of ["T01", "T02", "T03", "T05", "T11"]) {
       const data = essentialShare2();
       setShareRuleState(data, ruleId, "not_applicable");
       expect(() => parsePublicTowerShare(data), `${ruleId} no puede quedar fuera de alcance`).toThrow();

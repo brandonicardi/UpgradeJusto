@@ -7,7 +7,7 @@
     {"source_id": "REF-INTEL-CHIPSETS", "url": "https://www.intel.com/content/www/us/en/products/details/chipsets.html", "locator": "Intel Chipsets: socket y generaciones admitidas"}
   ],
   "platforms": [
-    {"socket": "AM4", "memory": ["DDR4"], "source": "REF-AMD-AM4", "chipsets": {
+    {"socket": "AM4", "memory": ["DDR4"], "source": "REF-AMD-AM4", "verify": {"A320": ["zen3"]}, "chipsets": {
       "A320": ["zen", "zen+", "zen2"],
       "B350": ["zen", "zen+", "zen2", "zen3"],
       "X370": ["zen", "zen+", "zen2", "zen3"],

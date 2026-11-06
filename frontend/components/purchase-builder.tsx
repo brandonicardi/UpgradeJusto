@@ -94,7 +94,7 @@ export default function PurchaseBuilder() {
     </header>
 
     {auto?.state === "working" && <div role="status"><Notice tono="info" titulo="Estamos armando tu PC">Buscamos las piezas que mejor rinden con tu presupuesto y revisamos que encajen.</Notice></div>}
-    {auto?.state === "ready" && <Notice tono="encaja" titulo="Te armamos una PC completa que encaja">Revisamos que las piezas encajen según datos de referencia. Podés cambiar cualquiera más abajo. Chequeá stock antes de comprar.</Notice>}
+    {auto?.state === "ready" && <Notice tono="encaja" titulo="Te armamos una PC completa que encaja">Revisamos que las piezas encajen según datos de referencia. Podés cambiar cualquiera más abajo. Chequeá stock antes de comprar.{auto.notices.length > 0 && <ul>{auto.notices.map(text => <li key={text}>{text}</li>)}</ul>}</Notice>}
     {auto?.state === "none" && <Notice tono="info" titulo="Con este presupuesto no llegamos a una PC completa">Probá con un monto mayor o elegí las piezas a mano.</Notice>}
     {auto?.state === "error" && <Notice tono="revisar" titulo="No pudimos armar la propuesta">Podés elegir las piezas a mano.</Notice>}
 

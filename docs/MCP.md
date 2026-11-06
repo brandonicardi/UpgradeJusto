@@ -2,10 +2,13 @@
 
 | Servidor | Tipo | Dónde | Para qué |
 |---|---|---|---|
-| Context7 | Externo (remoto) | `opencode.json` → `https://mcp.context7.com/mcp` | Documentación vigente de FastAPI, LangChain, Next.js, OpenSpec, uv, etc., antes de escribir código. |
-| GitHub | Externo (local, solo lectura) | `.opencode/scripts/github-mcp.ps1` | Consultar el repositorio, PRs y Actions con el token de `gh`. |
-| Engram | Local | `opencode.json` | Memoria persistente de decisiones entre sesiones de agentes. |
-| upgrade-mcp (propio) | Del producto | `backend/upgradejusto/assistant/mcp_server.py` | Herramientas de solo lectura del chat: leer PC, evaluar compatibilidad, simular, catálogo, planes y búsqueda documental. |
+| Context7 | Externo (remoto) | `.mcp.json` (y `opencode.json`) → `https://mcp.context7.com/mcp` | Documentación vigente de FastAPI, LangChain, Next.js, OpenSpec, uv, etc., antes de escribir código. |
+| GitHub | Externo (local, solo lectura) | `.mcp.json` → `.opencode/scripts/github-mcp.ps1` | Consultar el repositorio, PRs y Actions con el token de `gh`. |
+| Engram | Local | `opencode.json` (ignorado por Git) | Memoria persistente de decisiones entre sesiones de agentes. |
+| upgradejusto (upgrade-mcp, propio) | Del producto | `.mcp.json` → `backend/upgradejusto/assistant/mcp_server.py` | Herramientas de solo lectura del chat: leer PC, evaluar compatibilidad, simular, catálogo, planes, recomendaciones y búsqueda documental. |
+
+`.mcp.json` (raíz, versionado) lista los tres servidores del proyecto. `opencode.json` es local:
+agrega Engram y tiene rutas propias de cada máquina.
 
 ## Cómo se usa
 - **Desarrollo:** los agentes de `.opencode/agents/` consultan Context7 antes de usar

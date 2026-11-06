@@ -29,6 +29,16 @@ NO_COOLER = re.compile(
     r"NO INCLUYE|SIN COOLER|\bOEM\b|\bTRAY\b|\bBULK\b|\bI[3579][- ]?\d{4,5}KF?S?\b",
     re.I,
 )
+# Catalog coolers do not publish their sockets: better to say so than to guess one.
+COOLER_NOTICE = (
+    "Este procesador no trae cooler: sumá uno que sirva para su zócalo. "
+    "No lo elegimos porque no sabemos con cuáles es compatible."
+)
+CHECKS_TO_SHOW = {
+    "tower_physical_space_not_evaluated",
+    "tower_connectors_not_evaluated",
+    "tower_storage_not_evaluated",
+}
 HIGH_END = re.compile(r"\bI[79][- ]?\d|\bULTRA [79]\b|\bRYZEN [79]\b", re.I)
 ENTRY_CHIPSETS = {"A320", "A520", "A620", "H310", "H410", "H510", "H610", "H810"}
 HIGH_END_PSU_MARGIN_W = 100
@@ -123,8 +133,6 @@ def rest_of_build(cpu, gpu, stock, objective):
         stock["case"], lambda part: "FUENTE" not in part.component.name.upper()
     )
     needed = [board, ram, psu, drive, case]
-    if NO_COOLER.search(cpu.component.name):
-        needed.append(stock["cooler"][0] if stock["cooler"] else None)
     return None if any(part is None for part in needed) else needed
 
 
@@ -184,6 +192,18 @@ def as_tower(parts):
     )
 
 
+def notices_for(cpu, evaluation):
+    """What the person still has to check: never hidden behind a green message."""
+    notices = [
+        check.reason
+        for check in evaluation.additional_checks
+        if check.id in CHECKS_TO_SHOW
+    ]
+    if NO_COOLER.search(cpu.component.name):
+        notices.append(COOLER_NOTICE)
+    return notices
+
+
 def first_build(catalog, version, objective, budget, now, condition="cash"):
     """Return the best proposal the engine accepts, or the reason there is none."""
     stock = {
@@ -222,7 +242,7 @@ def first_build(catalog, version, objective, budget, now, condition="cash"):
             ],
             "total_ars": str(sum(part.price for part in parts)),
             "verdict": evaluation.verdict,
-            "notices": list(evaluation.warnings),
+            "notices": notices_for(cpu, evaluation),
         }
     return {
         "status": "not_enough",

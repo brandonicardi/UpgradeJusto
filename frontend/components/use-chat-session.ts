@@ -109,8 +109,12 @@ export function useChatSession() {
       // Como cualquier chat: la charla nace con el primer mensaje, nunca al abrir el panel.
       const first = content.trim();
       if (!first) return;
+      const opening = epoch.current;
+      sending.current = true; setBusy(true);
       try { target = await (await request("", "POST", { title: first.slice(0, 60) })).json() as Conversation; }
       catch { setError("No pudimos crear la charla. Tu pregunta sigue escrita: probá de nuevo."); return; }
+      finally { if (opening === epoch.current) { sending.current = false; setBusy(false); } }
+      if (opening !== epoch.current || !target) return;
       currentConversation.current = target.id; clearContext();
       setSelected(target); setHistory({ items: [], total: 0, page: 1, page_size: 20 }); setDeleting(false); lastRequest.current = null;
       void loadList(1);
