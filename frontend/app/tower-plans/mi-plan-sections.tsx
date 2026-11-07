@@ -14,11 +14,20 @@ import type { PlanStageRead, StageState, TowerPlanDraft, TowerPlanRead } from ".
 type Tower = TowerPlanRead["snapshot"]["base_configuration"];
 const check = <Check className="mp-icon" aria-hidden="true" />;
 
-function stageSwap(plan: TowerPlanRead, index: number, names: MetadataSnapshot) {
+/** Una compra puede traer varios componentes, como placa de video y fuente: el precio es de todos juntos. */
+function stageSwaps(plan: TowerPlanRead, index: number, names: MetadataSnapshot) {
   const { snapshot } = plan, stage = snapshot.stages[index];
   const before: Tower = index === 0 ? snapshot.base_configuration : snapshot.stages[index - 1].evaluated_configuration;
-  const swap = swapSides({ actions: stage.actions as TowerPlanDraft["stages"][number]["actions"], versions: { catalog: snapshot.versions.catalog } }, before, names);
-  return { actual: plainWords(swap.actual), nueva: plainWords(swap.nueva) };
+  const actions = stage.actions as TowerPlanDraft["stages"][number]["actions"];
+  return (actions.length ? actions.map(action => [action]) : [[]]).map(group => {
+    const swap = swapSides({ actions: group, versions: { catalog: snapshot.versions.catalog } }, before, names);
+    return { actual: plainWords(swap.actual), nueva: plainWords(swap.nueva) };
+  });
+}
+/** Los planes guardados llevan el nombre del primer componente; si la compra trae más, se nombran todos. */
+function stageHeading(stage: PlanStageRead) {
+  const first = stage.actions[0]?.category;
+  return stage.actions.length > 1 && first && stage.name === categoryNames[first] ? joinLabels(stage.actions.map(action => categoryNames[action.category])) : stageTitle(stage.name);
 }
 const evaluationOf = (stage: PlanStageRead) => ({ evaluation: stage.evaluation }) as never;
 
@@ -42,19 +51,19 @@ export function EmptyView() {
 }
 
 export function NextPurchase({ plan, index, names, busy, canChange, onBuy, onOther }: { plan: TowerPlanRead; index: number; names: MetadataSnapshot; busy: boolean; canChange: boolean; onBuy: (key: string) => void; onOther: () => void }) {
-  const { snapshot } = plan, stage = snapshot.stages[index], key = plan.stage_keys?.[index], swap = stageSwap(plan, index, names);
+  const { snapshot } = plan, stage = snapshot.stages[index], key = plan.stage_keys?.[index], swaps = stageSwaps(plan, index, names);
   const offer = proposalOffer(stage), price = moneyText(stage.cost.total_ars), gain = gainText(stage.benefit);
   const space = towerEssentialNote(stage.evaluation)?.includes(physicalSpaceNote) ? physicalSpaceNote : null;
   const ok = stage.evaluation.verdict === "compatible";
   return <section className="mp-next" aria-label="Tu próxima compra">
     <div className="mp-next-main">
       <div className="mp-row mp-between"><span className="mp-m-label">Tu próxima compra · {index + 1} de {snapshot.stages.length}</span><Verdict estado={stage.evaluation.verdict} /></div>
-      <h2>{stageTitle(stage.name)}</h2>
-      <div className="mp-swap">
+      <h2>{stageHeading(stage)}</h2>
+      {swaps.length > 2 ? <ul className="mp-parts">{swaps.map((swap, part) => <li key={part}>{swap.nueva}</li>)}</ul> : swaps.map((swap, part) => <div key={part} className="mp-swap">
         <div className="mp-swap-side"><span className="mp-swap-label">Hoy tenés</span><b className="mp-part-name">{swap.actual}</b></div>
         <ArrowRight className="mp-icon" role="img" aria-label="se cambia por" />
         <div className="mp-swap-side is-new"><span className="mp-swap-label">Comprás</span><b className="mp-part-name">{swap.nueva}</b></div>
-      </div>
+      </div>)}
       {gain && <div className="mp-gain"><strong>{gain}</strong><small>{gainNote}</small></div>}
       {ok && space && <small className="mp-note">{space}</small>}
       {needsCoolerCheck(stage.actions) && <small className="mp-note">{coolerNote}</small>}
@@ -63,7 +72,7 @@ export function NextPurchase({ plan, index, names, busy, canChange, onBuy, onOth
     <div className="mp-next-buy">
       <div className="mp-price">{price ?? "Sin precio"}</div>
       <small>{price && offer ? `${offer.condition} · visto el ${shortRetailDate(offer.date)} en ${offer.store}` : "Todavía no tenemos un precio para este componente."}</small>
-      {key && <button type="button" className="mp-btn mp-btn-principal" disabled={busy} aria-label={`Ya la compré: ${stageTitle(stage.name)}`} onClick={() => onBuy(key)}>Ya la compré</button>}
+      {key && <button type="button" className="mp-btn mp-btn-principal" disabled={busy} aria-label={`Ya la compré: ${stageHeading(stage)}`} onClick={() => onBuy(key)}>Ya la compré</button>}
       {offer?.url && <a className="mp-btn mp-btn-secundario" href={offer.url} target="_blank" rel="noopener noreferrer">Ver en la tienda</a>}
       <button type="button" className="mp-btn mp-btn-quieto mp-btn-chico" disabled={busy || !canChange} onClick={onOther}>Elegir otro componente</button>
     </div>
@@ -85,12 +94,12 @@ export function PurchaseList({ plan, states, names, marks, busy, canChange, onUn
   return <section aria-label="Todas tus compras">
     <h2>Todas tus compras</h2>
     <ol className="mp-list">{plan.snapshot.stages.map((stage, index) => {
-      const state = states[index] ?? "pendiente", key = plan.stage_keys?.[index], swap = stageSwap(plan, index, names), price = moneyText(stage.cost.total_ars) ?? "Sin precio";
+      const state = states[index] ?? "pendiente", key = plan.stage_keys?.[index], nueva = stageSwaps(plan, index, names).map(swap => swap.nueva).join(" + "), price = moneyText(stage.cost.total_ars) ?? "Sin precio";
       const day = boughtOn(marks, key), verdict = stage.evaluation.verdict, problem = state !== "hecha" && verdict !== "compatible";
       return <li key={key ?? stage.position} className={state === "hecha" ? "mp-item is-done" : state === "actual" ? "mp-item is-now" : "mp-item"} aria-current={state === "actual" ? "step" : undefined}>
         <span className="mp-dot" aria-hidden="true">{state === "hecha" ? check : stage.position}</span>
-        <span className="mp-item-t"><b>{stageTitle(stage.name)}</b><small>{state === "hecha" ? `${swap.nueva} · ${day ? `comprada el ${day}` : "comprada"}` : state === "actual" ? `${swap.nueva} · es tu próxima compra` : swap.nueva}</small><span className="mp-sr">{stageKicker(stage.position, stage.actions[0]?.category, state)}</span></span>
-        <span className="mp-item-r">{price}{state === "hecha" ? key && <button type="button" className="mp-link" disabled={busy} aria-label={`Deshacer: ${stageTitle(stage.name)}`} onClick={() => onUndo(key)}>Deshacer</button> : problem && <Verdict estado={verdict} />}</span>
+        <span className="mp-item-t"><b>{stageHeading(stage)}</b><small>{state === "hecha" ? `${nueva} · ${day ? `comprada el ${day}` : "comprada"}` : state === "actual" ? `${nueva} · es tu próxima compra` : nueva}</small><span className="mp-sr">{stageKicker(stage.position, stage.actions[0]?.category, state)}</span></span>
+        <span className="mp-item-r">{price}{state === "hecha" ? key && <button type="button" className="mp-link" disabled={busy} aria-label={`Deshacer: ${stageHeading(stage)}`} onClick={() => onUndo(key)}>Deshacer</button> : problem && <Verdict estado={verdict} />}</span>
         {problem && state !== "actual" && <div className="mp-warn"><small>{missingText(stage)}</small>{verdict === "requiere_verificacion" && <Link className="mp-btn mp-btn-secundario mp-btn-chico" href="/pcs">Completar el dato</Link>}</div>}
       </li>;
     })}</ol>
