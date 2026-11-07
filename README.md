@@ -153,6 +153,11 @@ determinístico. Para usar llama.cpp con Vulkan:
      apagado dejan el orden determinístico.
    - `UJ_CHAT_PROVIDER=llamacpp`: el chat usa el modelo local. El valor por defecto es `groq`;
      `ollama` también es válido.
+   - `UJ_EXTRACTION_PROVIDER=llamacpp`: pegar una lista usa el modelo local. Tarda unos 50 s y
+     si el modelo está apagado da error, sin pasar a Groq. Lo que no pueda comprobar queda
+     para que lo revises antes de guardar.
+
+Para activar todo junto: `scripts\demo-local.ps1` levanta el modelo y la app.
 
 Medido en una RX 9070 XT: ~35 tok/s, ~2 s por elección y tool calling correcto.
 

@@ -5,7 +5,8 @@ import json
 
 from langsmith import tracing_context
 
-from upgradejusto.assistant.provider import http_client, model
+from upgradejusto.assistant.provider import extraction_model as model
+from upgradejusto.assistant.provider import extraction_seconds, http_client
 from upgradejusto.extraction.models import ProviderProposal
 from upgradejusto.pcs.service import PCError
 
@@ -39,7 +40,7 @@ class GroqExtractor:
             "untrusted_text": text,
         }
         try:
-            async with asyncio.timeout(30):
+            async with asyncio.timeout(extraction_seconds()):
                 async with http_client() as client:
                     with tracing_context(enabled=False):
                         response = await model(client).ainvoke(

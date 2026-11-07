@@ -1,3 +1,4 @@
+import { extractionWaitMs } from "./extraction-wait";
 import { adminGatewayPath, signedProxyHeaders } from "./gateway";
 import { readRequestBody, RequestBodyError, REQUEST_BODY_LIMITS } from "./request-body";
 import { retryAfterHeaders } from "./retry-after";
@@ -23,7 +24,7 @@ export async function curationProxy(request: Request, pathname: string): Promise
   try {
     const body = ["POST", "PATCH"].includes(request.method) ? await readRequestBody(request, pathname === "/api/pcs/extract" ? REQUEST_BODY_LIMITS.extract : REQUEST_BODY_LIMITS.json) : undefined;
     const upstream = await fetch(new URL(pathname + url.search, process.env.CATALOG_API_URL || "http://127.0.0.1:8000"), {
-      method: request.method, headers, cache: "no-store", redirect: "error", signal: AbortSignal.any([request.signal, AbortSignal.timeout(extraction ? 35000 : 15000)]), body,
+      method: request.method, headers, cache: "no-store", redirect: "error", signal: AbortSignal.any([request.signal, AbortSignal.timeout(extraction ? extractionWaitMs() : 15000)]), body,
     });
     if (!upstream.ok) {
       // Forward field locations only: never validation input, raw messages or bodies.

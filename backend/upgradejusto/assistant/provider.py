@@ -8,6 +8,8 @@ import certifi
 import httpx
 from langchain_groq import ChatGroq
 
+LOCAL_EXTRACTION_SECONDS = 120
+
 
 def tls_context():
     mode = os.environ.get("UJ_TLS_TRUST", "certifi")
@@ -53,7 +55,7 @@ def local_model_name():
     return name
 
 
-def llamacpp_model(_client):
+def llamacpp_model(_client, *, max_tokens=1024, timeout=60):
     """llama-server on loopback only: its OpenAI dialect, without a real key."""
     from langchain_openai import ChatOpenAI
 
@@ -62,15 +64,15 @@ def llamacpp_model(_client):
         base_url="http://127.0.0.1:8081/v1",
         api_key="local-llamacpp",
         temperature=0,
-        max_tokens=1024,
-        timeout=60,
+        max_tokens=max_tokens,
+        timeout=timeout,
         max_retries=0,
         extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     )
 
 
 def chat_model(client):
-    """CU08 only; extraction keeps model(client), without silent provider fallback."""
+    """CU08 only; extraction picks its own provider in extraction_model."""
     selected = os.environ.get("UJ_CHAT_PROVIDER", "groq")
     if selected == "groq":
         return model(client, max_tokens=800)
@@ -100,6 +102,25 @@ def chat_model(client):
             "trust_env": False,
         },
     )
+
+
+def extraction_provider():
+    selected = os.environ.get("UJ_EXTRACTION_PROVIDER", "groq")
+    if selected not in {"groq", "llamacpp"}:
+        raise ValueError("Invalid extraction provider")
+    return selected
+
+
+def extraction_seconds():
+    """Local reads the whole catalog excerpt on one GPU: it needs a longer deadline."""
+    return LOCAL_EXTRACTION_SECONDS if extraction_provider() == "llamacpp" else 30
+
+
+def extraction_model(client):
+    """Explicit choice, never a silent fallback from one provider to the other."""
+    if extraction_provider() == "llamacpp":
+        return llamacpp_model(client, max_tokens=4096, timeout=LOCAL_EXTRACTION_SECONDS)
+    return model(client)
 
 
 def http_client():

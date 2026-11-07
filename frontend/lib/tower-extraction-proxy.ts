@@ -1,3 +1,4 @@
+import { extractionWaitMs } from "./extraction-wait";
 import { signedProxyHeaders } from "./gateway";
 import { readRequestBody, RequestBodyError, REQUEST_BODY_LIMITS } from "./request-body";
 import { retryAfterHeaders } from "./retry-after";
@@ -13,7 +14,7 @@ export async function towerExtractionProxy(request: Request, action: "extract" |
   for (const key of ["Origin", "Cookie", "Content-Type", "X-CSRF-Token"]) { const value = request.headers.get(key); if (value !== null) headers.set(key, value); }
   try {
     const body = await readRequestBody(request, action === "extract" ? REQUEST_BODY_LIMITS.extract : REQUEST_BODY_LIMITS.json);
-    const response = await fetch(new URL(pathname, process.env.CATALOG_API_URL || "http://127.0.0.1:8000"), { method: "POST", headers, body, cache: "no-store", redirect: "error", signal: AbortSignal.any([request.signal, AbortSignal.timeout(action === "extract" ? 35000 : 15000)]) });
+    const response = await fetch(new URL(pathname, process.env.CATALOG_API_URL || "http://127.0.0.1:8000"), { method: "POST", headers, body, cache: "no-store", redirect: "error", signal: AbortSignal.any([request.signal, AbortSignal.timeout(action === "extract" ? extractionWaitMs() : 15000)]) });
     if (!response.ok) return fail(response.status, response.headers.get("Retry-After"));
     return Response.json(await response.json(), { status: response.status, headers: { "Cache-Control": "no-store" } });
   } catch (error) { return fail(error instanceof RequestBodyError ? error.status : 503); }
