@@ -126,6 +126,11 @@ El sistema SHALL aceptar un contexto opcional por turno, validado en servidor y 
 - **WHEN** el cliente envía una PC propia vigente, una PC ajena o una revisión que no coincide, o recarga la conversación
 - **THEN** solo el primer caso entrega al grafo una instantánea saneada sin notas privadas; los demás responden 404 o 409 antes de reservar el turno y el contexto no reaparece como guardado
 
+#### Scenario: Elegir la PC del turno sin fricción
+- **WHEN** la persona abre el chat, haya o no una charla creada
+- **THEN** se lista sus PCs; si tiene una sola se usa sola («Hablando de: nombre»), si tiene varias el asistente pregunta «¿De cuál PC hablamos?» con una opción por PC y «De ninguna», y si no tiene ninguna avisa y se puede chatear igual
+- **AND** la PC elegida antes de crear la charla se conserva al crearla con el primer mensaje, que ya la lleva; la identidad se resuelve en el servidor y el cliente no envía `user_id`
+
 ### Requirement: Documento de referencia generado desde las tablas
 
 El sistema SHALL generar `docs/conocimiento-hardware.md` desde las mismas tablas que lee el motor, con el comando `python -m upgradejusto.assistant.reference_doc --config <manifiesto> --write-doc <ruta>`, e ingerirlo en pgvector como fuente documental. El texto es explicación y MUST NOT convertirse en veredicto.

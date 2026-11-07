@@ -10,6 +10,7 @@ import { cleanAssistantText, conversationDay, toolNameLabel, toolStatusLabel } f
 import { assistantScreen } from "../lib/assistant-suggestions";
 import { statusLabel } from "./use-chat-session";
 import TowerChatContext from "./tower-chat-context";
+import { chatEligible } from "../lib/chat-pc-rule";
 
 function Citations({ values }: { values: unknown[] }) {
   return values.length ? <ul className="assistant-citations">{values.map((value, index) => {
@@ -37,7 +38,16 @@ export function AssistantConversations() {
 
 export function AssistantSelection() {
   const c = useAssistant();
-  return c.selected ? <TowerChatContext key={`${c.selected.id}-${c.contextKey}`} controller={c.towerSelection} disabled={c.busy || c.conflict} onChange={c.changeContext} /> : <p>Elegí o creá una charla para seleccionar tu PC. No se adjunta ninguna automáticamente.</p>;
+  return <TowerChatContext key={`${c.selected?.id ?? "nueva"}-${c.contextKey}`} controller={c.towerSelection} disabled={c.busy || c.conflict} onChange={c.changeContext} />;
+}
+
+/** Arriba del campo de texto: con varias PCs el asistente pregunta; sin PCs avisa; con una dice de cuál habla. */
+export function PcPrompt() {
+  const c = useAssistant(), t = c.towerSelection, pcs = chatEligible(t.list?.items);
+  if (t.choice === "ask") return <div className="assistant-pc-ask" role="group" aria-label="Elegir PC"><p>¿De cuál PC hablamos?</p><div className="row wrap">{pcs.map(pc => <button key={pc.id} type="button" className="secondary" disabled={c.busy || c.conflict} onClick={() => { void t.choose(pc.id); }}>{pc.name}</button>)}<button type="button" className="text-button" disabled={c.busy || c.conflict} onClick={() => { void t.choose(""); }}>De ninguna</button></div></div>;
+  if (t.choice === "none") return <p className="assistant-help">Todavía no cargaste una PC. <Link href="/pcs">Cargar mi PC</Link></p>;
+  if (t.selected) return <p className="assistant-help">Hablando de: {t.selected.name}</p>;
+  return null;
 }
 
 export default function AssistantWorkspace({ pathname, compact = false }: { pathname: string; compact?: boolean }) {
@@ -53,9 +63,9 @@ export default function AssistantWorkspace({ pathname, compact = false }: { path
   const pcName = c.towerSelection.selected?.name, firstMessage = c.history?.items[0];
   const privacy = c.selected ? <details className="assistant-privacy"><summary>Privacidad y opciones de la charla</summary><p>Los mensajes y los datos que elijas se envían al proveedor configurado. Las consultas no guardan PCs ni planes: no modifican tu PC ni tus planes.</p><button className="text-button" type="button" disabled={c.busy} onClick={() => c.setDeleting(true)}>Preparar borrado de conversación</button>{c.deleting && <form aria-label="Confirmar borrado de conversación" onSubmit={c.remove}><fieldset disabled={c.busy}><legend>Eliminar historial privado</legend><label><input type="checkbox" required />Confirmo eliminar esta conversación y sus mensajes, no PCs ni planes</label><button type="submit">Eliminar conversación definitivamente</button><button type="button" className="secondary" onClick={() => c.setDeleting(false)}>Cancelar borrado</button></fieldset></form>}</details> : null;
   return <div className={compact ? "assistant-workspace is-compact" : "assistant-workspace"}>
-    {compact ? <details className="assistant-manage"><summary>Tus charlas y opciones</summary><div className="assistant-manage-body"><AssistantConversations />{c.selected && <details><summary>PC y criterios para esta pregunta</summary><AssistantSelection /></details>}{privacy}</div></details> : <AssistantConversations />}
+    {compact ? <details className="assistant-manage"><summary>Tus charlas y opciones</summary><div className="assistant-manage-body"><AssistantConversations /><details><summary>PC y criterios para esta pregunta</summary><AssistantSelection /></details>{privacy}</div></details> : <AssistantConversations />}
     <section className="assistant-thread" aria-label="Conversación seleccionada" aria-busy={c.busy}>
-      {!compact && <header className="assistant-thread-head"><div><h1>{c.selected?.title || "Preguntale al asistente"}</h1><p>{c.selected ? (pcName ? `Hablando de: ${pcName}` : "Todavía no elegiste una PC para esta charla") : "Elegí o creá una charla para empezar"}</p></div>{c.selected && <button type="button" className="assistant-quiet" disabled={c.busy} onClick={() => c.recover()}>Recuperar historial sin reenviar</button>}</header>}
+      {!compact && <header className="assistant-thread-head"><div><h1>{c.selected?.title || "Preguntale al asistente"}</h1><p>{pcName ? `Hablando de: ${pcName}` : c.selected ? "Todavía no elegiste una PC para esta charla" : "Escribí tu pregunta para empezar"}</p></div>{c.selected && <button type="button" className="assistant-quiet" disabled={c.busy} onClick={() => c.recover()}>Recuperar historial sin reenviar</button>}</header>}
       <div className="assistant-messages" ref={messages}>
         {c.notice && <p role="status" className="assistant-status">{c.notice}</p>}
         {c.error && <p role="alert" className="notice">{c.error}</p>}
@@ -75,6 +85,7 @@ export default function AssistantWorkspace({ pathname, compact = false }: { path
         {c.streaming && <button type="button" className="assistant-stop" onClick={c.stop}><Square aria-hidden="true" size={14} /> Detener respuesta</button>}
         {(!compact || !c.history?.items.length) && <div className="assistant-suggest"><ChatSuggestions sugerencias={screen.questions} onElegir={question => { c.editContent(question); input.current?.focus(); }} /></div>}
         {compact && <p className="assistant-help assistant-privacy-note">No escribas contraseñas ni datos personales. El asistente puede equivocarse.</p>}
+        <PcPrompt />
         <form aria-label="Enviar mensaje al asistente" className="assistant-composer" onSubmit={c.send}>
           <label className="sr-only" htmlFor="assistant-message">Mensaje al asistente</label><textarea ref={input} id="assistant-message" rows={1} required maxLength={8000} value={c.content} disabled={c.busy || c.conflict} onChange={event => c.editContent(event.target.value)} placeholder="Preguntá sobre tu PC" />
           <button type="submit" className="assistant-send" disabled={c.busy || c.conflict} aria-label="Enviar"><SendHorizontal aria-hidden="true" size={18} strokeWidth={2.25} /></button>

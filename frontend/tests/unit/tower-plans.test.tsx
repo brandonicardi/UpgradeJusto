@@ -65,7 +65,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     expect(seed.stages).toHaveLength(1); expect(seed.stages[0].actions).toEqual([]); expect(seed.stages[0].materials).toEqual([]); expect(JSON.stringify(own)).toBe(before);
     expect(() => towerPlanInput(seed, id)).toThrow();
     const html = renderToStaticMarkup(<TowerPlanEditor pc={own} seed={seed} onSaved={() => {}} />);
-    expect(html).toContain("Sumá al menos un cambio a cada compra"); expect(html).toContain("Confirmar y guardar mi plan"); expect(html).not.toContain('checked=""');
+    expect(html).toContain("Sumá al menos un cambio a cada compra"); expect(html).toContain("Guardar mi plan"); expect(html).not.toContain('checked=""');
     expect(() => emptyManualPlan(own, { objective: "general", budget_ars: "", price_condition: "cash", workload: null, thermal_available: false }, "synthetic")).toThrow();
   });
   it("consume omisión canónica line_id sólo en replace_category/add_line y emite null sin mutar origen", () => {

@@ -5,7 +5,7 @@ import { ArrowRight, Check, X } from "lucide-react";
 import { Notice, PriceTag, Verdict } from "../../components/uj";
 import { IconoDeCategoria } from "../../components/uj/part-card";
 import { formatearMonto } from "../../components/uj/monto";
-import TowerPlanEditor from "../../components/tower-plan-editor";
+import SaveToPlan from "./save-to-plan";
 import { createPreviewMetadataLoader, type MetadataSnapshot } from "../../lib/preview-metadata";
 import { budgetBarPercent, cheapestFirst, checkRows, closestOverBudget, discardReason, groupProposals, proposalOffer } from "../../lib/conviene-presentation";
 import { altLabel, benefitLine, coolerNote, needsCoolerCheck, budgetState, categoryNames, chooseMain, convieneDraft, introLine, joinLabels, maxDiscardedShown, metadataQueriesFor, moneyText, pcAfterChange, planDraftFor, planLead, proposalCategory, swapSides, unknownChecks, whyReasons, workloadNote } from "../../lib/conviene-view";
@@ -37,7 +37,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
   const [rec, setRec] = useState<RecommendationState>({ phase: "idle", message: "", result: null });
   const [metadata, setMetadata] = useState<{ result: unknown; snapshot: MetadataSnapshot } | null>(null);
   const [chosenKey, setChosenKey] = useState<string | null>(null), [sort, setSort] = useState<"recomendadas" | "baratas">("recomendadas");
-  const [seed, setSeed] = useState<{ draft: TowerPlanDraft; key: number } | null>(null), [saved, setSaved] = useState<TowerPlanRead | null>(null), nextSeed = useRef(0);
+  const [seed, setSeed] = useState<{ draft: TowerPlanDraft; key: number; item: TowerRecommendationItem } | null>(null), [saved, setSaved] = useState<TowerPlanRead | null>(null), nextSeed = useRef(0);
   const draft = useMemo(() => goal && budget ? convieneDraft(goal.objective, budget) : null, [goal, budget]);
 
   // Una sola consulta por pedido: se pide la PC guardada y después las propuestas del servidor.
@@ -92,7 +92,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
   const cheapest = others.length > 1 ? cheapestFirst(others).find(item => item.cost.total_ars !== null)?.key ?? null : null;
 
   useEffect(() => { if (seed) { const box = document.getElementById("borrador"); box?.scrollIntoView({ block: "start" }); box?.focus({ preventScroll: true }); } }, [seed]);
-  function addToPlan(item: TowerRecommendationItem) { if (!pc || !draft) return; setSaved(null); setSeed({ key: ++nextSeed.current, draft: planDraftFor(pc, item, draft) }); }
+  function addToPlan(item: TowerRecommendationItem) { if (!pc || !draft) return; setSaved(null); setSeed({ key: ++nextSeed.current, item, draft: planDraftFor(pc, item, draft) }); }
 
   if (!goal || !budget || !draft) {
     return <div className="cv"><section className="cv-intro" style={{ paddingTop: "var(--space-7)" }}><h1>Contanos qué querés mejorar</h1><p>Para buscarte el cambio que más te conviene necesitamos saber qué querés que tu PC haga mejor y cuánto querés gastar.</p><div className="cv-row" style={{ marginTop: "var(--space-5)" }}><Link className="cv-btn cv-btn-principal" href="/">Elegir qué mejorar</Link></div></section></div>;
@@ -226,9 +226,8 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
     </div></section>}
 
     {seed && !saved && <section id="borrador" tabIndex={-1} className="cv-draft" aria-labelledby="cv-borrador">
-      <h2 id="cv-borrador">Tu borrador de plan</h2>
-      <Notice tono="info" titulo="Todavía no se guardó nada">Revisalo y cambialo si querés. Tu PC guardada no se modifica y el plan se guarda recién cuando lo confirmes.</Notice>
-      {pc && <TowerPlanEditor key={seed.key} seed={seed.draft} pc={pc} onSaved={setSaved} />}
+      <h2 id="cv-borrador" className="sr-only">Sumar a tu plan</h2>
+      {pc && <SaveToPlan key={seed.key} seed={seed.draft} rows={[{ name: seed.item.actions.map(action => swapSides({ actions: [action], versions: seed.item.versions }, pc, names).nueva).join(" + "), price: moneyText(seed.item.cost.total_ars), verdict: seed.item.evaluation.verdict }]} onSaved={setSaved} onCancel={() => setSeed(null)} />}
     </section>}
     {saved && <section id="borrador" tabIndex={-1} className="cv-draft" aria-label="Plan guardado">
       <Notice tono="encaja" titulo="Guardamos tu plan">Podés verlo etapa por etapa. Tu PC guardada sigue igual.</Notice>

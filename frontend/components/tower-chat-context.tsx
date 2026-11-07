@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { towerCategories, towerKeys, type Tower, type TowerPage } from "../lib/towers";
+import { chatEligible, pcChoice } from "../lib/chat-pc-rule";
 import { createContextRequestEpoch, emptyTurnCriteria, towerTurnContext, turnObjective, type AssistantContext } from "../lib/assistant-context";
 
 export function TowerChatSummary({ pc }: { pc: Tower }) {
@@ -11,7 +12,7 @@ type ContextChange = (context: AssistantContext | undefined, invalid: boolean) =
 export function useTowerChatSelection(enabled: boolean, onChange: ContextChange) {
   const [list, setList] = useState<TowerPage | null>(null), [page, setPage] = useState(1), [selected, setSelected] = useState<Tower | null>(null), [criteria, setCriteria] = useState(emptyTurnCriteria);
   const [loading, setLoading] = useState(true), [error, setError] = useState(""), [revisionLoad, setRevisionLoad] = useState(0);
-  const [requestedId, setRequestedId] = useState("");
+  const [requestedId, setRequestedId] = useState(""), [declined, setDeclined] = useState(false);
   const selection = useRef<AbortController | null>(null), generation = useRef(0), callback = useRef(onChange);
   const listEpoch = useRef(createContextRequestEpoch());
   useEffect(() => { callback.current = onChange; }, [onChange]);
@@ -24,12 +25,12 @@ export function useTowerChatSelection(enabled: boolean, onChange: ContextChange)
   }, [page, revisionLoad, enabled]);
   function requestList(nextPage: number, reload = false) {
     listEpoch.current.advance(); setLoading(true); setList(null);
-    if (reload) { void choose(""); setRevisionLoad(value => value + 1); }
+    if (reload) { void choose("", true); setRevisionLoad(value => value + 1); }
     else setPage(nextPage);
   }
   useEffect(() => () => { generation.current++; selection.current?.abort(); }, []);
-  async function choose(id: string) {
-    selection.current?.abort(); const ticket = ++generation.current; setRequestedId(id); setSelected(null); setCriteria(emptyTurnCriteria()); setError(""); callback.current(undefined, !!id);
+  async function choose(id: string, silent = false) {
+    selection.current?.abort(); const ticket = ++generation.current; setRequestedId(id); setDeclined(!id && !silent); setSelected(null); setCriteria(emptyTurnCriteria()); setError(""); callback.current(undefined, !!id);
     if (!id) return;
     const abort = new AbortController(); selection.current = abort;
     try {
@@ -40,6 +41,8 @@ export function useTowerChatSelection(enabled: boolean, onChange: ContextChange)
       setSelected(pc); callback.current(context, false);
     } catch { if (ticket === generation.current && !abort.signal.aborted) { setError("No se pudo confirmar la torre. Elegí Ninguna o recargá y revisá explícitamente."); callback.current(undefined, true); } }
   }
+  const choice = pcChoice(list?.items, !!list, requestedId, declined), onlyId = chatEligible(list?.items)[0]?.id;
+  useEffect(() => { if (enabled && choice === "auto" && onlyId) void choose(onlyId); });
   function update(next: typeof criteria) {
     setCriteria(next); if (!selected) return;
     try { callback.current(towerTurnContext(selected, next), false); setError(""); }
@@ -47,9 +50,9 @@ export function useTowerChatSelection(enabled: boolean, onChange: ContextChange)
   }
   const reset = useCallback(() => {
     generation.current++; selection.current?.abort(); listEpoch.current.advance();
-    setList(null); setPage(1); setSelected(null); setCriteria(emptyTurnCriteria()); setRequestedId(""); setError(""); setLoading(true); setRevisionLoad(value => value + 1);
+    setList(null); setPage(1); setSelected(null); setCriteria(emptyTurnCriteria()); setRequestedId(""); setDeclined(false); setError(""); setLoading(true); setRevisionLoad(value => value + 1);
   }, []);
-  return { list, page, selected, criteria, loading, error, requestedId, requestList, choose, update, reset };
+  return { list, page, selected, criteria, loading, error, requestedId, declined, choice, requestList, choose, update, reset };
 }
 type Selection = ReturnType<typeof useTowerChatSelection>;
 type Props = { disabled: boolean; onChange: ContextChange; controller?: Selection };

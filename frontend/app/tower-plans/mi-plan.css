@@ -101,3 +101,23 @@
   .mp-warn { grid-column: 1 / -1; }
   .mp .mp-next .mp-btn, .mp .mp-offer .mp-btn-principal { width: 100%; }
 }
+
+/* Editor de compras (tower-plan-editor): mismas tarjetas y botones que Mi plan. */
+.tpe, .tpe-form, .tpe-fieldset { display: grid; gap: var(--space-4); min-width: 0; }
+.tpe-fieldset { border: 0; margin: 0; padding: 0; }
+.tpe-stages { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-4); }
+.tpe-card { display: grid; gap: var(--space-4); width: 100%; box-sizing: border-box; }
+.tpe-actions { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.tpe-actions li { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); background: var(--papel-hundido); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); }
+.tpe-check { display: flex; gap: var(--space-3); align-items: flex-start; }
+.tpe-check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--pino); }
+.tpe-check span { display: grid; gap: 2px; }
+.tpe-more { border-top: 1px solid var(--linea); padding-top: var(--space-3); }
+.tpe-more > summary { cursor: pointer; font-weight: 600; color: var(--pino); }
+.tpe-fields { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
+.tpe select, .tpe .tpe-fields input { min-height: 44px; border: 1.5px solid var(--linea-fuerte); border-radius: var(--radius-sm); background: var(--papel-alto); color: var(--tinta); padding: var(--space-1) var(--space-3); max-width: 100%; }
+.tpe-note { margin: 0; color: var(--tinta-suave); }
+.tpe-msg { margin: 0; font-weight: 600; display: grid; gap: var(--space-2); }
+.tpe-msg.is-bad { border-left: 4px solid var(--linea-fuerte); padding-left: var(--space-3); }
+.tpe-add { justify-self: start; }
+@media (max-width: 640px) { .tpe-actions li { flex-direction: column; align-items: flex-start; } }

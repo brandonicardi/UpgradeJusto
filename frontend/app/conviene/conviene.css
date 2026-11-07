@@ -143,3 +143,17 @@
   .cv-sec-head h2 { font-size: 28px; line-height: 34px; }
   .cv-next-card { padding: var(--space-5); border-radius: var(--radius-md); }
 }
+
+.cv-save { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-lg); box-shadow: var(--sombra-1); padding: var(--space-6); display: grid; gap: var(--space-4); max-width: 720px; }
+.cv-save h3 { margin: 0; font: 650 22px/28px var(--font-display); }
+.cv-save-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.cv-save-rows li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--space-4); align-items: center; background: var(--papel-hundido); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); }
+.cv-save-name { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.cv-save-price { font-weight: 700; font-variant-numeric: tabular-nums; }
+.cv-save-check { display: flex; gap: var(--space-3); align-items: flex-start; }
+.cv-save-check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--pino); }
+.cv-save-check span { display: grid; gap: 2px; }
+.cv-save-check small { color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
+.cv-save-msg { margin: 0; font-weight: 600; }
+.cv-save-msg.is-bad { color: var(--tinta); border-left: 4px solid var(--linea-fuerte); padding-left: var(--space-3); }
+@media (max-width: 640px) { .cv-save { padding: var(--space-4); } .cv-save-rows li { grid-template-columns: minmax(0, 1fr) auto; } .cv-save-rows li > :last-child { grid-column: 1 / -1; justify-self: start; } }

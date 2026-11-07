@@ -162,3 +162,25 @@ export function planDraftFor(pc: Tower, item: TowerRecommendationItem, draft: Re
     stages: [{ name: categoria ? categoryNames[categoria] : "Primera etapa", budget_ars: draft.budget_ars, actions: structuredClone(item.actions), materials: [] }],
   };
 }
+
+/** La pasta térmica solo importa si el cambio toca el procesador o el cooler. */
+export const thermalQuestion = "¿Tenés pasta térmica? Va entre el procesador y el cooler.";
+export function touchesThermal(actions: readonly { category: string }[]): boolean {
+  return actions.some(action => action.category === "cpu" || action.category === "cooler");
+}
+export const thermalMaterial = { kind: "thermal_compound", state: "available_confirmed", confirmed: true } as const;
+
+/** «Placa de video: se cambia», en palabras de la persona. Solo para mostrar. */
+export function actionPhrase(category: TowerCategory, action: string): string {
+  const verbo = action === "add_line" ? "se suma" : action === "remove_line" ? "se saca" : "se cambia";
+  return `${categoryNames[category]}: ${verbo}`;
+}
+
+/** Texto del guardado sin nombres internos. */
+export function saveStateText(phase: "idle" | "saving" | "error" | "uncertain" | "saved"): string {
+  if (phase === "saving") return "Guardando tu plan…";
+  if (phase === "saved") return "Listo, guardamos tu plan.";
+  if (phase === "error") return "No pudimos guardar el plan. Probá de nuevo; tu PC no cambió.";
+  if (phase === "uncertain") return "Puede que el plan se haya guardado. Revisá tus planes antes de volver a intentar.";
+  return "";
+}

@@ -97,7 +97,7 @@ describe("ficha y simulación", () => {
     const calls = fetcher.mock.calls.length; expect(sumar(host).disabled).toBe(false);
     await click(sumar(host)); await settle();
     expect(host.querySelector('[aria-label="Preparar plan desde este componente"]')).not.toBeNull(); expect(host.textContent).toContain("Todavía no se guarda nada");
-    expect(fetcher.mock.calls).toHaveLength(calls);
+    expect(fetcher.mock.calls.slice(calls).every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
     expect(fetcher.mock.calls.map(([url]) => String(url)).filter(url => !url.startsWith("/api/towers?"))).toEqual(["/api/auth/csrf", "/api/towers/uno/simulate"]);
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
   });
@@ -108,8 +108,8 @@ describe("ficha y simulación", () => {
     await click(button(host, "Preparar borrador")); await settle();
     const section = host.querySelector('section[aria-label="Borrador de plan desde este componente"]');
     expect(section).not.toBeNull(); expect(section?.querySelector('section[aria-label="Borrador del plan por compras"]')).not.toBeNull();
-    expect(section?.textContent).toContain("Compra 1"); expect(section?.textContent).toContain("Componente del catálogo × 1"); expect(section?.textContent).toContain("Gráfica · Reemplazar conjunto completo"); expect(host.querySelector('[role="alert"]')).toBeNull();
-    expect(fetcher.mock.calls).toHaveLength(calls);
+    expect(section?.textContent).toContain("Placa de video: se cambia"); expect(section?.textContent).not.toContain("Componente del catálogo × 1"); expect(section?.textContent).not.toContain("Reemplazar conjunto completo"); expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(fetcher.mock.calls.slice(calls).every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
   });
   it("presupuesto inválido muestra una alerta y no abre el editor", async () => {
     pcList(); const host = await mount(<PieceFit part={part} catalogVersion="cat-v1" />); await settle();

@@ -38,7 +38,7 @@ describe("Preparar una propuesta sin guardarla", () => {
     request.mockClear(); await click(button(host, "Preparar plan"));
     const editor = host.querySelector('[aria-label="Borrador del plan por compras"]');
     expect(editor).not.toBeNull(); expect(editor?.textContent).toContain("Disco declarado"); expect(editor?.textContent).toContain("Borrador de compras: no guardado");
-    expect(button(editor!, "Confirmar y guardar mi plan")?.disabled).toBe(true);
+    expect(button(editor!, "Guardar mi plan")?.disabled).toBe(false); // guardar es un clic aparte: hasta entonces no hay pedidos
     expect(host.textContent).not.toMatch(/quedó agregado|agregamos|plan guardado/i);
     expect(request).not.toHaveBeenCalled();
   });

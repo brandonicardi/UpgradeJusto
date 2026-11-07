@@ -24,7 +24,7 @@ export function useChatSession() {
   const [contextKey, setContextKey] = useState(0);
   const lastMessageId = useRef<string | null>(null);
   function changeContext(value: AssistantContext | undefined, invalid: boolean) { turnContext.current = { value, invalid }; lastRequest.current = null; }
-  const towerSelection = useTowerChatSelection(!!selected, changeContext);
+  const towerSelection = useTowerChatSelection(access === "allowed", changeContext);
   const selectionReset = towerSelection.reset;
   const clearContext = useCallback(() => { turnContext.current = { invalid: false }; selectionReset(); setContextKey(value => value + 1); }, [selectionReset]);
   const reset = useCallback(() => {
@@ -115,7 +115,7 @@ export function useChatSession() {
       catch { setError("No pudimos crear la charla. Tu pregunta sigue escrita: probá de nuevo."); return; }
       finally { if (opening === epoch.current) { sending.current = false; setBusy(false); } }
       if (opening !== epoch.current || !target) return;
-      currentConversation.current = target.id; clearContext();
+      currentConversation.current = target.id; // la PC elegida antes de crear la charla se conserva
       setSelected(target); setHistory({ items: [], total: 0, page: 1, page_size: 20 }); setDeleting(false); lastRequest.current = null;
       void loadList(1);
     }
