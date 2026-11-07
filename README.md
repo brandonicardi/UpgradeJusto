@@ -138,6 +138,9 @@ cd backend
 ```
 
   En Docker el RAG no está activo, porque necesita el modelo de embeddings local.
+- El chat también lee nueve manuales y fichas oficiales, citando documento y página. Un manual
+  solo se usa si preguntás por ese modelo exacto: «B550M Pro4 SE» no toma datos de la «B550M Pro4».
+  Probá «¿Cuánta RAM máxima soporta la ASRock B550M Pro4?». Detalle en `docs/RAG.md`.
 
 ## IA local (opcional)
 

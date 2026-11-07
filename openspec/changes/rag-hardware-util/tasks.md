@@ -23,8 +23,8 @@ Para Claude: planificación solicitada por Brandon, todavía sin implementar. Co
 
 ## 4. Preparación reproducible y documentación (infra/documentador, secuencial)
 
-- [ ] 4.1 Documentar y comprobar en `docs/RAG.md` preparación desde metadatos versionados: obtener encoder fijado, descargar documentos autorizados, generar manifiesto con rutas locales, ingerir y ejecutar evaluación. Repetir contra base de prueba limpia; no depender de un manifiesto privado preexistente ni modificar PCs reales.
-- [ ] 4.2 Actualizar README y `docs/MCP.md` con cobertura real, preguntas de ejemplo, limitaciones y forma de ampliar corpus. Verificar enlaces y correspondencia con inventario; indicar que Docker sigue sin habilitación RAG y que llama.cpp no se configura en este cambio.
+- [x] 4.1 Documentar y comprobar en `docs/RAG.md` preparación desde metadatos versionados: obtener encoder fijado, descargar documentos autorizados, generar manifiesto con rutas locales, ingerir y ejecutar evaluación. Repetir contra base de prueba limpia; no depender de un manifiesto privado preexistente ni modificar PCs reales.
+- [x] 4.2 Actualizar README y `docs/MCP.md` con cobertura real, preguntas de ejemplo, limitaciones y forma de ampliar corpus. Verificar enlaces y correspondencia con inventario; indicar que Docker sigue sin habilitación RAG y que llama.cpp no se configura en este cambio.
 
 ## 5. Aceptación integrada y revisión
 
