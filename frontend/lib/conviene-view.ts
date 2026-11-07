@@ -86,13 +86,24 @@ export function benefitLine(item: Pick<TowerRecommendationItem, "benefit">): str
   if (/\bGB\b/.test(benefit.label ?? "")) return `Tu memoria pasa de ${benefit.before} GB a ${benefit.after} GB.`;
   const before = Number(benefit.before), after = Number(benefit.after);
   if (!(before > 0) || !(after > 0)) return `En la referencia, el puntaje pasa de ${benefit.before} a ${benefit.after}.`;
-  return `Rinde cerca de ${Math.round((after / before - 1) * 100)} % más que lo que tenés, según un índice de referencia. No es una promesa de FPS.`;
+  return `Rinde cerca de ${Math.round((after / before - 1) * 100)} % más que lo que tenés, según un índice de referencia.`;
+}
+
+/** Los FPS solo importan al jugar; para trabajar sería hablar de algo que nadie preguntó. */
+export function referenceNote(item: Pick<TowerRecommendationItem, "benefit">): string {
+  return item.benefit.workload ? "Es una referencia: no mide el rendimiento de toda tu PC." : "Es una referencia, no una promesa de FPS ni del rendimiento de toda tu PC.";
+}
+
+/** El motor no evalúa refrigeración: al cambiar el procesador se avisa, sin bloquear ni afirmar nada. */
+export const coolerNote = "Chequeá el cooler: no revisamos si el que tenés alcanza para este procesador.";
+export function needsCoolerCheck(actions: readonly { category: string }[]): boolean {
+  return actions.some(action => action.category === "cpu");
 }
 
 /** Los motivos de la tarjeta principal: la mejora, lo que se revisó y la aclaración de que no es una promesa. */
 export function whyReasons(item: TowerRecommendationItem): string[] {
   const pasaron = checkRows(item).filter(row => row.estado === "compatible").map(row => row.label);
-  return [benefitLine(item), ...(pasaron.length ? [`Revisamos con tu PC: ${joinLabels(pasaron)}.`] : []), "Es una referencia, no una promesa de FPS ni del rendimiento de toda tu PC."];
+  return [benefitLine(item), ...(pasaron.length ? [`Revisamos con tu PC: ${joinLabels(pasaron)}.`] : []), referenceNote(item)];
 }
 
 /** Cuántas piezas descartadas se listan; el resto se cuenta pero no se despliega. */

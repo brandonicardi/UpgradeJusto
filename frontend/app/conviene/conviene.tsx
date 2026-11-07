@@ -8,7 +8,7 @@ import { formatearMonto } from "../../components/uj/monto";
 import TowerPlanEditor from "../../components/tower-plan-editor";
 import { createPreviewMetadataLoader, type MetadataSnapshot } from "../../lib/preview-metadata";
 import { budgetBarPercent, cheapestFirst, checkRows, closestOverBudget, discardReason, groupProposals, proposalOffer } from "../../lib/conviene-presentation";
-import { altLabel, benefitLine, budgetState, categoryNames, chooseMain, convieneDraft, introLine, joinLabels, maxDiscardedShown, metadataQueriesFor, moneyText, pcAfterChange, planDraftFor, planLead, proposalCategory, swapSides, unknownChecks, whyReasons, workloadNote } from "../../lib/conviene-view";
+import { altLabel, benefitLine, coolerNote, needsCoolerCheck, budgetState, categoryNames, chooseMain, convieneDraft, introLine, joinLabels, maxDiscardedShown, metadataQueriesFor, moneyText, pcAfterChange, planDraftFor, planLead, proposalCategory, swapSides, unknownChecks, whyReasons, workloadNote } from "../../lib/conviene-view";
 import { goalByKey, type GoalKey } from "../../lib/home-goals";
 import { proposalTitle } from "../../lib/recommendation-card-presentation";
 import { towerEssentialNote } from "../../lib/tower-compatibility";
@@ -140,6 +140,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
           <div className="cv-swap-side is-new"><div className="cv-swap-label">Pasás a</div><div className="cv-part-name">{swap.nueva}</div></div>
         </div>
         <ul className="cv-why">{main.key === advice?.key && advice.reason && <li><Check className="cv-icon" aria-hidden="true" /><span>{advice.reason} <span className="cv-tech">Lo eligió la IA local entre opciones que ya encajan.</span></span></li>}{whyReasons(main).map(text => <li key={text}><Check className="cv-icon" aria-hidden="true" /><span>{text}</span></li>)}</ul>
+        {needsCoolerCheck(main.actions) && <p className="cv-tech">{coolerNote}</p>}
         {unknown.length > 0 && <Notice tono="revisar" titulo="Falta un dato para estar seguros">{`No pudimos confirmar: ${joinLabels(unknown)}. Completá esos datos en Mi PC y lo volvemos a revisar.`}</Notice>}
         {checkRows(main).length > 0 && <details className="cv-more">
           <summary>{main.evaluation.verdict === "compatible" ? "Qué revisamos para decir que encaja" : "Qué revisamos"}</summary>

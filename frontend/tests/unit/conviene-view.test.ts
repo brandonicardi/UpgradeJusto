@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { altLabel, benefitLine, introLine, joinLabels, planLead, swapSides, whyReasons, budgetState, chooseMain, convieneDraft, metadataQueriesFor, moneyText, pcAfterChange, planDraftFor, proposalCategory, unknownChecks, workloadNote } from "../../lib/conviene-view";
+import { altLabel, benefitLine, introLine, joinLabels, planLead, swapSides, whyReasons, budgetState, chooseMain, convieneDraft, metadataQueriesFor, moneyText, pcAfterChange, planDraftFor, proposalCategory, unknownChecks, workloadNote, needsCoolerCheck, referenceNote } from "../../lib/conviene-view";
 import { checkRows } from "../../lib/conviene-presentation";
 import { metadataKey, type MetadataSnapshot } from "../../lib/preview-metadata";
 import type { TowerRecommendationItem } from "../../lib/tower-recommendations";
@@ -108,5 +108,16 @@ describe("armado de «Lo que te conviene»", () => {
     expect(draft.stages).toHaveLength(1);
     expect(draft.stages[0]).toMatchObject({ name: "Placa de video", materials: [] });
     expect(draft.stages[0].actions[0].candidates[0].component_id).toBe("new-gpu");
+  });
+});
+
+describe("avisos de la referencia", () => {
+  it("habla de FPS solo si el objetivo no es un trabajo medido", () => {
+    expect(referenceNote({ benefit: { workload: "blender-cpu" } } as never)).not.toContain("FPS");
+    expect(referenceNote({ benefit: { workload: null } } as never)).toContain("FPS");
+  });
+  it("pide chequear el cooler solo al cambiar el procesador", () => {
+    expect(needsCoolerCheck([{ category: "cpu" }])).toBe(true);
+    expect(needsCoolerCheck([{ category: "gpu" }])).toBe(false);
   });
 });

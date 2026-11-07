@@ -6,6 +6,7 @@ import type { MetadataSnapshot } from "../../lib/preview-metadata";
 import { shortRetailDate } from "../../lib/retail-presentation";
 import { budgetBarPercent, checkRows, proposalOffer } from "../../lib/conviene-presentation";
 import { categoryNames, joinLabels, moneyText, swapSides, unknownChecks } from "../../lib/conviene-view";
+import { coolerNote, needsCoolerCheck } from "../../lib/conviene-view";
 import { boughtOn, doneCount, finishedParts, gainNote, gainText, monthsText, pcChanges, plainWords, priceRangeText, stageKicker, stageTitle } from "../../lib/mi-plan-view";
 import { physicalSpaceNote, towerEssentialNote } from "../../lib/tower-compatibility";
 import type { PlanStageRead, StageState, TowerPlanDraft, TowerPlanRead } from "../../lib/tower-plans";
@@ -56,6 +57,7 @@ export function NextPurchase({ plan, index, names, busy, canChange, onBuy, onOth
       </div>
       {gain && <div className="mp-gain"><strong>{gain}</strong><small>{gainNote}</small></div>}
       {ok && space && <small className="mp-note">{space}</small>}
+      {needsCoolerCheck(stage.actions) && <small className="mp-note">{coolerNote}</small>}
       {!ok && <Notice tono={stage.evaluation.verdict === "incompatible" ? "no" : "revisar"} titulo={stage.evaluation.verdict === "incompatible" ? "Este cambio no encaja" : "Falta un dato para estar seguros"}>{missingText(stage)}{stage.evaluation.verdict === "incompatible" ? " Elegí otro componente." : " Completá esos datos en Mi PC."}</Notice>}
     </div>
     <div className="mp-next-buy">

@@ -1,3 +1,4 @@
+import { referenceNote } from "./conviene-view";
 // Presentación de «Lo que te conviene». Solo ordena y nombra lo que devolvió la API:
 // no decide compatibilidad ni calcula precios.
 import { towerRuleLabels } from "./tower-compatibility";
@@ -74,7 +75,7 @@ export function benefitReasons(item: TowerRecommendationItem): string[] {
   else razones.push("Todavía no tenemos una referencia para medir la mejora.");
   const pasaron = checkRows(item).filter(row => row.estado === "compatible").slice(0, 2).map(row => `Revisamos: ${row.label.toLowerCase()}.`);
   razones.push(...pasaron);
-  razones.push("Es una referencia, no una promesa de FPS ni del rendimiento de toda tu PC.");
+  razones.push(referenceNote(item));
   return razones;
 }
 
