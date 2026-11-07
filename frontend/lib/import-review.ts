@@ -90,6 +90,15 @@ export function elegirCandidata(draft: TowerProposalDraft, category: TowerCatego
   return { ...draft, lines: draft.lines.map(line => line === objetivo ? siguiente : line) };
 }
 
+/** La persona tocó una sugerencia del catálogo. Un kit del catálogo cuenta como 1 porque su nombre lo dice. */
+export function elegirSugerencia(draft: TowerProposalDraft, category: TowerCategory, parte: { id: string; name: string }, n = 0): TowerProposalDraft {
+  const objetivo = draft.lines.filter(line => line.category === category)[n];
+  const quantity = unidadesPorCategoria[category].max === 1 || /\(\d+\s*x\s*\d+\s*gb\)/i.test(parte.name) ? 1 : objetivo?.quantity ?? null;
+  const elegida = { line_id: objetivo?.line_id ?? null, category, component_id: parte.id, declared_model: null, quantity };
+  const lines = objetivo ? draft.lines.map(line => line === objetivo ? elegida : line) : [...draft.lines, elegida];
+  return { ...draft, category_status: { ...draft.category_status, [category]: "present" as const }, lines };
+}
+
 export function cambiarCantidad(draft: TowerProposalDraft, category: TowerCategory, cantidad: number | null, n = 0): TowerProposalDraft {
   const objetivo = draft.lines.filter(line => line.category === category)[n];
   return objetivo ? { ...draft, lines: draft.lines.map(line => line === objetivo ? { ...line, quantity: cantidad } : line) } : draft;
