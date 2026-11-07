@@ -15,13 +15,13 @@ test("@tower02 texto real, propuesta editable nueve categorías y único guardad
   try {
     await page.goto("/pcs/import");
     const text = "Memoria: módulos DDR4, cantidad por confirmar. Almacenamiento: SSD modelo y cantidad por confirmar. Ventiladores: cantidad por confirmar. No conozco el resto de las piezas.";
-    await page.getByLabel("Texto de la PC (máximo 12000 caracteres)", { exact: true }).fill(text);
+    await page.getByRole("form", { name: "Pegar la lista de tu PC", exact: true }).locator("textarea[name=text]").fill(text);
     const extracted = page.waitForResponse(response => response.url().endsWith("/api/towers/extract") && response.request().method() === "POST", { timeout: 40000 });
-    await page.getByRole("button", { name: "Extraer propuesta", exact: true }).click();
+    await page.getByRole("button", { name: "Ordenar mi lista", exact: true }).click();
     const response = await extracted; expect(response.status()).toBe(200); const preview: TowerExtraction = await response.json();
     expect(preview.requires_confirmation).toBe(true); expect(preview.evidence).toHaveLength(9); expect(confirms).toBe(0);
     const total = await page.evaluate(async () => { const response = await fetch("/api/towers?page=1&page_size=20", { cache: "no-store" }); return (await response.json()).total; }); expect(total).toBe(0);
-    const form = page.getByRole("form", { name: "Propuesta editable de torre", exact: true }); await expect(form).toBeVisible();
+    const form = page.getByRole("form", { name: "Propuesta editable de tu PC", exact: true }); await expect(form).toBeVisible();
     // Explicit synthetic user's edits, not inferred quantities or manufacturer data.
     const remove = form.getByRole("button", { name: /^Retirar línea / }); const count = await remove.count();
     for (let i = 0; i < count; i++) await remove.first().click();

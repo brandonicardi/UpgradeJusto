@@ -22,7 +22,7 @@ export function pcAfterPurchase(pc: Tower, plan: Pick<TowerPlanRead, "snapshot">
   const own = new Set(pc.lines.map(line => line.line_id).filter((id): id is string => typeof id === "string"));
   const evaluated = stage.evaluated_configuration;
   return towerInput({
-    schema_version: 2, name: pc.name, category_status: evaluated.category_status, context: pc.context,
+    schema_version: 2, name: pc.name, category_status: evaluated.category_status, context: { ...pc.context, ...(evaluated as { context?: Partial<Tower["context"]> }).context },
     lines: evaluated.lines.map(line => ({ line_id: line.line_id && towerUUID.test(line.line_id) && own.has(line.line_id) ? line.line_id : null, category: line.category, component_id: line.component_id, declared_model: line.declared_model, quantity: line.quantity })),
   });
 }

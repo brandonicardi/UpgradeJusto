@@ -16,7 +16,7 @@ import "./mi-plan.css";
 const sinDatos: MetadataSnapshot = { status: "active", entries: new Map() };
 const monthlyKey = "uj:mi-plan:aporte-mensual";
 // «Actualizar precios» guarda una versión nueva del plan; lo que cambió se cuenta después de guardar.
-type Refresh = { phase: "confirmar" } | { phase: "guardado"; change: PriceChange; pcChanged: boolean } | { phase: "conflicto" } | { phase: "incierto" } | { phase: "error" };
+type Refresh = { phase: "confirmar" } | { phase: "guardado"; change: PriceChange; pcChanged: boolean } | { phase: "conflicto" } | { phase: "pc-cambio" } | { phase: "incierto" } | { phase: "error" };
 
 export default function MiPlan({ initialId }: { initialId?: string }) {
   const [list, setList] = useState<TowerPlanPage | null>(null), [plan, setPlan] = useState<TowerPlanRead | null>(null);
@@ -76,8 +76,11 @@ export default function MiPlan({ initialId }: { initialId?: string }) {
     if (!plan || lock.current) return;
     lock.current = true; setBusy(true); setError("");
     try {
-      setProgress({ plan, value: await setStageProgress(plan.id, stageKey, done) });
-      if (done) await offerPcUpdate(plan, index); else setOffer(null);
+      await setStageProgress(plan.id, stageKey, done);
+      // Lo gastado y lo que falta los calcula el servidor: se vuelve a leer el plan.
+      const fresh = await (await towerPlanRequest(`/${plan.id}`)).json() as TowerPlanRead;
+      setPlan(fresh); setProgress(null);
+      if (done) await offerPcUpdate(fresh, index); else setOffer(null);
     } catch { setError("No pudimos confirmar el cambio. Revisá el plan antes de volver a intentar; no se repitió el envío."); }
     finally { lock.current = false; setBusy(false); }
   }
@@ -125,6 +128,8 @@ export default function MiPlan({ initialId }: { initialId?: string }) {
     lock.current = true; setBusy(true); setError("");
     try {
       const pc = await (await towerRequest(`/${current.pc_id}`)).json() as Tower;
+      // Recalcular repetiría sobre la PC nueva compras que ya tiene: duplicaría o fallaría.
+      if (pc.revision !== current.snapshot.pc_revision) { setRefresh({ phase: "pc-cambio" }); return; }
       const catalog = await remoteCatalog<TowerCatalogPage>("?page=1&page_size=1");
       const draft = planDraftFromRead(current, pc, catalog.dataset_version, true);
       writer.current?.dispose();
@@ -175,6 +180,7 @@ export default function MiPlan({ initialId }: { initialId?: string }) {
 
     {refresh?.phase === "confirmar" && <div className="mp-status"><Notice tono="info" titulo="¿Buscamos los precios de hoy?">Guardamos una versión nueva de tu plan y te contamos si subió o bajó y si algo dejó de encajar. Tu PC guardada no cambia.</Notice><div className="mp-row"><button type="button" className="mp-btn mp-btn-principal" disabled={busy} onClick={() => void updatePrices()}>Buscar precios nuevos</button><button type="button" className="mp-btn mp-btn-quieto mp-btn-chico" disabled={busy} onClick={() => setRefresh(null)}>Ahora no</button></div></div>}
     {refresh?.phase === "guardado" && <div className="mp-status"><Notice tono={refresh.change.stopsFitting.length ? "revisar" : "encaja"} titulo="Actualizamos los precios de tu plan">{priceChangeText(refresh.change)}{refresh.change.stopsFitting.length > 0 && ` Dejó de encajar: ${refresh.change.stopsFitting.join(", ")}.`}{refresh.pcChanged && " Lo calculamos con tu PC de hoy."}</Notice></div>}
+    {refresh?.phase === "pc-cambio" && <div className="mp-status"><Notice tono="info" titulo="Tu PC ya no es la de este plan">Cambió desde que armaste el plan, así que no recalculamos nada. Para ver precios de hoy, mirá de nuevo lo que te conviene.</Notice><div className="mp-row"><Link className="mp-btn mp-btn-secundario mp-btn-chico" href="/conviene">Ver lo que te conviene</Link></div></div>}
     {refresh?.phase === "conflicto" && <div className="mp-status"><Notice tono="info" titulo="Algo cambió mientras mirabas">Tu PC, los precios del catálogo o el plan son otros. No se guardó nada y volvimos a cargar todo. Si querés, actualizá los precios de nuevo.</Notice></div>}
     {refresh?.phase === "incierto" && <div className="mp-status" role="alert"><Notice tono="revisar" titulo="No sabemos si se guardó">Puede que el plan ya tenga los precios nuevos. Recargá la página para verlo antes de volver a intentar.</Notice><div className="mp-row"><button type="button" className="mp-btn mp-btn-secundario mp-btn-chico" onClick={() => void writer.current?.retry()}>Volver a intentar</button></div></div>}
     {refresh?.phase === "error" && <div className="mp-status" role="alert"><Notice tono="no" titulo="No pudimos actualizar los precios">Tu plan sigue como estaba. Probá de nuevo en un momento.</Notice></div>}

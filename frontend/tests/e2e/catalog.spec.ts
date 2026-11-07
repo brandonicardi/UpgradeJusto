@@ -11,7 +11,7 @@ test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ pa
   const data: CatalogPage = await response.json();
   expect(data.total).toBeGreaterThan(0);
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Quiero mejorar mi PC");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Tu PC puede dar más.");
   await page.getByRole("main").getByRole("link", { name: "Explorar el catálogo", exact: true }).click();
   await expect(page).toHaveURL(/\/catalog$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Todos los componentes");

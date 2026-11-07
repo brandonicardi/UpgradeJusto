@@ -18,7 +18,7 @@ La pantalla Mi plan SHALL mostrar primero la próxima compra con el componente, 
 
 #### Scenario: Precios que suben
 - **WHEN** la persona pide actualizar precios y el total nuevo es mayor
-- **THEN** ve cuánto subió y decide si guarda los precios nuevos
+- **THEN** confirma antes de buscarlos y, ya guardados, ve cuánto subió y qué dejó de encajar
 
 #### Scenario: La PC cambió
 - **WHEN** el servidor responde conflicto por la revisión de la PC
@@ -33,4 +33,4 @@ Al marcar una compra y al terminar el plan, la pantalla SHALL ofrecer actualizar
 
 #### Scenario: Se confirma
 - **WHEN** la persona confirma y la revisión de la PC no cambió
-- **THEN** la PC guardada refleja el componente comprado y «Actualizar precios» sigue funcionando
+- **THEN** la PC guardada refleja el componente comprado y «Actualizar precios» avisa que la PC ya no es la del plan, sin recalcular

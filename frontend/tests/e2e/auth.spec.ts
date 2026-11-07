@@ -86,6 +86,6 @@ test("registro no autentica; login persiste en recarga y logout revoca", async (
   await expect(page.getByRole("status", { name: "Estado de cuenta", exact: true })).toContainText("Sesión cerrada en el servidor");
   expect(await sessionStatus()).toBe(401);
   await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Catálogo", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Catálogo de componentes", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Todos los componentes", exact: true })).toBeVisible();
   expect(googlePosts, "Local account flow must not issue Google attempts/credentials automatically").toBe(0);
 });
