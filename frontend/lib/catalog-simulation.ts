@@ -1,5 +1,6 @@
 import { towerCompatibilityRequest, towerSimulationInput } from "./tower-compatibility";
 import type { Tower, TowerPage } from "./towers";
+import { detalleDePieza } from "./mi-pc";
 import type { TowerComponent } from "./tower-catalog";
 export const catalogCategories = { gpu: "Placa de video", ram: "Memoria", cpu: "Procesador", storage: "Almacenamiento", psu: "Fuente", case: "Gabinete", motherboard: "Placa madre", cooler: "Cooler", fan: "Ventiladores" } as const;
 /** Solo atributos documentados, sin inferir medidas ni beneficios. */
@@ -9,7 +10,7 @@ export function catalogTechnicalText(part: TowerComponent): string {
     const value = part.attributes[key]?.trim();
     return value ? [`${label}: ${value}`] : [];
   });
-  return details.slice(0, 2).join(" · ") || "No tenemos más datos de esta pieza todavía";
+  return details.slice(0, 2).join(" · ") || detalleDePieza(part.category, part.attributes) || "No tenemos más datos de esta pieza todavía";
 }
 export async function loadCatalogPCs(signal: AbortSignal): Promise<{ pcs: Tower[]; access: "guest" | "ready" | "error" }> {
   try {

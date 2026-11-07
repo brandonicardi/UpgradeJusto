@@ -64,7 +64,7 @@ function porcentajeRelleno(valor: string, min: string, max: string) {
 }
 
 const PISTA =
-  "h-3 w-full cursor-pointer appearance-none rounded-pill bg-[linear-gradient(to_right,var(--pino)_0_var(--fill),var(--papel-hundido)_var(--fill)_100%)] " +
+  "h-2! min-h-0! w-full cursor-pointer appearance-none rounded-pill border-0! p-0! bg-[linear-gradient(to_right,var(--pino)_0_var(--fill),var(--papel-hundido)_var(--fill)_100%)] " +
   "focus-visible:outline-2 focus-visible:outline-offset-[6px] focus-visible:outline-foco " +
   "[&::-webkit-slider-thumb]:size-7 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full " +
   "[&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-solid [&::-webkit-slider-thumb]:border-pino [&::-webkit-slider-thumb]:bg-papel-alto [&::-webkit-slider-thumb]:shadow-sombra-1 " +
