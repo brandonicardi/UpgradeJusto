@@ -21,8 +21,11 @@ export function pcAfterPurchase(pc: Tower, plan: Pick<TowerPlanRead, "snapshot">
   if (!stage) throw new Error("Esa compra no está en el plan.");
   const own = new Set(pc.lines.map(line => line.line_id).filter((id): id is string => typeof id === "string"));
   const evaluated = stage.evaluated_configuration;
+  // Solo la BIOS: al cambiar la placa ya no vale la anterior. El estado de armado sigue siendo el de la PC.
+  const planned = (evaluated as { context?: Partial<Tower["context"]> }).context;
+  const bios = planned && "bios_version" in planned ? { bios_version: planned.bios_version ?? null } : {};
   return towerInput({
-    schema_version: 2, name: pc.name, category_status: evaluated.category_status, context: { ...pc.context, ...(evaluated as { context?: Partial<Tower["context"]> }).context },
+    schema_version: 2, name: pc.name, category_status: evaluated.category_status, context: { ...pc.context, ...bios },
     lines: evaluated.lines.map(line => ({ line_id: line.line_id && towerUUID.test(line.line_id) && own.has(line.line_id) ? line.line_id : null, category: line.category, component_id: line.component_id, declared_model: line.declared_model, quantity: line.quantity })),
   });
 }

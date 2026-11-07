@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { emptyTower } from "../../lib/towers";
 import { pcAfterPurchase, pcMatchesPlan } from "../../lib/mi-plan-pc";
 
 const line = (category: string, declared_model: string) => ({ category, component_id: null, declared_model, quantity: 1 });
@@ -19,9 +20,10 @@ describe("pcMatchesPlan", () => {
 describe("pcAfterPurchase", () => {
   it("toma la BIOS que evaluó el plan, no la de la placa anterior", () => {
     const pc = { name: "Mía", lines: [], context: { bios_version: "P9.00", notes: "x", assembly_state: null } };
-    const stage = { evaluated_configuration: { category_status: {}, context: { bios_version: null }, lines: [] } };
+    const stage = { evaluated_configuration: { category_status: emptyTower().category_status, context: { bios_version: null, assembly_state: "new" }, lines: [] } };
     const input = pcAfterPurchase(pc as never, { snapshot: { stages: [stage] } } as never, 0);
     expect(input.context.bios_version).toBeNull();
     expect(input.context.notes).toBe("x");
+    expect(input.context.assembly_state).toBeNull();
   });
 });
