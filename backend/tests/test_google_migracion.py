@@ -19,7 +19,7 @@ def test_google_additive_migration_preserves_local_credentials_and_refuses_destr
     schema = "google38_old_" + uuid4().hex
     path = (
         Path(__file__).resolve().parents[1]
-        / "alembic/versions/38_b_001_google_identity.py"
+        / "alembic/versions/b_001_identidad_google.py"
     )
     spec = importlib.util.spec_from_file_location("synthetic_google38_migration", path)
     migration = importlib.util.module_from_spec(spec)

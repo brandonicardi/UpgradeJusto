@@ -17,7 +17,7 @@ def test_additive_tower_plan_migration_keeps_prior_rows_and_refuses_data_loss(
 ):
     schema = "synthetic_plan38_" + uuid4().hex
     path = (
-        Path(__file__).resolve().parents[1] / "alembic/versions/38_d_001_tower_plans.py"
+        Path(__file__).resolve().parents[1] / "alembic/versions/d_001_torre_planes.py"
     )
     spec = importlib.util.spec_from_file_location("synthetic_plan38_migration", path)
     migration = importlib.util.module_from_spec(spec)

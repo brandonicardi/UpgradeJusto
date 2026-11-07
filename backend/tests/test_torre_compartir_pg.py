@@ -6,8 +6,8 @@ from uuid import UUID, uuid4
 import pytest
 import sqlalchemy as sa
 from test_pcs_postgres import actors as actors
-from test_tower38_plan_pg import body
-from test_tower38_plan_pg import plan_context as plan_context
+from test_torre_plan_pg import body
+from test_torre_plan_pg import plan_context as plan_context
 
 from upgradejusto.pcs.service import PCError
 from upgradejusto.plans.tower_models import TowerPlanCreate, TowerPlanRecalculate

@@ -17,7 +17,7 @@ def test_e_additive_empty_downgrade_and_budget_refusal(pg_engine):
     schema = "synthetic_share38_" + uuid4().hex
     path = (
         Path(__file__).resolve().parents[1]
-        / "alembic/versions/38_e_001_tower_shares.py"
+        / "alembic/versions/e_001_torre_compartir.py"
     )
     spec = importlib.util.spec_from_file_location("synthetic_share38_migration", path)
     migration = importlib.util.module_from_spec(spec)

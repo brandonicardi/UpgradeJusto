@@ -33,13 +33,13 @@ if (
 sys.path.insert(0, str(ROOT / "backend/tests"))
 from conftest import pg_engine as pg_engine  # noqa: E402
 from test_pcs_postgres import actors as actors  # noqa: E402
-from test_tower38_share_mounted import (  # noqa: E402
+from test_torre_compartir_montado import (  # noqa: E402
     NOTE,
     PUBLISH,
     body,
     signed,
 )
-from test_tower38_share_mounted import (  # noqa: E402
+from test_torre_compartir_montado import (  # noqa: E402
     share_context as share_context,
 )
 

@@ -14,7 +14,7 @@ test("@entry38-ui acciones, anclas y foco sin superposición1440/390", async ({ 
   const context = await newIsolatedContext(), page = await context.newPage(); page.setDefaultTimeout(10000);
   let phase = "setup", failure: string | null = null;
   try {
-    const parent = path.resolve(process.cwd(), "../.local/evidence/integral38/entry-delta");
+    const parent = path.resolve(process.cwd(), "../.local/evidence/tiendas/entry-delta");
     await mkdir(parent, { recursive: true });
     const directory = path.join(parent, `${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`);
     await mkdir(directory, { recursive: false });
@@ -70,7 +70,7 @@ test("@entry38 entrada, ayuda y continuidad real PC a propuesta sin guardado imp
     if (["/api/pcs", "/api/towers"].includes(route)) pcPosts++;
   });
   try {
-    const parent = path.resolve(process.cwd(), "../.local/evidence/integral38/entry");
+    const parent = path.resolve(process.cwd(), "../.local/evidence/tiendas/entry");
     await mkdir(parent, { recursive: true });
     const directory = path.join(parent, `${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`);
     await mkdir(directory, { recursive: false });

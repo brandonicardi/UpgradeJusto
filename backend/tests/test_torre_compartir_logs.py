@@ -18,8 +18,8 @@ import pytest
 import sqlalchemy as sa
 from fastapi.testclient import TestClient
 from test_pcs_postgres import actors as actors
-from test_tower38_share_mounted import NOTE, PUBLISH, body, checked, signed
-from test_tower38_share_mounted import share_context as share_context
+from test_torre_compartir_montado import NOTE, PUBLISH, body, checked, signed
+from test_torre_compartir_montado import share_context as share_context
 
 from upgradejusto.api.auth import COOKIE
 from upgradejusto.shares.tower_tables import budgets

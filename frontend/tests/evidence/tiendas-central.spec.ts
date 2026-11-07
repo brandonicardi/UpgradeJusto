@@ -79,7 +79,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   test(`@central38 recorrido visual REAL PC→propuesta descartada→dos etapas→snapshot ${viewport.width}`, async ({ newImageEvidenceContext, socketProxy }) => {
     // Keep the standard30s journey timeout. Build runs these serially on real TEST.
     const context = await newImageEvidenceContext(), page = await context.newPage(); await page.setViewportSize(viewport);
-    const parent = path.resolve(process.cwd(), `../.local/integral38/central-final-${viewport.width}`);
+    const parent = path.resolve(process.cwd(), `../.local/tiendas/central-final-${viewport.width}`);
     await mkdir(parent, { recursive: true });
     const directory = path.join(parent, `${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`);
     await mkdir(directory, { recursive: false });

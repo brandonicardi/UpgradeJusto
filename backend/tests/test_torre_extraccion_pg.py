@@ -12,7 +12,7 @@ from test_assistant_postgres import assistant_actors as assistant_actors
 from test_pcs_postgres import ORIGIN
 from test_pcs_postgres import actors as actors
 from test_security37_pg import budget_state as budget_state
-from test_tower38_extraction import observed, output, populate
+from test_torre_extraccion import observed, output, populate
 
 from upgradejusto.api.tower_extraction import service
 from upgradejusto.auth.provider_budget import ProviderBudget, leases

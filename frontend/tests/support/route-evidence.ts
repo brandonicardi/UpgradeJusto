@@ -10,7 +10,7 @@ export async function routeEvidence(context: BrowserContext, width: number, grou
   cleanup: (action: () => Promise<void>) => void;
   shot: (file: string, anchor: Locator, top?: boolean) => Promise<void>;
 }) => Promise<void>) {
-  const parent = path.resolve(process.cwd(), "../.local/integral38/v0-routes"); await mkdir(parent, { recursive: true });
+  const parent = path.resolve(process.cwd(), "../.local/tiendas/v0-routes"); await mkdir(parent, { recursive: true });
   const directory = path.join(parent, `${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`); await mkdir(directory);
   const page = await context.newPage(); await page.setViewportSize({ width, height: width === 390 ? 844 : 900 }); page.setDefaultTimeout(5000);
   let phase = "setup", failed = false, cleanupFailed = false;

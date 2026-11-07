@@ -12,8 +12,8 @@ from mcp import Client
 from test_assistant_mcp_contract import child_params
 from test_pcs_postgres import actors as actors
 from test_plans_postgres import save as save_legacy
-from test_tower38_plan_pg import body
-from test_tower38_plan_pg import plan_context as plan_context
+from test_torre_plan_pg import body
+from test_torre_plan_pg import plan_context as plan_context
 
 from upgradejusto.assistant.repository import Repository
 from upgradejusto.assistant.tables import conversations as conversation_rows

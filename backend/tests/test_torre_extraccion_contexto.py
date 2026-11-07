@@ -5,7 +5,7 @@ import json
 from types import SimpleNamespace
 
 import pytest
-from test_tower38_extraction import Budget, observed, output, populate
+from test_torre_extraccion import Budget, observed, output, populate
 
 from upgradejusto.catalog.models import Category, Component
 from upgradejusto.extraction.tower_context import (

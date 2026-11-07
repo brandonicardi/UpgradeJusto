@@ -23,9 +23,9 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STORES = ROOT / ".local/integral38/stores"
+STORES = ROOT / ".local/tiendas/stores"
 LOTES = ROOT / "data/catalogo/lotes"
-RESEARCH = ROOT / ".local/integral38/research"
+RESEARCH = ROOT / ".local/tiendas/research"
 ENTRY_PREFIX = "data/catalogo/lotes/"
 STORE_ORDER = ("compragamer", "venex")
 SHA_RE = re.compile(r"[0-9a-f]{64}")

@@ -59,7 +59,7 @@ test("CU03 CRUD real, revisión, contexto null y aislamiento de dos propietarios
   try {
     await authenticate(a); await authenticate(b);
     // Este recorrido protege el flujo histórico de seis categorías (/pcs/legacy);
-    // /pcs es el editor de torre y lo cubre towers38.spec.ts.
+    // /pcs es el editor de torre y lo cubre torres.spec.ts.
     await a.goto("/pcs/legacy"); await b.goto("/pcs/legacy");
     // El servidor de desarrollo hidrata después del primer render: esperar la lista real, no el esqueleto.
     await expect(a.getByRole("region", { name: "Lista de PCs", exact: true })).toContainText("No hay PCs guardadas", { timeout: 20000 });

@@ -53,7 +53,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     // Default30s retained. No login, Google, provider, shared capability or writes.
     const context = await newImageEvidenceContext(), page = await context.newPage();
     await page.setViewportSize(viewport);
-    const parent = path.resolve(process.cwd(), "../.local/integral38/catalog-before");
+    const parent = path.resolve(process.cwd(), "../.local/tiendas/catalog-before");
     await mkdir(parent, { recursive: true });
     const directory = path.join(parent, `${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`);
     await mkdir(directory, { recursive: false });

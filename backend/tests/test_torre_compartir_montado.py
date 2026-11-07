@@ -13,7 +13,7 @@ from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 from test_pcs_postgres import ORIGIN, create
 from test_pcs_postgres import actors as actors
-from test_tower38_plan_pg import body
+from test_torre_plan_pg import body
 
 from upgradejusto.api.body_limits import BodyLimits
 from upgradejusto.api.tower_share_boundary import (

@@ -12,8 +12,8 @@ from uuid import UUID, uuid4
 import pytest
 import sqlalchemy as sa
 from fastapi.testclient import TestClient
-from google38_fixtures import CLIENT_ID
-from google38_fixtures import rsa_material as rsa_material
+from google_fixtures import CLIENT_ID
+from google_fixtures import rsa_material as rsa_material
 from test_pcs_postgres import ORIGIN, PASSWORD
 from test_pcs_postgres import actors as actors
 

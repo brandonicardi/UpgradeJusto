@@ -97,11 +97,11 @@ def main():
         else:
             raise AssertionError("Delayed open received a new body budget")
     response.read1.assert_not_called()
-    local = Path(__file__).resolve().parents[1] / ".local/integral38"
+    local = Path(__file__).resolve().parents[1] / ".local/tiendas"
     local.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="venex-guards-", dir=local) as tmp:
         root = Path(tmp)
-        cached = root / ".local/integral38/stores/venex/latest.json"
+        cached = root / ".local/tiendas/stores/venex/latest.json"
         cached.parent.mkdir(parents=True)
         sentinel = json.dumps(
             {"records": [{"product_id": "old", "observed_at": "preserve-old-date"}]}

@@ -6,8 +6,8 @@ from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
-from test_tower38_plan_pure import calculate, draft, stage
-from test_tower38_recommend_pure import NOW, catalog, cpus, part, tower
+from test_torre_plan_puro import calculate, draft, stage
+from test_torre_recomendar_puro import NOW, catalog, cpus, part, tower
 
 from upgradejusto.catalog.models import Source
 from upgradejusto.catalog.service import ResolvedCatalog

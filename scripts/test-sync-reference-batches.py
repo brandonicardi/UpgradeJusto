@@ -135,7 +135,7 @@ def batch_of(lotes, entry):
 
 
 def main():
-    local = Path(__file__).resolve().parents[1] / ".local/integral38"
+    local = Path(__file__).resolve().parents[1] / ".local/tiendas"
     local.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(
         prefix="sync-batches-", dir=local, ignore_cleanup_errors=True

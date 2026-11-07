@@ -213,7 +213,7 @@ def main():
         parser.error(
             "Product batch must be1..200; the report remains explicitly partial"
         )
-    folder = Path(__file__).resolve().parents[1] / ".local/integral38/stores/venex"
+    folder = Path(__file__).resolve().parents[1] / ".local/tiendas/stores/venex"
     index = folder / "latest.json"
     if not args.refresh:
         if not index.is_file():

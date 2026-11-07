@@ -4,7 +4,7 @@ from copy import deepcopy
 from uuid import UUID
 
 import pytest
-from test_tower38_engine import REF, fixture
+from test_torre_motor import REF, fixture
 
 from upgradejusto.compatibility.basic_specs import BasicSpecs
 from upgradejusto.compatibility.tower_contract import (

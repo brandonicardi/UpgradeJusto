@@ -4,7 +4,7 @@ import nextConfig from "../../next.config";
 
 describe("contrato de arranque E2E local de producción", () => {
   it("CU09 inherits normal main servers, without test factories or injected runtime", () => {
-    const source = readFileSync(new URL("../../playwright.tower-share38.config.ts", import.meta.url), "utf8");
+    const source = readFileSync(new URL("../../playwright.torre-compartir.config.ts", import.meta.url), "utf8");
     expect(source).toContain('import base from "./playwright.config"'); expect(source).not.toContain("webServer:");
     for (const forbidden of ["runtime_probe", "--app-dir", "factory", "command.replace"]) expect(source).not.toContain(forbidden);
     expect(source).toContain('trace: "off"'); expect(source).toContain('screenshot: "off"'); expect(source).toContain('video: "off"');

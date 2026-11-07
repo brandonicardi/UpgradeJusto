@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 import sqlalchemy as sa
-from test_retail38_models import synthetic_batch
+from test_minorista_modelos import synthetic_batch
 
 from upgradejusto.administration.repository import AdministrationRepository
 from upgradejusto.administration.tables import active, revisions, roles, rows

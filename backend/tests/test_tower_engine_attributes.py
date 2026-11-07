@@ -1,6 +1,6 @@
 """The closed per-category attribute list must cover what the policy reports."""
 
-from test_tower38_engine import fixture
+from test_torre_motor import fixture
 from test_tower_essential import evaluate
 
 from upgradejusto.compatibility.tower_essential import ESSENTIAL_ATTRIBUTES

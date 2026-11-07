@@ -14,8 +14,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-STORES = ROOT / ".local/integral38/stores"
-OUTPUT = ROOT / ".local/integral38/batches"
+STORES = ROOT / ".local/tiendas/stores"
+OUTPUT = ROOT / ".local/tiendas/batches"
 
 
 def digest(value):
@@ -250,7 +250,7 @@ def main():
     proofs = {}
     if args.venex_condition_evidence:
         path = args.venex_condition_evidence.resolve()
-        research = (ROOT / ".local/integral38/research").resolve()
+        research = (ROOT / ".local/tiendas/research").resolve()
         if (
             path.parent != research
             or path.suffix != ".json"

@@ -15,7 +15,7 @@ from test_pcs_postgres import create
 from test_plans_postgres import plan_actors as plan_actors
 from test_plans_postgres import save
 from test_shares_postgres import publish as share_plan
-from test_towers38_models import declared, payload
+from test_torres_modelos import declared, payload
 
 from upgradejusto.catalog.dataset import COMPONENTS
 from upgradejusto.catalog.postgres import PostgresCatalogRepository
@@ -267,7 +267,7 @@ def test_tower_crud_ownership_ids_revision_legacy_and_selection_beyond50(
 
 def test_additive_migration_on_synthetic_pre38_schema_preserves_legacy(pg_engine):
     schema = "tower38_old_" + uuid4().hex
-    path = Path(__file__).resolve().parents[1] / "alembic/versions/38_a_001_towers.py"
+    path = Path(__file__).resolve().parents[1] / "alembic/versions/a_001_torres.py"
     spec = importlib.util.spec_from_file_location("isolated_tower38_migration", path)
     migration = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(migration)

@@ -161,7 +161,7 @@ def main():
     )
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    folder = root / ".local/integral38/stores/compragamer"
+    folder = root / ".local/tiendas/stores/compragamer"
     index = folder / "latest.json"
     try:
         if not args.refresh:

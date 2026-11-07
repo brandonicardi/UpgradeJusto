@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
-from test_tower38_engine import evaluate, fixture
+from test_torre_motor import evaluate, fixture
 
 from upgradejusto.assistant.models import MessageCreate
 from upgradejusto.assistant.service import AssistantService

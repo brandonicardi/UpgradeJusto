@@ -5,7 +5,7 @@ from copy import deepcopy
 from types import SimpleNamespace
 
 import pytest
-from test_tower38_engine import REF, fixture
+from test_torre_motor import REF, fixture
 
 from upgradejusto.catalog.models import Component, Source
 from upgradejusto.catalog.service import ResolvedCatalog

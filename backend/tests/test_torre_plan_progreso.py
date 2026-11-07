@@ -17,8 +17,8 @@ from alembic.operations import Operations
 from alembic.script import ScriptDirectory
 from fastapi import Request
 from test_pcs_postgres import actors as actors
-from test_tower38_plan_pg import body
-from test_tower38_plan_pg import plan_context as plan_context
+from test_torre_plan_pg import body
+from test_torre_plan_pg import plan_context as plan_context
 
 from upgradejusto.api.proxy_ip import permitted_tower_plan_request
 from upgradejusto.api.tower_plans import ingress
@@ -260,7 +260,7 @@ def test_f_additive_progress_migration_from_empty_schema(pg_engine):
     schema = "synthetic_progress38_" + uuid4().hex
     path = (
         Path(__file__).resolve().parents[1]
-        / "alembic/versions/38_f_001_tower_plan_progress.py"
+        / "alembic/versions/f_001_torre_plan_progreso.py"
     )
     spec = importlib.util.spec_from_file_location(
         "synthetic_progress38_migration", path

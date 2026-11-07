@@ -153,8 +153,8 @@ def stuck_child(root, name, sentinel):
 
 
 def both_readers_run_with_saved_responses(root):
-    cg_index = root / ".local/integral38/stores/compragamer/latest.json"
-    vx_index = root / ".local/integral38/stores/venex/latest.json"
+    cg_index = root / ".local/tiendas/stores/compragamer/latest.json"
+    vx_index = root / ".local/tiendas/stores/venex/latest.json"
     code, summary = runner.run_readers(
         budget_seconds=120.0,
         pause_seconds=0.0,
@@ -177,8 +177,8 @@ def both_readers_run_with_saved_responses(root):
 
 
 def down_site_keeps_previous_batches(root):
-    cg_index = root / ".local/integral38/stores/compragamer/latest.json"
-    vx_index = root / ".local/integral38/stores/venex/latest.json"
+    cg_index = root / ".local/tiendas/stores/compragamer/latest.json"
+    vx_index = root / ".local/tiendas/stores/venex/latest.json"
     cg_index.parent.mkdir(parents=True, exist_ok=True)
     vx_index.parent.mkdir(parents=True, exist_ok=True)
     cg_sentinel = '{"synthetic":"preserve-previous-observation"}'
@@ -251,7 +251,7 @@ def budget_cut_kills_the_child_and_publishes_nothing(root):
 
 
 def main():
-    local = REPO / ".local/integral38"
+    local = REPO / ".local/tiendas"
     local.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="refprices-", dir=local) as tmp:
         root = Path(tmp)

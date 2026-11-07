@@ -12,8 +12,8 @@ import pytest
 from fastapi.testclient import TestClient
 from test_pcs_postgres import ORIGIN, create
 from test_pcs_postgres import actors as actors
-from test_tower38_plan_pg import body
-from test_tower38_share_mounted import KEY, PUBLISH, signed
+from test_torre_compartir_montado import KEY, PUBLISH, signed
+from test_torre_plan_pg import body
 
 from upgradejusto import main as main_module
 from upgradejusto.api.tower_share_boundary import SHARE_HEADERS

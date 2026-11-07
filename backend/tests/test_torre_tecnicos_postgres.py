@@ -6,9 +6,9 @@ from uuid import uuid4
 
 import pytest
 import sqlalchemy as sa
-from test_retail38_models import synthetic_batch
-from test_retail38_postgres import BoundEngine
-from test_tower38_technical_models import technical_fixture
+from test_minorista_modelos import synthetic_batch
+from test_minorista_postgres import BoundEngine
+from test_torre_tecnicos_modelos import technical_fixture
 
 from upgradejusto.administration.repository import AdministrationRepository
 from upgradejusto.administration.tables import active, roles, rows

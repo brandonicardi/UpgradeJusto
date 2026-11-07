@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
-from test_tower38_recommend_pure import NOW, catalog, cpus, offer, part, tower
+from test_torre_recomendar_puro import NOW, catalog, cpus, offer, part, tower
 
 from upgradejusto.compatibility.tower_contract import (
     ESSENTIAL_REQUIRED as REQUIRED,

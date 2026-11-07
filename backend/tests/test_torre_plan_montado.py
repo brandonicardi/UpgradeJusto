@@ -13,7 +13,7 @@ from fastapi import Request
 from fastapi.testclient import TestClient
 from test_pcs_postgres import ORIGIN, create
 from test_pcs_postgres import actors as actors
-from test_tower38_plan_pg import body
+from test_torre_plan_pg import body
 
 from upgradejusto.administration.tables import active
 from upgradejusto.api.proxy_ip import permitted_query

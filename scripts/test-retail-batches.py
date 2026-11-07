@@ -120,7 +120,7 @@ def main():
     )
     assert module.venex_category({"name": "Fan Cooler TEST Pack x3"}) == "fan"
     assert module.venex_category({"name": "Gabinete TEST"}) == "case"
-    local = Path(__file__).resolve().parents[1] / ".local/integral38"
+    local = Path(__file__).resolve().parents[1] / ".local/tiendas"
     local.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="batch-schema-", dir=local) as temp:
         root = Path(temp)

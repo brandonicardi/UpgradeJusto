@@ -104,11 +104,11 @@ def main():
             else:
                 raise AssertionError("Expired EOF accepted")
     response.read.assert_not_called()
-    local = Path(__file__).resolve().parents[1] / ".local/integral38"
+    local = Path(__file__).resolve().parents[1] / ".local/tiendas"
     local.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="store-guards-", dir=local) as tmp:
         root = Path(tmp)
-        cached = root / ".local/integral38/stores/compragamer/latest.json"
+        cached = root / ".local/tiendas/stores/compragamer/latest.json"
         cached.parent.mkdir(parents=True)
         sentinel = '{"synthetic":"preserve-previous-observation"}'
         cached.write_text(sentinel, encoding="utf-8")

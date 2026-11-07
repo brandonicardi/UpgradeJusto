@@ -16,7 +16,7 @@ async function api(page: Page, route: string, method = "GET", body?: unknown) {
 }
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) test(`@v0-integrated vacío→compra real→guardar explícito→motor→plan ${viewport.width}`, async ({ newImageEvidenceContext }) => {
   const context = await newImageEvidenceContext(), page = await context.newPage(); await page.setViewportSize(viewport); page.setDefaultTimeout(5000);
-  const parent = path.resolve(process.cwd(), "../.local/integral38/v0-integrated"); await mkdir(parent, { recursive: true });
+  const parent = path.resolve(process.cwd(), "../.local/tiendas/v0-integrated"); await mkdir(parent, { recursive: true });
   const directory = path.join(parent, `${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`); await mkdir(directory, { recursive: false });
   const captures: { file: string; horizontal_overflow: boolean }[] = [];
   let phase = "own-account", failure: string | null = null, own: Tower | null = null, plan: TowerPlanRead | null = null, pcPosts = 0, planPosts = 0, cleanupFailed = false;

@@ -3,8 +3,8 @@
 from time import time
 
 import pytest
-from google38_fixtures import CLIENT_ID
-from google38_fixtures import rsa_material as rsa_material
+from google_fixtures import CLIENT_ID
+from google_fixtures import rsa_material as rsa_material
 
 from upgradejusto.auth.google_models import GoogleCredential
 from upgradejusto.auth.google_verifier import CertificateRequest, GoogleVerifier
