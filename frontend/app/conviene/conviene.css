@@ -160,4 +160,5 @@
 
 /* Varios cambios en una sugerencia: cada uno con su antes y después. */
 .cv-swap-group { display: grid; gap: var(--space-2); }
-.cv-swap-extra { display: flex; align-items: center; gap: var(--space-2); margin: 0; font: 600 14px/20px var(--font-sans); color: var(--pino); }
+.cv-swap-price { margin-top: var(--space-1); font: 700 15px/20px var(--font-sans); font-variant-numeric: tabular-nums; }
+.cv-swap-extra { display: flex; align-items: center; justify-content: center; gap: var(--space-2); margin: var(--space-1) 0; text-align: center; font: 600 14px/20px var(--font-sans); color: var(--pino); }

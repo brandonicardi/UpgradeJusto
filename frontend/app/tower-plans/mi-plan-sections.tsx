@@ -5,7 +5,7 @@ import { IconoDeCategoria } from "../../components/uj/part-card";
 import type { MetadataSnapshot } from "../../lib/preview-metadata";
 import { shortRetailDate } from "../../lib/retail-presentation";
 import { budgetBarPercent, checkRows, proposalOffer } from "../../lib/conviene-presentation";
-import { categoryNames, joinLabels, moneyText, swapSides, unknownChecks } from "../../lib/conviene-view";
+import { actionPrice, categoryNames, joinLabels, moneyText, swapSides, unknownChecks } from "../../lib/conviene-view";
 import { coolerNote, needsCoolerCheck } from "../../lib/conviene-view";
 import { boughtOn, doneCount, finishedParts, gainNote, gainText, monthsText, pcChanges, plainWords, priceRangeText, stageKicker, stageTitle } from "../../lib/mi-plan-view";
 import { physicalSpaceNote, towerEssentialNote } from "../../lib/tower-compatibility";
@@ -21,13 +21,15 @@ function stageSwaps(plan: TowerPlanRead, index: number, names: MetadataSnapshot)
   const actions = stage.actions as TowerPlanDraft["stages"][number]["actions"];
   return (actions.length ? actions.map(action => [action]) : [[]]).map(group => {
     const swap = swapSides({ actions: group, versions: { catalog: snapshot.versions.catalog } }, before, names);
-    return { actual: plainWords(swap.actual), nueva: plainWords(swap.nueva) };
+    return { actual: plainWords(swap.actual), nueva: plainWords(swap.nueva), price: actions.length > 1 && group[0] ? actionPrice(stage.cost, group[0]) ?? "Sin precio" : null };
   });
 }
 /** Los planes guardados llevan el nombre del primer componente; si la compra trae más, se nombran todos. */
 function stageHeading(stage: PlanStageRead) {
   const first = stage.actions[0]?.category;
-  return stage.actions.length > 1 && first && stage.name === categoryNames[first] ? joinLabels(stage.actions.map(action => categoryNames[action.category])) : stageTitle(stage.name);
+  if (stage.actions.length < 2 || !first || stage.name !== categoryNames[first]) return stageTitle(stage.name);
+  const labels = stage.actions.map(action => categoryNames[action.category]);
+  return labels.length === 2 ? `${labels[0]} y ${labels[1].toLowerCase()}` : joinLabels(labels);
 }
 const evaluationOf = (stage: PlanStageRead) => ({ evaluation: stage.evaluation }) as never;
 
@@ -59,10 +61,10 @@ export function NextPurchase({ plan, index, names, busy, canChange, onBuy, onOth
     <div className="mp-next-main">
       <div className="mp-row mp-between"><span className="mp-m-label">Tu próxima compra · {index + 1} de {snapshot.stages.length}</span><Verdict estado={stage.evaluation.verdict} /></div>
       <h2>{stageHeading(stage)}</h2>
-      {swaps.length > 2 ? <ul className="mp-parts">{swaps.map((swap, part) => <li key={part}>{swap.nueva}</li>)}</ul> : swaps.map((swap, part) => <div key={part} className="mp-swap">
+      {swaps.length > 2 ? <ul className="mp-parts">{swaps.map((swap, part) => <li key={part}><span>{swap.nueva}</span>{swap.price && <b>{swap.price}</b>}</li>)}</ul> : swaps.map((swap, part) => <div key={part} className="mp-swap">
         <div className="mp-swap-side"><span className="mp-swap-label">Hoy tenés</span><b className="mp-part-name">{swap.actual}</b></div>
         <ArrowRight className="mp-icon" role="img" aria-label="se cambia por" />
-        <div className="mp-swap-side is-new"><span className="mp-swap-label">Comprás</span><b className="mp-part-name">{swap.nueva}</b></div>
+        <div className="mp-swap-side is-new"><span className="mp-swap-label">Comprás</span><b className="mp-part-name">{swap.nueva}</b>{swap.price && <span className="mp-swap-price">{swap.price}</span>}</div>
       </div>)}
       {gain && <div className="mp-gain"><strong>{gain}</strong><small>{gainNote}</small></div>}
       {ok && space && <small className="mp-note">{space}</small>}

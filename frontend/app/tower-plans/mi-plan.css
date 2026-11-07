@@ -31,7 +31,7 @@
 .mp-next { background: var(--papel-alto); border: 1px solid var(--pino); border-radius: var(--radius-lg); box-shadow: var(--sombra-2); padding: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--space-6); align-items: stretch; }
 .mp-next-main { display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
 .mp-next-main p { margin: 0; }
-.mp-next-buy { display: grid; gap: var(--space-3); align-content: end; border-left: 1px solid var(--linea); padding-left: var(--space-6); min-width: 0; }
+.mp-next-buy { display: grid; gap: var(--space-3); align-content: center; border-left: 1px solid var(--linea); padding-left: var(--space-6); min-width: 0; }
 .mp-price { font: 700 34px/40px var(--font-display); letter-spacing: -.015em; font-variant-numeric: tabular-nums; }
 .mp-swap { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr); gap: var(--space-3); align-items: center; }
 .mp-swap-side { background: var(--papel-hundido); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); display: grid; gap: 2px; min-width: 0; }
@@ -136,4 +136,7 @@
 
 /* Una compra con varios componentes: dos se ven con su antes y después; más, como lista. */
 .mp-swap + .mp-swap { margin-top: var(--space-2); }
+.mp-swap-price { font: 700 15px/20px var(--font-sans); font-variant-numeric: tabular-nums; }
+.mp-parts li { display: flex; justify-content: space-between; gap: var(--space-3); }
+.mp-parts b { flex: none; font-variant-numeric: tabular-nums; }
 .mp-parts { margin: 0; padding: var(--space-3) var(--space-4); list-style: none; display: grid; gap: var(--space-1); background: var(--pino-suave); border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; line-height: 20px; }

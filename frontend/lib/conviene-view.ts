@@ -77,6 +77,13 @@ export function swapSides(item: { actions: TowerRecommendationItem["actions"]; v
   return { actual, nueva: nueva || "Componente por confirmar" };
 }
 
+/** Lo que sale un cambio dentro de una sugerencia con varios. Solo suma líneas que el servidor ya cotizó. */
+export function actionPrice(cost: { lines: { component_id: string; amount_ars: string }[] }, action: { candidates: readonly { component_id?: string | null }[] }): string | null {
+  const ids = new Set(action.candidates.map(candidate => candidate.component_id));
+  const lines = cost.lines.filter(line => ids.has(line.component_id));
+  return lines.length ? moneyText(lines.reduce((total, line) => total + Number(line.amount_ars), 0).toFixed(2)) : null;
+}
+
 /** La mejora, dicha con palabras comunes. La unidad solo se nombra cuando la API la declara (capacidad en GB). */
 export function benefitLine(item: Pick<TowerRecommendationItem, "benefit">): string {
   const { benefit } = item;
