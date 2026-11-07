@@ -26,7 +26,7 @@ describe("CU06 torre: criterio explícito, precisión y preview efímero", () =>
     const html = renderToStaticMarkup(<TowerRecommendationView result={result} pc={tower} now={0} onPreparePlan={() => {}} />);
     const article = html.slice(html.indexOf("<article"), html.indexOf("</article>"));
     const visible = article.slice(0, article.indexOf("<details"));
-    expect(visible).toContain("Cambiá la memoria y más"); expect(visible).toContain("Hoy tenés"); expect(visible).toContain("Pasás a");
+    expect(visible).toContain("Cambiá la memoria y "); expect(visible).toContain("Hoy tenés"); expect(visible).toContain("Pasás a");
     expect(visible).toContain("Memoria actual declarada"); expect(visible).toContain("Memoria propuesta");
     expect(visible).not.toContain("Otra memoria propuesta"); expect(visible).not.toContain("Disco adicional");
     expect(visible).not.toContain("datos o condiciones pendientes"); expect(visible).not.toContain("Disponibilidad sin confirmar");

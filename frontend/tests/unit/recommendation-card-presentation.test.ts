@@ -26,6 +26,7 @@ describe("Resumen breve de una propuesta", () => {
     expect(proposalTitle([action("ram", "add_line")])).toBe("Sumá más memoria");
     expect(proposalTitle([action("storage", "add_line")])).toBe("Sumá almacenamiento");
     expect(proposalTitle([action(), action("cpu"), action("ram")])).toBe("Cambiá la placa de video y más");
+    expect(proposalTitle([action(), action("psu")])).toBe("Cambiá la placa de video y la fuente");
     expect(proposalTitle([])).toBe("Cambio propuesto");
   });
   it("Hoy/Pasás a usa los nombres disponibles, sólo de la primera acción y candidata", () => {

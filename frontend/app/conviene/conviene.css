@@ -157,3 +157,7 @@
 .cv-save-msg { margin: 0; font-weight: 600; }
 .cv-save-msg.is-bad { color: var(--tinta); border-left: 4px solid var(--linea-fuerte); padding-left: var(--space-3); }
 @media (max-width: 640px) { .cv-save { padding: var(--space-4); } .cv-save-rows li { grid-template-columns: minmax(0, 1fr) auto; } .cv-save-rows li > :last-child { grid-column: 1 / -1; justify-self: start; } }
+
+/* Varios cambios en una sugerencia: cada uno con su antes y después. */
+.cv-swap-group { display: grid; gap: var(--space-2); }
+.cv-swap-extra { display: flex; align-items: center; gap: var(--space-2); margin: 0; font: 600 14px/20px var(--font-sans); color: var(--pino); }

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, X } from "lucide-react";
+import { ArrowRight, Check, X, Plus } from "lucide-react";
 import { Notice, PriceTag, Verdict } from "../../components/uj";
 import { IconoDeCategoria } from "../../components/uj/part-card";
 import { formatearMonto } from "../../components/uj/monto";
@@ -134,11 +134,17 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
           <div><div className="cv-kind">{main === groups.principal || main.key === advice?.key ? "Lo que más te conviene" : "La que elegiste"}</div><h2 className="cv-upgrade-title">{proposalTitle(main.actions)}</h2></div>
           <Verdict estado={main.evaluation.verdict} />
         </div>
-        <div className="cv-swap">
-          <div className="cv-swap-side"><div className="cv-swap-label">Hoy tenés</div><div className="cv-part-name">{swap.actual}</div></div>
-          <ArrowRight className="cv-icon" aria-label="se cambia por" />
-          <div className="cv-swap-side is-new"><div className="cv-swap-label">Pasás a</div><div className="cv-part-name">{swap.nueva}</div></div>
-        </div>
+        {main.actions.map((action, index) => {
+          const sides = swapSides({ actions: [action], versions: main.versions }, pc, names);
+          return <div key={index} className="cv-swap-group">
+            {index > 0 && <p className="cv-swap-extra"><Plus className="cv-icon" aria-hidden="true" />También cambia {categoryNames[action.category].toLowerCase()}, para que todo encaje</p>}
+            <div className="cv-swap">
+              <div className="cv-swap-side"><div className="cv-swap-label">Hoy tenés</div><div className="cv-part-name">{sides.actual}</div></div>
+              <ArrowRight className="cv-icon" aria-label="se cambia por" />
+              <div className="cv-swap-side is-new"><div className="cv-swap-label">Pasás a</div><div className="cv-part-name">{sides.nueva}</div></div>
+            </div>
+          </div>;
+        })}
         <ul className="cv-why">{main.key === advice?.key && advice.reason && <li><Check className="cv-icon" aria-hidden="true" /><span>{advice.reason} <span className="cv-tech">Lo eligió la IA local entre opciones que ya encajan.</span></span></li>}{whyReasons(main).map(text => <li key={text}><Check className="cv-icon" aria-hidden="true" /><span>{text}</span></li>)}</ul>
         {needsCoolerCheck(main.actions) && <p className="cv-tech">{coolerNote}</p>}
         {unknown.length > 0 && <Notice tono="revisar" titulo="Falta un dato para estar seguros">{`No pudimos confirmar: ${joinLabels(unknown)}. Completá esos datos en Mi PC y lo volvemos a revisar.`}</Notice>}

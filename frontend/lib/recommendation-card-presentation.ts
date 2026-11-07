@@ -20,6 +20,7 @@ export function proposalTitle(actions: readonly TowerAction[]): string {
   const title = first.action === "add_line" ? `Sumá ${incorporaciones[first.category]}`
     : first.action === "remove_line" ? `Quitá ${piezas[first.category]}`
     : `Cambiá ${piezas[first.category]}`;
+  if (actions.length === 2) return `${title} y ${piezas[actions[1].category]}`;
   return actions.length > 1 ? `${title} y más` : title;
 }
 
