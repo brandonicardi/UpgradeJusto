@@ -1,6 +1,6 @@
 # PcSlots
 
-Vista de la PC como nueve casilleros, uno por pieza, para ver de un golpe qué hay, qué falta y qué está en duda.
+Vista de la PC como nueve casilleros, uno por componente, para ver de un golpe qué hay, qué falta y qué está en duda.
 
 **Qué aporta quien lo usa:** para cada una de las nueve categorías (procesador, placa madre, memoria, placa de video, fuente, gabinete, almacenamiento, cooler, ventiladores) su estado: cargada, en duda o vacía, y el nombre corto.
 

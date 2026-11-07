@@ -170,7 +170,7 @@
         <div class="panel-head">
           <span class="n">PASO 2 DE 3</span>
           <h2 id="p2t">Revisá lo que entendimos</h2>
-          <p>Cada pieza muestra de qué parte de tu texto la sacamos. Corregí lo que esté mal. Lo que no sepas, dejalo así: no lo vamos a adivinar.</p>
+          <p>Cada componente muestra de qué parte de tu texto lo sacamos. Corregí lo que esté mal. Lo que no sepas, dejalo así: no lo vamos a adivinar.</p>
         </div>
         <div class="panel-body" style="display:grid;gap:var(--space-5)">
           <div class="count" aria-label="Resumen">
@@ -231,7 +231,7 @@
               <div class="row-edit">
                 <input class="uj-input" value="Sentey" aria-label="Gabinete">
                 <span class="quote">De tu texto: <q>Gabinete Sentey</q></span>
-                <span class="ask">Tenemos la marca pero no el modelo. Lo necesitamos para saber qué piezas entran.</span>
+                <span class="ask">Tenemos la marca pero no el modelo. Lo necesitamos para saber qué componentes entran.</span>
                 <input class="uj-input" placeholder="Modelo, si lo sabés" aria-label="Modelo del gabinete">
               </div>
               <span class="tag tag-check">Revisala</span>
@@ -259,7 +259,7 @@
         <div class="panel-head">
           <span class="n">PASO 3 DE 3</span>
           <h2 id="p3t">Guardala</h2>
-          <p>Fijate el resumen y confirmá. Después vas a poder cambiar cualquier pieza desde Mi PC.</p>
+          <p>Fijate el resumen y confirmá. Después vas a poder cambiar cualquier componente desde Mi PC.</p>
         </div>
         <div class="panel-body" style="display:grid;gap:var(--space-5)" id="p3body">
           <label class="uj-field name-field">
@@ -267,9 +267,9 @@
             <input class="uj-input" id="pcname" value="La de casa">
           </label>
           <ul class="summary">
-            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>4 piezas completas</strong>: procesador, memoria, placa de video y almacenamiento.</span></li>
-            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>3 piezas a medias</strong> (placa madre, fuente y gabinete) si no completaste lo que te preguntamos.</span></li>
-            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>2 piezas sin dato</strong> (cooler y ventiladores). Lo que falta queda como «Falta un dato» hasta que lo completes.</span></li>
+            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>4 componentes completos</strong>: procesador, memoria, placa de video y almacenamiento.</span></li>
+            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>3 componentes a medias</strong> (placa madre, fuente y gabinete) si no completaste lo que te preguntamos.</span></li>
+            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span><strong>2 componentes sin dato</strong> (cooler y ventiladores). Lo que falta queda como «Falta un dato» hasta que lo completes.</span></li>
             <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span>Mientras falten datos, algunas sugerencias van a decir «Falta un dato» en vez de «Encaja».</span></li>
           </ul>
           <div class="actions" id="confirm">
@@ -279,7 +279,7 @@
           <div class="saved" id="saved" role="status">
             <div class="uj-notice uj-notice-encaja" style="max-width:none">
               <svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
-              <div><strong id="savedtitle">Listo, guardamos «La de casa»</strong><p>Tiene 7 de 9 piezas y a algunas les falta un dato. Cuando quieras, las completás desde Mi PC.</p></div>
+              <div><strong id="savedtitle">Listo, guardamos «La de casa»</strong><p>Tiene 7 de 9 componentes y a algunos les falta un dato. Cuando quieras, los completás desde Mi PC.</p></div>
             </div>
             <div class="actions">
               <a class="uj-btn uj-btn-principal" href="#">Ver qué me conviene</a>
@@ -294,7 +294,7 @@
       <div class="card trust">
         <h2>Vos tenés la última palabra</h2>
         <ul>
-          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Solo leemos las piezas de tu texto.</li>
+          <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Solo leemos los componentes de tu texto.</li>
           <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Te mostramos de dónde salió cada dato.</li>
           <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Nada se guarda hasta que confirmes.</li>
         </ul>
@@ -305,7 +305,7 @@
       </div>
       <div class="card">
         <h2>¿Preferís otra forma?</h2>
-        <p>Si conocés las piezas, podés elegirlas una por una del catálogo.</p>
+        <p>Si conocés los componentes, podés elegirlos uno por uno del catálogo.</p>
         <a class="uj-btn uj-btn-secundario uj-btn-chico" href="#" style="justify-self:start">Elegir pieza por pieza</a>
       </div>
     </aside>
@@ -369,7 +369,7 @@
 <script>
   // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
   (function () {
-    var CTX = 'Agregar PC', OPEN = false, QA = [["¿De dónde saco la lista?", "En Windows: Configuración → Sistema → Información. Copiá lo que aparece y pegalo en el cuadro."], ["¿Se guarda apenas pego?", "No. Primero te mostramos lo que entendimos, lo corregís si hace falta y se guarda recién cuando confirmás."], ["¿Y si no sé una pieza?", "Marcala con «No lo sé». No la adivinamos: queda pendiente y te avisamos cuando haga falta."]];
+    var CTX = 'Agregar PC', OPEN = false, QA = [["¿De dónde saco la lista?", "En Windows: Configuración → Sistema → Información. Copiá lo que aparece y pegalo en el cuadro."], ["¿Se guarda apenas pego?", "No. Primero te mostramos lo que entendimos, lo corregís si hace falta y se guarda recién cuando confirmás."], ["¿Y si no sé un componente?", "Márcalo con «No lo sé». No lo adivinamos: queda pendiente y te avisamos cuando haga falta."]];
     var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
     var inp = document.getElementById('ayuda-in'), started = false, asked = [];
     var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';

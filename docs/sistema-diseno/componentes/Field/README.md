@@ -7,4 +7,4 @@ Campo de texto con etiqueta arriba y una ayuda abajo que explica para qué sirve
 - Etiqueta en `cuerpo-fuerte`, siempre visible (el placeholder no la reemplaza).
 - Borde `linea-fuerte`; con error, borde y mensaje en `no-encaja` con ícono de cruz.
 - El error dice cómo arreglarlo, no qué hizo mal la persona.
-- Para pegar la lista de piezas usá el mismo estilo en un `textarea` alto.
+- Para pegar la lista de componentes usá el mismo estilo en un `textarea` alto.

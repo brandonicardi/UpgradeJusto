@@ -1,6 +1,6 @@
 # PriceTag
 
-Precio de una pieza con su moneda, la fecha en que lo vimos y la tienda de donde salió.
+Precio de un componente con su moneda, la fecha en que lo vimos y la tienda de donde salió.
 
 **Qué aporta quien lo usa:** monto, moneda, condición (contado o lista), fecha y fuente con enlace.
 

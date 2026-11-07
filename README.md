@@ -117,7 +117,7 @@ El detalle de cada decisión está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA
 
 ## Conocimiento de hardware
 
-Cuando una pieza llega con nombre pero sin ficha completa (por ejemplo «Ryzen 5 5600» o
+Cuando un componente llega con nombre pero sin ficha completa (por ejemplo «Ryzen 5 5600» o
 «RTX 3060»), el motor completa solo lo que falta, con una fuente por cada dato.
 
 - Tablas en `backend/upgradejusto/compatibility/conocimiento/`: `plataformas.json` (zócalos,

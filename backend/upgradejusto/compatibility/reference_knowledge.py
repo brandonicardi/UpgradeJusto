@@ -157,7 +157,7 @@ class Builder:
         self.name_ref = EvidenceRef(
             source_id=NAME_SOURCE_ID,
             url=source_url or DOCUMENT_URL,
-            locator=f"Nombre publicado de la pieza: {name[:160] or 'sin nombre'}",
+            locator=f"Nombre publicado del componente: {name[:160] or 'sin nombre'}",
             consulted_on=table("plataformas")["consulted_on"],
         )
 

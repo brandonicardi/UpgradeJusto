@@ -1,4 +1,4 @@
-<!-- @dsCard group="Pantallas" page height=1560 width=1280 subtitle="Catálogo: buscar piezas y ver si encajan en tu PC" -->
+<!-- @dsCard group="Pantallas" page height=1560 width=1280 subtitle="Catálogo: buscar componentes y ver si encajan en tu PC" -->
 <!doctype html>
 <html lang="es">
 <head>
@@ -70,16 +70,16 @@
 
   <main>
     <section class="head wrap">
-      <h1>Todas las piezas</h1>
-      <p>Buscá por lo que necesitás o por el nombre. Si elegís tu PC, te mostramos al lado de cada una si encaja.</p>
+      <h1>Todos los componentes</h1>
+      <p>Buscá por lo que necesitás o por el nombre. Si elegís tu PC, te mostramos al lado de cada uno si encaja.</p>
     </section>
 
     <section class="tools wrap" aria-label="Buscar y filtrar">
       <div class="search">
         <svg class="uj-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-        <input class="uj-input" id="q" type="search" placeholder="Por ejemplo: memoria, 4060, disco de 1 TB" aria-label="Buscar piezas">
+        <input class="uj-input" id="q" type="search" placeholder="Por ejemplo: memoria, 4060, disco de 1 TB" aria-label="Buscar componentes">
       </div>
-      <div class="uj-chips" id="cats" role="group" aria-label="Tipo de pieza">
+      <div class="uj-chips" id="cats" role="group" aria-label="Tipo de componente">
         <button class="uj-chip" aria-pressed="true" data-cat="">Todas</button>
         <button class="uj-chip" aria-pressed="false" data-cat="video">Placa de video</button>
         <button class="uj-chip" aria-pressed="false" data-cat="memoria">Memoria</button>
@@ -95,7 +95,7 @@
             <option value="">No mostrar</option>
           </select>
         </label>
-        <span class="count" id="count" role="status">9 piezas</span>
+        <span class="count" id="count" role="status">9 componentes</span>
         <label>Ordenar
           <select id="sort">
             <option value="">Más elegidas</option>
@@ -159,7 +159,7 @@
   </main>
 
   <footer class="foot wrap">
-    <span>Precios en pesos de tiendas argentinas, con la fecha en que los vimos. Las piezas sin precio reciente quedan al final.</span>
+    <span>Precios en pesos de tiendas argentinas, con la fecha en que los vimos. Los componentes sin precio reciente quedan al final.</span>
     <span><a href="#">¿No sabés qué buscar? Mirá lo que te conviene</a></span>
   </footer>
 </div>
@@ -174,7 +174,7 @@
       var ok = (!cat || it.dataset.cat === cat) && (!term || norm(it.textContent).indexOf(term) > -1);
       it.style.display = ok ? '' : 'none'; if (ok) n++;
     });
-    document.getElementById('count').textContent = n === 1 ? '1 pieza' : n + ' piezas';
+    document.getElementById('count').textContent = n === 1 ? '1 componente' : n + ' componentes';
     document.getElementById('empty').classList.toggle('on', n === 0);
   }
   document.querySelectorAll('#cats .uj-chip').forEach(function (b) {
@@ -215,7 +215,7 @@
 <script>
   // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
   (function () {
-    var CTX = 'Catálogo', OPEN = false, QA = [["¿Qué quiere decir «Falta un dato»?", "Que nos falta algo de la pieza o de tu PC para revisar si encaja. En ese caso no lo damos por bueno."], ["¿Por qué hay piezas sin precio?", "Porque no las vimos en ninguna tienda en los últimos 7 días. Preferimos no mostrar un precio viejo como si fuera actual."], ["¿Qué memoria me sirve?", "Tu placa madre usa DDR4, así que las DDR5 no encajan. Filtrá por «Memoria» y mirá las que dicen «Encaja»."]];
+    var CTX = 'Catálogo', OPEN = false, QA = [["¿Qué quiere decir «Falta un dato»?", "Que nos falta algo del componente o de tu PC para revisar si encaja. En ese caso no lo damos por bueno."], ["¿Por qué hay componentes sin precio?", "Porque no los vimos en ninguna tienda en los últimos 7 días. Preferimos no mostrar un precio viejo como si fuera actual."], ["¿Qué memoria me sirve?", "Tu placa madre usa DDR4, así que las DDR5 no encajan. Filtrá por «Memoria» y mirá las que dicen «Encaja»."]];
     var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
     var inp = document.getElementById('ayuda-in'), started = false, asked = [];
     var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';

@@ -14,7 +14,7 @@
 
 Vista navegable original: https://claude.ai/artifact/FjHT57N1MhtD2eRNJkcyQA (requiere acceso). La fuente de verdad son los archivos de esta carpeta.
 
-Los precios, tiendas y piezas de las vistas previas son de ejemplo. No son datos reales.
+Los precios, tiendas y componentes de las vistas previas son de ejemplo. No son datos reales.
 
 ---
 
@@ -71,7 +71,7 @@ Dos familias, ambas de Google Fonts: **Bricolage Grotesque** para titulares (cer
 - `titular-xl` una sola vez por pantalla, para la pregunta o la promesa. En móvil baja a `titular-l`.
 - `titular-m` para títulos de tarjeta y de paso.
 - `cuerpo` es el mínimo para párrafos (16px). `cuerpo-l` para la bajada y las respuestas del asistente.
-- `chico` para ayudas, procedencia de precios y el nombre técnico de una pieza.
+- `chico` para ayudas, procedencia de precios y el nombre técnico de un componente.
 - `etiqueta` para veredictos, chips y contadores.
 - `precio` para montos, con cifras tabulares.
 
@@ -86,20 +86,20 @@ Dos familias, ambas de Google Fonts: **Bricolage Grotesque** para titulares (cer
 ## Íconos
 
 - Íconos de línea de [Lucide](https://lucide.dev): trazo de 1.75, puntas redondeadas, 20px (16px dentro de etiquetas). Toman el color del texto que acompañan.
-- Cada categoría de pieza tiene su ícono fijo: procesador `cpu`, placa madre `circuit-board`, memoria `memory-stick`, placa de video `monitor`, fuente `plug-zap`, gabinete `box`, almacenamiento `hard-drive`, cooler `fan`, ventiladores `wind`.
+- Cada categoría de componente tiene su ícono fijo: procesador `cpu`, placa madre `circuit-board`, memoria `memory-stick`, placa de video `monitor`, fuente `plug-zap`, gabinete `box`, almacenamiento `hard-drive`, cooler `fan`, ventiladores `wind`.
 - Veredictos: `check` (encaja), `help-circle` (falta un dato), `x` (no encaja).
 - Un ícono nunca va solo si cambia el significado: siempre con su palabra.
 
 ## Pantallas clave
 
 1. **Inicio**: «¿Qué querés que tu PC haga mejor?» con `GoalPicker` y `BudgetSlider`. Un único botón principal: «Ver qué me conviene».
-2. **Tu PC**: `PcSlots` con las nueve piezas. Las vacías invitan a completarlas; las dudosas se marcan con «Falta un dato».
+2. **Tu PC**: `PcSlots` con los nueve componentes. Las vacías invitan a completarlas; las dudosas se marcan con «Falta un dato».
 3. **Lo que te conviene**: una `UpgradeCard` principal arriba y alternativas como `PartCard` debajo.
 4. **Tu plan**: `PlanSteps` con el costo de cada compra y el veredicto de la PC resultante.
 5. **Preguntale al asistente**: `ChatBubble` con sugerencias rápidas para no arrancar de cero. En el resto de las pantallas está a mano como `AsistenteFlotante`, abajo a la derecha.
 6. **Ingreso y registro**: dos pestañas en un mismo lugar; errores en criollo debajo de cada campo.
 7. **Agregar PC**: pegar la lista, revisar lo que entendimos y confirmar antes de guardar.
-8. **Catálogo** y **Pieza**: buscar por lo que necesitás; al lado de cada pieza, si encaja en tu PC y su precio con fecha y tienda.
+8. **Catálogo** y **Componente**: buscar por lo que necesitás; al lado de cada componente, si encaja en tu PC y su precio con fecha y tienda.
 9. **Armar una PC**: objetivo y presupuesto; si no alcanza, se dice en lugar de proponer algo que no entra.
 10. **Compartir** y **Plan compartido**: un enlace por persona, que se apaga cuando quieras; quien lo abre solo puede mirar.
 11. **Tu cuenta**: datos, contraseña, lo que guardaste y borrar la cuenta con confirmación escrita.
