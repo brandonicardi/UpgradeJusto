@@ -68,13 +68,13 @@ const withQuantity = (name: string, quantity: number) => quantity > 1 ? `${quant
 /** «Hoy tenés» y «Pasás a»: nombres del catálogo con la cantidad, sin inventar ninguno. */
 export function swapSides(item: { actions: TowerRecommendationItem["actions"]; versions: { catalog: string } }, pc: Pick<Tower, "lines" | "category_status"> | null, metadata: MetadataSnapshot): { actual: string; nueva: string } {
   const first = item.actions[0];
-  if (!first) return { actual: "Por confirmar", nueva: "Pieza por confirmar" };
+  if (!first) return { actual: "Por confirmar", nueva: "Componente por confirmar" };
   const version = item.versions.catalog;
   const own = pc?.lines.filter(line => line.category === first.category) ?? [];
   const actual = own.length ? own.map(line => withQuantity(lineName(line, version, metadata) ?? "Por confirmar", line.quantity)).join(", ")
-    : pc?.category_status[first.category] === "absent" ? "Sin pieza de este tipo" : "Por confirmar";
-  const nueva = first.candidates.map(candidate => withQuantity(lineName({ ...candidate, category: first.category }, version, metadata) ?? "Pieza por confirmar", candidate.quantity)).join(", ");
-  return { actual, nueva: nueva || "Pieza por confirmar" };
+    : pc?.category_status[first.category] === "absent" ? "Sin componente de este tipo" : "Por confirmar";
+  const nueva = first.candidates.map(candidate => withQuantity(lineName({ ...candidate, category: first.category }, version, metadata) ?? "Componente por confirmar", candidate.quantity)).join(", ");
+  return { actual, nueva: nueva || "Componente por confirmar" };
 }
 
 /** La mejora, dicha con palabras comunes. La unidad solo se nombra cuando la API la declara (capacidad en GB). */

@@ -46,12 +46,12 @@ export default function PieceFit({ part, catalogVersion }: { part: TowerComponen
   const canPlan = !!selected && !!catalogVersion;
   return <><aside className="piece-side"><div className="piece-fit"><h2>¿Encaja en tu PC?</h2>
     {access === "loading" && <p>Cargando tus PCs…</p>}{access === "guest" && <p><Link href="/account">Entrá a tu cuenta</Link> para comprobarlo con tu PC.</p>}{access === "error" && <p role="alert">No pudimos cargar tus PCs. Volvé a intentar más tarde.</p>}
-    {access === "ready" && (pcs.length ? <><label htmlFor="piece-pc">Elegí tu PC</label><select id="piece-pc" value={selected} onChange={event => void simulate(event.target.value)}><option value="">Elegí una PC</option>{pcs.map(pc => <option key={pc.id} value={pc.id}>{pc.name}</option>)}</select><p className="piece-source">Probamos el reemplazo de esta categoría por una unidad de esta pieza.</p></> : <p><Link href="/pcs">Agregá una PC</Link> para comprobar si encaja.</p>)}
+    {access === "ready" && (pcs.length ? <><label htmlFor="piece-pc">Elegí tu PC</label><select id="piece-pc" value={selected} onChange={event => void simulate(event.target.value)}><option value="">Elegí una PC</option>{pcs.map(pc => <option key={pc.id} value={pc.id}>{pc.name}</option>)}</select><p className="piece-source">Probamos el reemplazo de esta categoría por una unidad de este componente.</p></> : <p><Link href="/pcs">Agregá una PC</Link> para comprobar si encaja.</p>)}
     <div aria-live="polite">{busy && <p>Comprobando tu PC con este cambio…</p>}{error && <p role="alert">No pudimos comprobar tu PC ahora. Probá de nuevo en un rato.</p>}{result && <><PieceVerdict result={result} /><PieceChecks rules={result.rule_results} category={part.category} /></>}</div>
     <PiecePrices part={part} compact />
     {access === "ready" && pcs.length > 0 && <button type="button" className="piece-plan-button piece-primary" disabled={!canPlan} aria-expanded={planOpen} onClick={() => setPlanOpen(true)}>Sumar a mi plan</button>}
     {access === "ready" && pcs.length > 0 && !catalogVersion && <p className="piece-source">No pudimos consultar la versión del catálogo. Recargá la ficha para preparar un plan.</p>}
-    {planOpen && canPlan && <div role="group" aria-label="Preparar plan desde esta pieza" className="piece-plan-form">
+    {planOpen && canPlan && <div role="group" aria-label="Preparar plan desde este componente" className="piece-plan-form">
       <label htmlFor={`${uid}-objective`}>Objetivo del plan</label><select id={`${uid}-objective`} value={objective} onChange={event => setObjective(event.target.value as typeof objective)}><option value="general">Uso general</option><option value="gaming">Juegos</option><option value="productivity">Productividad</option></select>
       <label htmlFor={`${uid}-budget`}>Presupuesto total (ARS)</label><input id={`${uid}-budget`} inputMode="decimal" autoComplete="off" value={budget} onChange={event => setBudget(event.target.value)} />
       <label htmlFor={`${uid}-condition`}>Condición de precio</label><select id={`${uid}-condition`} value={condition} onChange={event => setCondition(event.target.value as typeof condition)}><option value="cash">Contado</option><option value="list">Lista (no cuotas)</option></select>
@@ -61,10 +61,10 @@ export default function PieceFit({ part, catalogVersion }: { part: TowerComponen
       <button type="button" onClick={prepare}>Preparar borrador</button><button type="button" onClick={() => { setPlanOpen(false); setSeed(null); setPlanError(""); }}>Cancelar</button>
     </div>}
     {selected && <button type="button" className="secondary" disabled={busy} onClick={() => void simulate(selected, true)}>Ver cómo quedaría mi PC</button>}
-    {expanded && result && <section><h3>Tu PC con este cambio</h3><ul>{result.evaluated_configuration.lines.map((line, index) => <li key={index}>{catalogCategories[line.category]}: {line.component_id === part.id ? part.name : line.declared_model ?? "Pieza guardada en tu PC"} · cantidad: {line.quantity}</li>)}</ul></section>}
+    {expanded && result && <section><h3>Tu PC con este cambio</h3><ul>{result.evaluated_configuration.lines.map((line, index) => <li key={index}>{catalogCategories[line.category]}: {line.component_id === part.id ? part.name : line.declared_model ?? "Componente guardado en tu PC"} · cantidad: {line.quantity}</li>)}</ul></section>}
     <p className="piece-source">Ver cómo quedaría es solo una prueba: tu PC guardada no cambia.</p>
   </div></aside>
-  {planOpen && seed && selectedPC && <section className="piece-plan-draft" aria-label="Borrador de plan desde esta pieza">
+  {planOpen && seed && selectedPC && <section className="piece-plan-draft" aria-label="Borrador de plan desde este componente">
     <TowerPlanEditor key={seedKey} seed={seed} pc={selectedPC} onSaved={plan => setSavedPlan(plan)} />
     {savedPlan && <p role="status">Plan guardado como versión {savedPlan.revision}. Tu PC no cambió. <Link href={`/tower-plans/${savedPlan.id}`}>Ver mi plan</Link></p>}
   </section>}</>;

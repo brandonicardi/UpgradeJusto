@@ -37,7 +37,7 @@ describe("purchase draft: explicit new configuration, not a fictitious existing 
     expect(plan.stages[0].actions.map(action => action.category)).toEqual(["cpu", "ram"]); expect(plan.stages[0].materials).toEqual([]); expect(plan.expected_pc_revision).toBe(1); expect(plan.stages[0].actions.every(action => action.action === "replace_category" && action.line_id === null)).toBe(true); expect(JSON.stringify(pc)).toBe(before);
   });
   it("renders explicit consent/partial empty state and both real entry routes without autosave", () => {
-    const html = renderToStaticMarkup(<PurchaseBuilder />); expect(html).toContain("Todavía no hay compras"); expect(html).toContain("Elegí tu primera pieza"); expect(html).not.toContain("0 líneas sin cotización"); expect(html).toContain("Guardar configuración propuesta"); expect(html).toContain("no una PC que ya poseo"); expect(html).not.toContain('checked=""'); expect(html).not.toContain("500W"); expect(html).not.toContain("500GB");
+    const html = renderToStaticMarkup(<PurchaseBuilder />); expect(html).toContain("Todavía no hay compras"); expect(html).toContain("Elegí tu primer componente"); expect(html).not.toContain("0 líneas sin cotización"); expect(html).toContain("Guardar configuración propuesta"); expect(html).toContain("no una PC que ya poseo"); expect(html).not.toContain('checked=""'); expect(html).not.toContain("500W"); expect(html).not.toContain("500GB");
     const home = renderToStaticMarkup(<BeginnerEntry />); expect(home).toContain('href="/build"'); expect(home).toContain('href="/pcs"'); expect(home).toContain("Armá una desde cero"); expect(home).not.toContain("Precio guardado");
   });
   it("never presents one priced CPU as the whole build total and discloses unselected categories", () => {

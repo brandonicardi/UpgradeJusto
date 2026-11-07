@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Check, CircleHelp, ClipboardList, PcCase } from "lucide-react";
 import HomeStart from "./home-start";
 
-const PROMESAS = ["No hace falta saber de hardware.", "Revisamos que cada pieza encaje antes de sugerirla.", "Precios reales, con fecha y tienda."];
+const PROMESAS = ["No hace falta saber de hardware.", "Revisamos que cada componente encaje antes de sugerirlo.", "Precios reales, con fecha y tienda."];
 const PASOS: [string, string][] = [["Tu PC", "Lo que ya tenés, aunque esté incompleto."], ["Tu objetivo", "Qué querés lograr y cuánto podés gastar."], ["Lo que te conviene", "El cambio que más rinde, con precio y si encaja."], ["Tu plan", "Comprá por etapas, cuando puedas."]];
 // El enlace con el nombre de la tarjeta se estira sobre toda ella: el nombre accesible sigue siendo el título.
 const ESTIRADO = "[&_.beginner-choice]:no-underline [&_.beginner-choice]:text-inherit [&_.beginner-choice]:after:absolute [&_.beginner-choice]:after:inset-0 [&_.beginner-choice]:after:content-[''] [&_.beginner-choice]:focus-visible:outline-none has-[.beginner-choice:focus-visible]:outline-[3px] has-[.beginner-choice:focus-visible]:outline-offset-4 has-[.beginner-choice:focus-visible]:outline-foco";
@@ -37,7 +37,7 @@ export default function BeginnerEntry() {
       </div>
       <ul className="m-0 grid list-none grid-cols-1 gap-space-4 p-0 min-[1001px]:grid-cols-3">
         <Camino principal href="/pcs/import#ayuda" titulo="No sé qué tengo" llamada="Ayudame a averiguarlo" icono={<CircleHelp className="size-6" />} textoId="beginner-help-text" describedBy="beginner-help-note beginner-help-text" etiqueta={{ id: "beginner-help-note", texto: "Si recién empezás" }} texto="Te guiamos paso a paso para encontrar los datos en Windows. Tarda unos 5 minutos." />
-        <Camino href="/pcs" titulo="Sé qué piezas tiene" llamada="Cargar mi PC" icono={<PcCase className="size-6" />} texto="Elegilas de nuestra lista, una por una. Podés dejar en blanco las que no sepas." />
+        <Camino href="/pcs" titulo="Sé qué componentes tiene" llamada="Cargar mi PC" icono={<PcCase className="size-6" />} texto="Elegilos de nuestra lista, uno por uno. Podés dejar en blanco los que no sepas." />
         <Camino href="/pcs/import" titulo="Tengo una lista" llamada="Pegar mi lista" icono={<ClipboardList className="size-6" />} textoId="beginner-paste-note" describedBy="beginner-paste-note" texto="Pegá lo que te pasó el vendedor o un programa. Te mostramos lo que entendimos y lo corregís antes de guardar." />
       </ul>
     </section>

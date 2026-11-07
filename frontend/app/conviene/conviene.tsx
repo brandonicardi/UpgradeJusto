@@ -21,7 +21,7 @@ const sinDatos: MetadataSnapshot = { status: "active", entries: new Map() };
 
 /** Sin propuestas, el motivo es el que devuelve la API. Si no trae ninguno, se dice que no hubo datos suficientes. */
 function noProposalsReason(result: { limitations: string[]; missing_fields: string[] }): string {
-  if (result.missing_fields.some(field => field.startsWith("benefit:"))) return "No pudimos identificar la pieza que querés cambiar. Revisá en Mi PC que el modelo esté bien escrito.";
+  if (result.missing_fields.some(field => field.startsWith("benefit:"))) return "No pudimos identificar el componente que querés cambiar. Revisá en Mi PC que el modelo esté bien escrito.";
   if (result.missing_fields.length) return "Faltan datos de tu PC para buscar propuestas. Completalos en Mi PC y volvemos a buscar.";
   return "No encontramos un cambio que mejore tu PC con estos criterios.";
 }
@@ -123,7 +123,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
 
     {!working && failed && <div className="cv-status" role="alert"><Notice tono="no" titulo="No pudimos buscar propuestas">{pcState.phase === "error" ? pcState.message : rec.message || "Probá de nuevo en un momento. No se guardó nada."}</Notice><div className="cv-row"><Link className="cv-btn cv-btn-secundario" href="/pcs">Ir a Mi PC</Link><Link className="cv-btn cv-btn-quieto" href="/">Volver al inicio</Link></div></div>}
 
-    {!working && !failed && pcState.phase === "none" && <div className="cv-status"><Notice tono="info" titulo="Todavía no cargaste tu PC">Para decirte qué te conviene necesitamos saber qué piezas tiene. Cargala y volvé: la comparamos con lo que pediste.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/pcs">Cargar mi PC</Link></div></div>}
+    {!working && !failed && pcState.phase === "none" && <div className="cv-status"><Notice tono="info" titulo="Todavía no cargaste tu PC">Para decirte qué te conviene necesitamos saber qué componentes tiene. Cargala y volvé: la comparamos con lo que pediste.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/pcs">Cargar mi PC</Link></div></div>}
 
     {!working && !failed && pc && !main && result && result.items.length === 0 && <div className="cv-status"><Notice tono="info" titulo="No hubo propuestas para tu PC">{noProposalsReason(result)}</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link><Link className="cv-btn cv-btn-secundario" href="/pcs">Completar mi PC</Link></div></div>}
     {!working && !failed && pc && !main && !closest && result && result.items.length > 0 && <div className="cv-status"><Notice tono="no" titulo="Todas las propuestas se descartaron">Ninguna encaja con tu PC tal como está. Abajo te contamos el motivo de cada una.</Notice><div className="cv-row"><Link className="cv-btn cv-btn-principal" href="/">Cambiar lo que pediste</Link><Link className="cv-btn cv-btn-secundario" href="/pcs">Completar mi PC</Link></div></div>}
@@ -149,7 +149,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
         <div className="cv-foot-card">
           <div className="cv-price"><Prices item={main} /></div>
           <div className="cv-row">
-            {firstCandidate && <Link className="cv-btn cv-btn-secundario cv-btn-chico" href={`/catalog/${encodeURIComponent(firstCandidate)}`}>Ver la pieza</Link>}
+            {firstCandidate && <Link className="cv-btn cv-btn-secundario cv-btn-chico" href={`/catalog/${encodeURIComponent(firstCandidate)}`}>Ver el componente</Link>}
             <button type="button" className="cv-btn cv-btn-principal" onClick={() => addToPlan(main)}>Sumar a mi plan</button>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function Conviene({ goalKey, budget, pcId }: { goalKey: GoalKey |
             <span style={{ minWidth: 0 }}><span className="cv-slot-kind">{row.label}</span><div className="cv-slot-name">{row.name}</div></span>
             {row.isNew && <span className="cv-new-tag">Nueva</span>}
           </div>)}</div>
-          <Link className="cv-btn cv-btn-quieto cv-btn-chico" href="/pcs">{`Ver las ${main.evaluation.evaluated_configuration.lines.length} piezas`}</Link>
+          <Link className="cv-btn cv-btn-quieto cv-btn-chico" href="/pcs">{`Ver los ${main.evaluation.evaluated_configuration.lines.length} componentes`}</Link>
         </div>}
         <Notice tono="info" titulo="Esto es una simulación">Tu PC guardada no cambia hasta que vos lo decidas.</Notice>
       </aside>

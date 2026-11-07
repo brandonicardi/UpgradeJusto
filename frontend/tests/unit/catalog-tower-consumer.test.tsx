@@ -38,7 +38,7 @@ describe("catalog tower consumer functional integration, not visual approval", (
   it("renders the same actual variant in the comparable row and contextual detail, without synthesizing a quote", () => {
     const item = parseCatalogTowerComponent(part());
     const html = renderToStaticMarkup(<CatalogWorkbench data={{ items: [item], total: 1, page: 1, page_size: 12, dataset_version: "synthetic" }} />);
-    expect(html).toContain('class="catalog-piece-grid"'); expect(html).not.toContain('aria-label="Ficha de la pieza seleccionada"');
+    expect(html).toContain('class="catalog-piece-grid"'); expect(html).not.toContain('aria-label="Ficha del componente seleccionado"');
     expect(html).toContain('data-component-id="synthetic-fan"'); expect(html).not.toContain('data-selected="true"');
     expect(html).toContain(item.name); expect(html).toContain("Sin precio");
     expect(html).toContain('href="/catalog/synthetic-fan"'); expect(html).not.toContain("389.900");

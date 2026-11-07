@@ -5,14 +5,14 @@ function OfficialLink({ href, children }: { href: string; children: React.ReactN
 }
 export function HardwareExample() {
   return <section className="hardware-example-block" aria-label="Ejemplo de lista de componentes">
-    <h2>Así puede verse una lista de piezas</h2>
+    <h2>Así puede verse una lista de componentes</h2>
     <p>Es sólo un ejemplo de formato, no tu PC ni una configuración comprobada. Reemplazá los datos por los tuyos; dejá por confirmar lo que no sepas.</p>
     <pre className="hardware-example" data-hardware-example>{hardwareTextExample}</pre>
   </section>;
 }
 export default function HardwareGuide({ id = "hardware-guide" }: { id?: string }) {
   return <section id={id} className="hardware-guide" aria-labelledby={`${id}-title`} tabIndex={-1}>
-    <header><h2 id={`${id}-title`} tabIndex={-1}>Encontrá las piezas sin abrir la PC</h2><p>No necesitás saber todo para empezar. Anotá sólo los datos que aparezcan en tu equipo.</p></header>
+    <header><h2 id={`${id}-title`} tabIndex={-1}>Encontrá los componentes sin abrir la PC</h2><p>No necesitás saber todo para empezar. Anotá sólo los datos que aparezcan en tu equipo.</p></header>
     <details><summary>Procesador y memoria: empezá por Configuración</summary><div className="guide-task">
       <ol><li>Abrí <strong>Configuración</strong> de Windows.</li><li>Entrá en <strong>Sistema</strong> y buscá <strong>Información</strong>.</li><li>En las especificaciones del dispositivo, anotá el <strong>procesador</strong> y la <strong>RAM instalada</strong>, si aparecen.</li></ol>
       <p>La RAM total no dice cuántos módulos tenés ni su modelo. No deduzcas esa cantidad.</p>

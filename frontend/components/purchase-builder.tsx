@@ -34,7 +34,7 @@ function PurchaseSelector({ category, condition, disabled, onAdd }: { category: 
     active.current?.abort(); const ticket = ++generation.current, abort = new AbortController(); active.current = abort;
     setId(value); setPart(null); setQuantity(""); setOfferId(""); setError(""); if (!value) return;
     try { const result = parseCatalogTowerComponent(await remoteCatalog<unknown>(`/${encodeURIComponent(value)}`, abort.signal)); if (result.category !== category) throw new Error(); if (ticket === generation.current && !abort.signal.aborted) setPart(result); }
-    catch { if (ticket === generation.current && !abort.signal.aborted) setError("No se pudo confirmar la pieza. No se agregó ninguna compra."); }
+    catch { if (ticket === generation.current && !abort.signal.aborted) setError("No se pudo confirmar el componente. No se agregó ninguna compra."); }
   }
   const offers = part ? catalogBoundOffers(part).filter(offer => offer.condition === condition) : [];
   return <fieldset disabled={disabled} className="stack-sm"><RemoteProductSelector category={category} value={id || null} onChange={value => { void choose(value); }} />
@@ -90,13 +90,13 @@ export default function PurchaseBuilder() {
   return <section className="build-screen" aria-label="Armado desde cero">
     <header className="build-hero">
       <h1>Armemos una PC nueva</h1>
-      <p>{auto?.state === "ready" ? "Esta es la PC que te proponemos. Nada se guarda hasta que vos lo confirmes." : "Contanos para qué la querés y cuánto querés gastar. Después elegí las piezas que pensás comprar. Elegir no guarda nada ni revisa si encajan: eso viene después de guardar."}</p>
+      <p>{auto?.state === "ready" ? "Esta es la PC que te proponemos. Nada se guarda hasta que vos lo confirmes." : "Contanos para qué la querés y cuánto querés gastar. Después elegí los componentes que pensás comprar. Elegir no guarda nada ni revisa si encajan: eso viene después de guardar."}</p>
     </header>
 
-    {auto?.state === "working" && <div role="status"><Notice tono="info" titulo="Estamos armando tu PC">Buscamos las piezas que mejor rinden con tu presupuesto y revisamos que encajen.</Notice></div>}
-    {auto?.state === "ready" && <Notice tono="encaja" titulo="Te armamos una PC completa que encaja">Revisamos que las piezas encajen según datos de referencia. Podés cambiar cualquiera más abajo. Chequeá stock antes de comprar.{auto.notices.length > 0 && <ul>{auto.notices.map(text => <li key={text}>{text}</li>)}</ul>}</Notice>}
-    {auto?.state === "none" && <Notice tono="info" titulo="Con este presupuesto no llegamos a una PC completa">Probá con un monto mayor o elegí las piezas a mano.</Notice>}
-    {auto?.state === "error" && <Notice tono="revisar" titulo="No pudimos armar la propuesta">Podés elegir las piezas a mano.</Notice>}
+    {auto?.state === "working" && <div role="status"><Notice tono="info" titulo="Estamos armando tu PC">Buscamos los componentes que mejor rinden con tu presupuesto y revisamos que encajen.</Notice></div>}
+    {auto?.state === "ready" && <Notice tono="encaja" titulo="Te armamos una PC completa que encaja">Revisamos que los componentes encajen según datos de referencia. Podés cambiar cualquiera más abajo. Chequeá stock antes de comprar.{auto.notices.length > 0 && <ul>{auto.notices.map(text => <li key={text}>{text}</li>)}</ul>}</Notice>}
+    {auto?.state === "none" && <Notice tono="info" titulo="Con este presupuesto no llegamos a una PC completa">Probá con un monto mayor o elegí los componentes a mano.</Notice>}
+    {auto?.state === "error" && <Notice tono="revisar" titulo="No pudimos armar la propuesta">Podés elegir los componentes a mano.</Notice>}
 
     <fieldset disabled={busy || !!saved} className="build-ask">
       <legend className="sr-only">Para qué la querés y cuánto querés gastar</legend>
@@ -118,7 +118,7 @@ export default function PurchaseBuilder() {
     <div className="build-result">
       <section aria-label="Compras seleccionadas" className="build-main">
         <div className="build-head">
-          <div><h2>Tu armado manual, por comprar</h2><p>Nueve categorías para elegir a mano. Son piezas que pensás comprar, no las de una PC que ya tenés.</p></div>
+          <div><h2>Tu armado manual, por comprar</h2><p>Nueve categorías para elegir a mano. Son componentes que pensás comprar, no los de una PC que ya tenés.</p></div>
         </div>
         <div className="build-list">
           {towerKeys.map(category => {

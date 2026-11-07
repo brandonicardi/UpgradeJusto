@@ -41,7 +41,7 @@ export function draftSummary(draft: TowerProposalDraft): DraftSummaryRow[] {
     if (lines.length === 0) return { category, label, text: "La tenés, pero falta indicar cuál" };
     const [one, many] = category === "ram" ? ["módulo", "módulos"] : ["unidad", "unidades"];
     const text = lines.map(line => {
-      const model = line.declared_model?.trim() || (line.component_id ? "Pieza elegida del catálogo" : "Modelo sin indicar");
+      const model = line.declared_model?.trim() || (line.component_id ? "Componente elegido del catálogo" : "Modelo sin indicar");
       return line.quantity === null ? `${model} (falta la cantidad)` : `${model} · ${line.quantity} ${line.quantity === 1 ? one : many}`;
     }).join("; ");
     return { category, label, text };

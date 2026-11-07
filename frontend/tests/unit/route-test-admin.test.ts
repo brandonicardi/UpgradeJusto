@@ -112,7 +112,7 @@ it("«Completar» abre la pieza sin crear borrador hasta confirmar", async () =>
   expect(revisionPosts).toBe(0);
   await click(button(host, "Crear borrador desde activa"));
   expect(revisionPosts).toBe(1);
-  expect(host.textContent).toContain("Borrador creado. La pieza quedó abierta");
+  expect(host.textContent).toContain("Borrador creado. El componente quedó abierto");
 });
 
 it("el editor de revisiones distingue borrador de publicado y exige publicación explícita", async () => {

@@ -51,7 +51,7 @@ function estadoDeDatos(id: string): EstadoDatosTecnicos {
 function PiezaDelCatalogo({ line, category }: { line: TowerLine; category: TowerCategory }) {
   const id = line.component_id!, ficha = fichas.get(id);
   const detalle = ficha?.parte?.id === id ? detalleDePieza(category, ficha.parte.attributes, line.quantity) : null;
-  return <><b>{ficha?.parte?.id === id ? ficha.parte.name : ficha?.fallo ? "No pudimos cargar el nombre de esta pieza" : "Buscando la pieza…"}</b>{detalle && <small>{detalle}</small>}</>;
+  return <><b>{ficha?.parte?.id === id ? ficha.parte.name : ficha?.fallo ? "No pudimos cargar el nombre de este componente" : "Buscando el componente…"}</b>{detalle && <small>{detalle}</small>}</>;
 }
 
 function Modelo({ category, lines, falta }: { category: TowerCategory; lines: TowerLine[]; falta: string | null }) {

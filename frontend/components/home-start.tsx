@@ -8,7 +8,7 @@ import { buildHref, convieneHref, homeBudget, homeGoals, type GoalKey, type Home
 
 const CAMINOS: ReadonlyArray<{ key: HomePath; titulo: string; texto: string }> = [
   { key: "mejorar", titulo: "Mejorar la PC que tengo", texto: "Te decimos qué cambiar, cuánto cuesta y si encaja." },
-  { key: "armar", titulo: "Armar mi primera PC", texto: "Te ayudamos a elegir piezas que encajan entre sí." },
+  { key: "armar", titulo: "Armar mi primera PC", texto: "Te ayudamos a elegir componentes que encajan entre sí." },
 ];
 
 const OBJETIVO =
@@ -68,7 +68,7 @@ export default function HomeStart() {
       <div className="grid [&>button]:min-h-14 [&>button]:w-full [&>button]:text-[17px]">
         <Button peso="principal" type="submit" disabled={!goal}>{goal ? `${armar ? "Armar mi PC" : "Ver qué me conviene"} con ${formatearMonto(budget)}` : armar ? "Elegí para qué la vas a usar" : "Elegí qué querés mejorar"}</Button>
       </div>
-      <span className="text-center text-chico text-tinta-suave">{armar ? "Te proponemos una PC completa y podés cambiar cualquier pieza." : "Mirar sugerencias no cambia nada de tu PC guardada."}</span>
+      <span className="text-center text-chico text-tinta-suave">{armar ? "Te proponemos una PC completa y podés cambiar cualquier componente." : "Mirar sugerencias no cambia nada de tu PC guardada."}</span>
     </div>
   </form>;
 }

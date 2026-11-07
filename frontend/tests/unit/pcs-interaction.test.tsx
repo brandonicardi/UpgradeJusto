@@ -60,7 +60,7 @@ describe("Mi PC: interacción real", () => {
     expect(host.querySelectorAll("article.pcs-part")).toHaveLength(9);
     expect(host.querySelector('article[aria-label="Almacenamiento"]')?.getAttribute("data-estado")).toBe("revisar");
     expect(host.querySelector('article[aria-label="Procesador"]')?.getAttribute("data-estado")).toBe("vacia");
-    expect(host.querySelector(".pcs-complete")?.textContent).toContain("2 de 7 piezas esenciales");
+    expect(host.querySelector(".pcs-complete")?.textContent).toContain("2 de 7 componentes esenciales");
     expect(host.querySelector(".pcs-complete")?.textContent).toContain("Refrigeración y ventiladores: opcionales");
     expect(host.textContent).not.toMatch(/snapshot|revisión|schema|scope|coverage|PASS/i);
   });
@@ -77,7 +77,7 @@ describe("Mi PC: interacción real", () => {
       { texto: "Placa de video y gabinete", motivo: null, estado: "No encaja" },
       { texto: "Identificación y presencia", motivo: "no se identificó el gabinete", estado: "Falta un dato" },
     ]);
-    expect(host.textContent).toContain("Hay piezas que no encajan entre sí");
+    expect(host.textContent).toContain("Hay componentes que no encajan entre sí");
   });
   it("una comprobación no evaluada se muestra «No evaluado» con la razón del servidor, nunca como aprobada", async () => {
     const evaluacion = { verdict: "requiere_verificacion", rule_results: [{ rule_id: "T01", family: "T01", state: "unknown", facts: [], evidence: [], conditions: [], missing_fields: ["cpu_support"] }, { rule_id: "T04", family: "T04", state: "not_applicable", facts: [], evidence: [], conditions: ["Espacio físico no evaluado: faltan medidas. Chequeá que entre en tu gabinete."], missing_fields: [] }], rules_version: "cu05-tower-essential-engine-2", scope: { id: "cu05-tower-essential-2" } };
@@ -95,7 +95,7 @@ describe("Mi PC: interacción real", () => {
     const { host } = await openPc([conCatalogo], { catalogo: { "cg-1": { id: "cg-1", category: "cpu", name: "Ryzen 7 5700G", attributes: {} } } });
     const tarjeta = host.querySelector('article[aria-label="Procesador"]')!;
     expect(tarjeta.getAttribute("data-estado")).toBe("sin_datos");
-    expect(tarjeta.textContent).toContain("El catálogo todavía no tiene los datos técnicos de esta pieza");
+    expect(tarjeta.textContent).toContain("El catálogo todavía no tiene los datos técnicos de este componente");
     expect(button(tarjeta, "Ver por qué procesador")).not.toBeNull();
     expect(button(tarjeta, "Completar procesador")).toBeNull();
     expect(tarjeta.textContent).not.toMatch(/\bBIOS\b/);

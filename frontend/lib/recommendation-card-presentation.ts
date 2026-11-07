@@ -31,12 +31,12 @@ function partName(line: Pick<TowerLine, "component_id" | "declared_model">, cate
 
 export function proposalSwap(item: Pick<TowerRecommendationItem, "actions" | "versions">, pc: Tower | undefined, metadata: MetadataSnapshot): { actual: string; nueva: string } {
   const first = item.actions[0];
-  if (!first) return { actual: "Por confirmar", nueva: "Pieza por confirmar" };
+  if (!first) return { actual: "Por confirmar", nueva: "Componente por confirmar" };
   const lines = pc?.lines.filter(line => line.category === first.category) ?? [];
   const actual = lines.length ? lines.map(line => partName(line, first.category, item.versions.catalog, metadata) ?? "Por confirmar").join(", ")
-    : pc?.category_status[first.category] === "absent" ? "Sin pieza de este tipo" : "Por confirmar";
+    : pc?.category_status[first.category] === "absent" ? "Sin componente de este tipo" : "Por confirmar";
   const candidate = first.candidates[0];
-  return { actual, nueva: candidate ? partName(candidate, first.category, item.versions.catalog, metadata) ?? "Pieza por confirmar" : "Pieza por confirmar" };
+  return { actual, nueva: candidate ? partName(candidate, first.category, item.versions.catalog, metadata) ?? "Componente por confirmar" : "Componente por confirmar" };
 }
 
 export function proposalReasons(benefit: TowerRecommendationItem["benefit"]): string[] {

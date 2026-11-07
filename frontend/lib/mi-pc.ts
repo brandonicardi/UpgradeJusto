@@ -90,7 +90,7 @@ export function estadoDeTarjeta(status: CategoryStatus, lines: Pick<TowerLine, "
 export function faltaDeLaTarjeta(lines: Pick<TowerLine, "component_id">[], datos?: EstadoDatosTecnicos[]): string | null {
   if (lines.some(line => !line.component_id)) return "Modelo escrito por vos, sin verificar";
   if (datos?.some(estado => estado === "error")) return "No pudimos leer los datos técnicos";
-  if (datos?.some(estado => estado === "sin_datos")) return "El catálogo todavía no tiene los datos técnicos de esta pieza";
+  if (datos?.some(estado => estado === "sin_datos")) return "El catálogo todavía no tiene los datos técnicos de este componente";
   if (datos?.some(estado => estado === "cargando")) return "Revisando los datos del catálogo…";
   return null;
 }
@@ -103,8 +103,8 @@ export function cargaDeLaPc(pc: { category_status: Record<TowerCategory, Categor
     return estado === "completa" ? "ok" as const : estado === "revisar" ? "q" as const : "e" as const;
   });
   const total = piezasEsenciales.length, cargadas = puntos.filter(punto => punto !== "e").length, porConfirmar = puntos.filter(punto => punto === "q").length;
-  const porConfirmarTexto = porConfirmar ? `${porConfirmar} ${porConfirmar === 1 ? "pieza" : "piezas"} por confirmar` : "Sin piezas por confirmar";
-  return { cargadas, total, porConfirmar, porConfirmarTexto, etiqueta: `${cargadas} de ${total} piezas esenciales cargadas, ${porConfirmarTexto.toLowerCase()}`, opcionales: "Refrigeración y ventiladores: opcionales", puntos };
+  const porConfirmarTexto = porConfirmar ? `${porConfirmar} ${porConfirmar === 1 ? "componente" : "componentes"} por confirmar` : "Sin componentes por confirmar";
+  return { cargadas, total, porConfirmar, porConfirmarTexto, etiqueta: `${cargadas} de ${total} componentes esenciales cargados, ${porConfirmarTexto.toLowerCase()}`, opcionales: "Refrigeración y ventiladores: opcionales", puntos };
 }
 
 export const parDeEncaje: Record<string, string> = {
@@ -150,9 +150,9 @@ export function causaDeFaltante(regla: string, faltantes: readonly unknown[] | n
   if (regla === "T11") {
     if (alguno(lista, "case.presence")) return "no se identificó el gabinete";
     if (alguno(lista, "gpu.absence_requires_documented_integrated_display_path")) return "no se identificó una salida de video";
-    if (alguno(lista, "identified_versioned_component")) return "no se pudo identificar una pieza en el catálogo";
-    if (alguno(lista, "presence")) return "falta identificar una pieza";
-    return "faltan piezas identificadas";
+    if (alguno(lista, "identified_versioned_component")) return "no se pudo identificar un componente en el catálogo";
+    if (alguno(lista, "presence")) return "falta identificar un componente";
+    return "faltan componentes identificados";
   }
   return "faltan datos técnicos";
 }
@@ -183,6 +183,6 @@ export function fraseDeEncaje(evaluacion: Pick<TowerEvaluation, "verdict" | "rul
 }
 function fraseDeVeredicto(veredicto: TowerEvaluation["verdict"]): string {
   if (veredicto === "compatible") return "Lo que tenés hoy encaja.";
-  if (veredicto === "incompatible") return "Hay piezas que no encajan entre sí. Revisá las marcadas arriba.";
+  if (veredicto === "incompatible") return "Hay componentes que no encajan entre sí. Revisá las marcadas arriba.";
   return "Todavía faltan datos para estar seguros. Revisá las comprobaciones marcadas.";
 }

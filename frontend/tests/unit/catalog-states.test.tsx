@@ -5,7 +5,7 @@ import { EmptyResults, Failure } from "../../app/catalog/presentation";
 describe("estados del catálogo", () => {
   it("la consulta vacía con filtros ofrece limpiar y no muestra tarjetas", () => {
     const html = renderToStaticMarkup(<EmptyResults filtered firstPageHref="/catalog?page=1" />);
-    expect(html).toContain("No encontramos piezas con esos filtros");
+    expect(html).toContain("No encontramos componentes con esos filtros");
     expect(html).toContain('href="/catalog"');
     expect(html).toContain("Limpiar filtros");
     expect(html).not.toContain("<article");

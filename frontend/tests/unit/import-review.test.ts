@@ -25,7 +25,7 @@ describe("revisión de lo que entendimos", () => {
   it("marca cada pieza según lo que realmente se pudo leer", () => {
     const draft = extractionDraft(extraccion), filas = filasDeRevision(extraccion, draft);
     expect(filas.map(fila => fila.marca)).toEqual(["leida", "revisar", "revisar", "sin_dato", "sin_dato", "sin_dato", "sin_dato", "sin_dato", "sin_dato"]);
-    expect(filas[1].candidatos).toEqual(["cg-10", "cg-11"]); expect(filas[1].pregunta).toContain("varias piezas");
+    expect(filas[1].candidatos).toEqual(["cg-10", "cg-11"]); expect(filas[1].pregunta).toContain("varios componentes");
     expect(filas[2].pregunta).toContain("no podemos comprobar si encaja");
     expect(filas[0].citas).toEqual(["Procesador Ryzen"]);
     expect(conteoDeMarcas(filas)).toEqual({ leidas: 1, revisar: 2, sinDato: 6 });
@@ -71,14 +71,14 @@ describe("correcciones sobre el borrador", () => {
 describe("resumen para guardar", () => {
   it("separa completas, a medias y sin dato con los nombres de las piezas", () => {
     const draft = extractionDraft(extraccion), filas = filasDeRevision(extraccion, draft), resumen = resumenParaGuardar(filas, draft);
-    expect(resumen[0]).toEqual({ destacado: "1 pieza completa", resto: ": procesador." });
-    expect(resumen[1].destacado).toBe("2 piezas a medias"); expect(resumen[1].resto).toContain("placa madre y memoria");
-    expect(resumen[2].destacado).toBe("6 piezas sin dato");
+    expect(resumen[0]).toEqual({ destacado: "1 componente completo", resto: ": procesador." });
+    expect(resumen[1].destacado).toBe("2 componentes a medias"); expect(resumen[1].resto).toContain("placa madre y memoria");
+    expect(resumen[2].destacado).toBe("6 componentes sin dato");
     expect(resumen.at(-1)?.resto).toContain("«Falta un dato» en vez de «Encaja»");
   });
   it("lo que se declaró como ausente no se cuenta como «sin dato»", () => {
     const draft = marcarSinPieza(extractionDraft(extraccion), "cooler", "absent"), resumen = resumenParaGuardar(filasDeRevision(extraccion, draft), draft);
-    expect(resumen.find(linea => linea.destacado === "1 pieza que no tenés")?.resto).toBe(" (cooler).");
-    expect(resumen.find(linea => linea.destacado.endsWith("sin dato"))?.destacado).toBe("5 piezas sin dato");
+    expect(resumen.find(linea => linea.destacado === "1 componente que no tenés")?.resto).toBe(" (cooler).");
+    expect(resumen.find(linea => linea.destacado.endsWith("sin dato"))?.destacado).toBe("5 componentes sin dato");
   });
 });

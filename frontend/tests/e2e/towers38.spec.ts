@@ -59,7 +59,7 @@ test("@tower05 v2 sin BIOS: cambiar placa conserva el dato guardado y el payload
     await expect(editor.getByLabel(/BIOS/i)).toHaveCount(0);
     await expect(editor).not.toContainText(/\bBIOS\b/i);
 
-    await editor.getByText("Cambiar por otra pieza", { exact: true }).click();
+    await editor.getByText("Cambiar por otro componente", { exact: true }).click();
     const selector = editor.getByRole("region", { name: "Selector de Placa madre", exact: true });
     await selector.getByRole("textbox").fill(target.name.slice(0, 60));
     await selector.getByRole("button", { name: "Buscar", exact: true }).click();
@@ -155,7 +155,7 @@ test("@tower05 v2: una incompatibilidad documentada sigue fallando aunque la PC 
 
     await page.goto("/pcs"); await openPc(page, own.name);
     const encaje = page.getByRole("heading", { name: "¿Encaja todo entre sí?", exact: true }).locator("..");
-    await expect(encaje).toContainText("Hay piezas que no encajan entre sí", { timeout: 20000 });
+    await expect(encaje).toContainText("Hay componentes que no encajan entre sí", { timeout: 20000 });
     const physical = encaje.locator("li").filter({ hasText: "Placa de video y gabinete" });
     await expect(physical).toContainText("No encaja");
     await expect(encaje).not.toContainText("Chequeá que entre en tu gabinete");
@@ -234,7 +234,7 @@ test("@tower38 CRUD real: discos distintos, ventiladores, declarados, revisión 
     await editor.getByRole("button", { name: "Agregar otra línea de almacenamiento", exact: true }).click();
     await editor.getByLabel("¿Cómo la querés indicar?", { exact: true }).last().selectOption("escrito");
     await editor.getByLabel("Modelo", { exact: true }).last().fill("Disco declarado B");
-    await editor.getByRole("button", { name: "Guardar esta pieza", exact: true }).click();
+    await editor.getByRole("button", { name: "Guardar este componente", exact: true }).click();
 
     // Un ventilador declarado con cantidad explícita.
     await page.getByRole("button", { name: "Agregar ventiladores", exact: true }).click();
@@ -242,7 +242,7 @@ test("@tower38 CRUD real: discos distintos, ventiladores, declarados, revisión 
     await editor.getByLabel("¿Qué tenés de esto?", { exact: true }).selectOption("present");
     await editor.getByLabel("Modelo", { exact: true }).fill("Ventilador declarado");
     await editor.getByLabel("Cantidad de ventiladores", { exact: true }).fill("3");
-    await editor.getByRole("button", { name: "Guardar esta pieza", exact: true }).click();
+    await editor.getByRole("button", { name: "Guardar este componente", exact: true }).click();
 
     await expect(page.getByLabel(/BIOS/i)).toHaveCount(0);
     const saved = page.waitForResponse(response => response.url().endsWith("/api/towers") && response.request().method() === "POST");
@@ -304,8 +304,8 @@ test("@tower38-catalog ID posterior a50 se resuelve realmente fuera de la primer
     await card.getByRole("button").last().click();
     const editor = page.locator("form.pcs-editor");
     await expect(editor).toBeVisible();
-    // La pieza ya elegida muestra el selector dentro de «Cambiar por otra pieza».
-    const change = editor.getByText("Cambiar por otra pieza", { exact: true });
+    // La pieza ya elegida muestra el selector dentro de «Cambiar por otro componente».
+    const change = editor.getByText("Cambiar por otro componente", { exact: true });
     if (await change.count()) await change.click();
     const selector = page.getByRole("region", { name: `Selector de ${towerCategories[part.category]}`, exact: true });
     await expect(selector).toContainText(part.name, { timeout: 20000 });

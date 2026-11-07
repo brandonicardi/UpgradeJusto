@@ -7,7 +7,7 @@ export function configurationNextSteps(pc: Tower): string[] {
   const absent = categories.filter(category => pc.category_status[category] === "absent");
   const unknown = categories.filter(category => pc.category_status[category] === "unknown");
   return [
-    ...(absent.length ? [`Elegí o revisá las piezas declaradas ausentes en la base del plan: ${absent.map(category => towerCategories[category]).join(", ")}.`] : []),
+    ...(absent.length ? [`Elegí o revisá los componentes declarados ausentes en la base del plan: ${absent.map(category => towerCategories[category]).join(", ")}.`] : []),
     ...(unknown.length ? [`Confirmá qué tenés en la base del plan: ${unknown.map(category => towerCategories[category]).join(", ")}. No sé no significa ausente.`] : []),
   ];
 }

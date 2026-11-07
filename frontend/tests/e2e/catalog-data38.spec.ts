@@ -49,12 +49,12 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
   let apiAttempted = false, raw: unknown;
   const observed: { navigation_status: number | null; same_application_origin: boolean; catalog_heading: boolean; h1_count: number; dom: "unknown" | "catalog_loaded" | "catalog_failure" | "not_found" | "other"; category_comboboxes: number; category_options: number; api_status: number | null; api_json: boolean; envelope: ReturnType<typeof envelope> | null; contract_path: string | null; api_raw_items_count: number; item_count: number; image_candidates: number; offer_candidates: number; combined_candidates: number } = { navigation_status: null, same_application_origin: false, catalog_heading: false, h1_count: 0, dom: "unknown", category_comboboxes: 0, category_options: 0, api_status: null, api_json: false, envelope: null, contract_path: null, api_raw_items_count: 0, item_count: 0, image_candidates: 0, offer_candidates: 0, combined_candidates: 0 };
   async function domProbe() {
-    observed.catalog_heading = await page.getByRole("heading", { level: 1, name: "Todas las piezas", exact: true }).count() === 1;
+    observed.catalog_heading = await page.getByRole("heading", { level: 1, name: "Todos los componentes", exact: true }).count() === 1;
     observed.h1_count = await page.getByRole("heading", { level: 1 }).count();
     const failure = await page.getByRole("heading", { name: "No se pudo cargar el catálogo", exact: true }).count() > 0;
     const notFound = await page.getByRole("heading", { name: "This page could not be found.", exact: true }).count() > 0;
     observed.dom = failure ? "catalog_failure" : observed.catalog_heading ? "catalog_loaded" : notFound ? "not_found" : "other";
-    const category = page.getByRole("navigation", { name: "Tipo de pieza", exact: true }); observed.category_comboboxes = await category.count(); observed.category_options = await category.locator('a').count() - 1;
+    const category = page.getByRole("navigation", { name: "Tipo de componente", exact: true }); observed.category_comboboxes = await category.count(); observed.category_options = await category.locator('a').count() - 1;
   }
   async function apiProbe() {
     apiAttempted = true;
@@ -91,8 +91,8 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
     observed.navigation_status = navigation?.status() ?? null;
     observed.same_application_origin = new URL(page.url()).origin === "http://127.0.0.1:3000";
     phase = "catalog-navigation-status"; expect(observed.navigation_status).toBe(200); expect(observed.same_application_origin).toBe(true);
-    phase = "catalog-wait-heading"; await expect(page.getByRole("heading", { level: 1, name: "Todas las piezas", exact: true })).toBeVisible({ timeout: 5000 });
-    const category = page.getByRole("navigation", { name: "Tipo de pieza", exact: true });
+    phase = "catalog-wait-heading"; await expect(page.getByRole("heading", { level: 1, name: "Todos los componentes", exact: true })).toBeVisible({ timeout: 5000 });
+    const category = page.getByRole("navigation", { name: "Tipo de componente", exact: true });
     phase = "catalog-wait-combobox"; await expect(category).toBeVisible({ timeout: 5000 });
     phase = "catalog-9filters";
     await expect(category.locator('a')).toHaveCount(10, { timeout: 5000 }); await domProbe();
@@ -148,7 +148,7 @@ test("@catalog-data38 API real9categorías/ofertas/foto y ficha sin sustitutos h
       const href = await next.getAttribute("href"); expect(href !== null && new URL(href, page.url()).searchParams.get("sort") === "id").toBe(true);
     }
     for (const current of ["fan", "storage", "cooler"]) {
-      phase = `filter-${current}`; await page.goto(`/catalog?category=${current}&page=1&page_size=12&sort=retail_first`); await expect(page.getByRole("navigation", { name: "Tipo de pieza" }).locator('a[aria-current="page"]')).toHaveAttribute("href", new RegExp(`category=${current}`)); await expect(page.locator("article[data-component-id]").first()).toBeVisible(); expect(await page.locator('img[alt*="undefined"]').count()).toBe(0);
+      phase = `filter-${current}`; await page.goto(`/catalog?category=${current}&page=1&page_size=12&sort=retail_first`); await expect(page.getByRole("navigation", { name: "Tipo de componente" }).locator('a[aria-current="page"]')).toHaveAttribute("href", new RegExp(`category=${current}`)); await expect(page.locator("article[data-component-id]").first()).toBeVisible(); expect(await page.locator('img[alt*="undefined"]').count()).toBe(0);
     }
     for (const id of data.items.slice(0, 2).map(part => part.id)) {
       phase = "detail-resource-proof";

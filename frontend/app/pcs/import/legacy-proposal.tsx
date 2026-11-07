@@ -51,7 +51,7 @@ export default function LegacyImportPC({ catalog }: { catalog: CatalogPage | nul
     } finally { lock.current = false; setBusy(false); }
   }
   return <section aria-busy={busy} className="space-y-5">
-    <header className="page-heading"><p className="eyebrow">DE TEXTO A CONFIGURACIÓN</p><h1>Importar PC desde texto</h1><p className="muted">Pegá las piezas que conocés. Revisá la propuesta antes de guardar.</p></header>
+    <header className="page-heading"><p className="eyebrow">DE TEXTO A CONFIGURACIÓN</p><h1>Importar PC desde texto</h1><p className="muted">Pegá los componentes que conocés. Revisá la propuesta antes de guardar.</p></header>
     <ol className="step-list" aria-label="Pasos de importación"><li aria-current={!preview && !saved ? "step" : undefined}>1 · Pegá tu configuración</li><li aria-current={preview ? "step" : undefined}>2 · Revisá y corregí</li><li aria-current={saved ? "step" : undefined}>3 · Confirmá el guardado</li></ol>
     <Link href="/pcs">Revisar Mis PCs</Link>
     <p role="status" className="muted">{busy ? "Consultando al servidor, sin reintentos automáticos…" : saved ? `PC guardada: ${saved.name}. Revisión ${saved.revision}.` : "Nada se guarda sin tu confirmación."}</p>
@@ -74,7 +74,7 @@ export default function LegacyImportPC({ catalog }: { catalog: CatalogPage | nul
       </section>
       <form onSubmit={save} className="surface stack" aria-label="Propuesta editable" onChange={() => setConfirmed(false)}>
         <fieldset disabled={busy || blocked} className="space-y-4"><legend className="text-xl font-bold">Corregir propuesta completa</legend>
-          <p className="muted">Elegí las piezas correctas. Dejá vacío lo que no conocés; no se asume compatible.</p>
+          <p className="muted">Elegí los componentes correctos. Dejá vacío lo que no conocés; no se asume compatible.</p>
           <label className="block">Nombre de PC<input name="name" maxLength={100} required defaultValue={preview.proposal.name} /></label>
           {!catalog && <p className="notice">Catálogo no disponible: podés omitir referencias, no inventarlas.</p>}
           {pcCategories.map(category => {

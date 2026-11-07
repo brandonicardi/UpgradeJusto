@@ -45,7 +45,7 @@ describe("¿Encaja en…?", () => {
     }
   });
   it("el dato técnico usa solo atributos presentes y aclara faltantes", () => {
-    expect(catalogTechnicalText(part("a"))).toBe("No tenemos más datos de esta pieza todavía");
+    expect(catalogTechnicalText(part("a"))).toBe("No tenemos más datos de este componente todavía");
     expect(catalogTechnicalText({ ...part("a"), category: "motherboard", attributes: { reference_facts: JSON.stringify({ socket: "AM4" }) } })).toContain("AM4");
     expect(catalogTechnicalText({ ...part("a"), attributes: { socket: "AM5", memory_type: "DDR5", internal_id: "oculto" } })).toBe("Socket: AM5 · Memoria: DDR5");
   });

@@ -96,7 +96,7 @@ describe("ficha y simulación", () => {
     await type(host.querySelector("select")!, "uno"); await settle();
     const calls = fetcher.mock.calls.length; expect(sumar(host).disabled).toBe(false);
     await click(sumar(host)); await settle();
-    expect(host.querySelector('[aria-label="Preparar plan desde esta pieza"]')).not.toBeNull(); expect(host.textContent).toContain("Todavía no se guarda nada");
+    expect(host.querySelector('[aria-label="Preparar plan desde este componente"]')).not.toBeNull(); expect(host.textContent).toContain("Todavía no se guarda nada");
     expect(fetcher.mock.calls).toHaveLength(calls);
     expect(fetcher.mock.calls.map(([url]) => String(url)).filter(url => !url.startsWith("/api/towers?"))).toEqual(["/api/auth/csrf", "/api/towers/uno/simulate"]);
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
@@ -106,16 +106,16 @@ describe("ficha y simulación", () => {
     await type(host.querySelector("select")!, "uno"); await settle(); await click(sumar(host));
     await type(host.querySelector('input[inputmode="decimal"]')!, "500000"); const calls = fetcher.mock.calls.length;
     await click(button(host, "Preparar borrador")); await settle();
-    const section = host.querySelector('section[aria-label="Borrador de plan desde esta pieza"]');
-    expect(section).not.toBeNull(); expect(section?.querySelector('section[aria-label="Borrador de plan por etapas"]')).not.toBeNull();
-    expect(section?.textContent).toContain("Etapa 1"); expect(section?.textContent).toContain("pieza × 1"); expect(section?.textContent).toContain("gpu · replace_category"); expect(host.querySelector('[role="alert"]')).toBeNull();
+    const section = host.querySelector('section[aria-label="Borrador de plan desde este componente"]');
+    expect(section).not.toBeNull(); expect(section?.querySelector('section[aria-label="Borrador del plan por compras"]')).not.toBeNull();
+    expect(section?.textContent).toContain("Compra 1"); expect(section?.textContent).toContain("Componente del catálogo × 1"); expect(section?.textContent).toContain("Gráfica · Reemplazar conjunto completo"); expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(fetcher.mock.calls).toHaveLength(calls);
   });
   it("presupuesto inválido muestra una alerta y no abre el editor", async () => {
     pcList(); const host = await mount(<PieceFit part={part} catalogVersion="cat-v1" />); await settle();
     await type(host.querySelector("select")!, "uno"); await settle(); await click(sumar(host));
     await type(host.querySelector('input[inputmode="decimal"]')!, "mucho"); await click(button(host, "Preparar borrador"));
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain("Presupuesto"); expect(host.querySelector('section[aria-label="Borrador de plan desde esta pieza"]')).toBeNull();
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain("Presupuesto"); expect(host.querySelector('section[aria-label="Borrador de plan desde este componente"]')).toBeNull();
   });
   it("sin versión del catálogo el botón queda deshabilitado y se explica", async () => {
     pcList(); const host = await mount(<PieceFit part={part} catalogVersion={null} />); await settle();

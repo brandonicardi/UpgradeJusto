@@ -36,7 +36,7 @@ export function towerInput(draft: TowerInput): TowerInput {
   const category_status = {} as TowerInput["category_status"];
   for (const key of towerKeys) {
     const status = draft.category_status[key], groups = lines.filter(line => line.category === key), count = groups.reduce((sum, line) => sum + line.quantity, 0);
-    if (!["present", "unknown", "absent"].includes(status) || (status === "present" ? !groups.length : groups.length > 0)) throw new Error("Presente requiere piezas; no sé y no tengo no llevan líneas.");
+    if (!["present", "unknown", "absent"].includes(status) || (status === "present" ? !groups.length : groups.length > 0)) throw new Error("Presente requiere componentes; no sé y no tengo no llevan líneas.");
     const [maxGroups, maxUnits] = key === "ram" ? [4, 16] : key === "storage" ? [16, 16] : key === "fan" ? [8, 32] : [1, 1];
     if (groups.length > maxGroups || count > maxUnits) throw new Error(`Revisá las cantidades de ${towerCategories[key]}.`);
     category_status[key] = status;

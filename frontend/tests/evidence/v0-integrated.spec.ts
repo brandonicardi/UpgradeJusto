@@ -32,7 +32,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await page.goto("/catalog"); const credentials = { email: `v0-own-${randomUUID()}@example.test`, password: randomUUID() }; expect((await api(page, "/api/auth/register", "POST", credentials)).status).toBe(201); expect((await api(page, "/api/auth/login", "POST", credentials)).status).toBe(200);
     page.on("request", request => { const route = new URL(request.url()).pathname; if (request.method() === "POST" && route === "/api/towers") pcPosts++; if (request.method() === "POST" && route === "/api/tower-plans") planPosts++; });
     phase = "entry"; await page.goto("/"); await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 5000 }); await shot("00-entrada-shell.png", page.locator("body"), true); await shot("01-entrada.png", page.getByRole("heading", { level: 1 })); await page.getByRole("link", { name: /Quiero armar una desde cero/ }).click();
-    const builder = page.getByRole("region", { name: "Armado desde cero", exact: true }); await expect(builder).toContainText("Todavía no hay compras", { timeout: 5000 }); await expect(builder).toContainText("Elegí tu primera pieza"); expect(pcPosts).toBe(0);
+    const builder = page.getByRole("region", { name: "Armado desde cero", exact: true }); await expect(builder).toContainText("Todavía no hay compras", { timeout: 5000 }); await expect(builder).toContainText("Elegí tu primer componente"); expect(pcPosts).toBe(0);
     if (viewport.width === 390) {
       const counts = { page_objective: 0, builder_objective: 0, page_budget: 0, builder_budget: 0, page_condition: 0, builder_condition: 0 };
       Object.assign(observed, { mobile_goal_controls: counts });

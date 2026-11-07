@@ -13,9 +13,9 @@ describe("entrada como la maqueta de Inicio", () => {
   it("arma la pantalla en el orden de la maqueta: presentación con la tarjeta, tres caminos y el recorrido", () => {
     const html = renderToStaticMarkup(<BeginnerEntry />);
     expect(html).toContain("<h1"); expect(html).toContain("Tu PC puede dar"); expect(html).toContain("<mark");
-    for (const text of ["No hace falta saber de hardware.", "Revisamos que cada pieza encaje antes de sugerirla.", "Precios reales, con fecha y tienda."]) expect(html).toContain(text);
+    for (const text of ["No hace falta saber de hardware.", "Revisamos que cada componente encaje antes de sugerirlo.", "Precios reales, con fecha y tienda."]) expect(html).toContain(text);
     expect(html).toContain("¿Qué querés que tu PC haga mejor?"); expect(html).toContain("¿Cuánto querés gastar como máximo?");
-    const orden = ["Tu PC puede dar", "Paso 1 de 2", "¿Sabés qué tiene tu PC adentro?", "No sé qué tengo", "Sé qué piezas tiene", "Tengo una lista", "De tu PC a un plan que entendés", "Explorar el catálogo"].map(text => html.indexOf(text));
+    const orden = ["Tu PC puede dar", "Paso 1 de 2", "¿Sabés qué tiene tu PC adentro?", "No sé qué tengo", "Sé qué componentes tiene", "Tengo una lista", "De tu PC a un plan que entendés", "Explorar el catálogo"].map(text => html.indexOf(text));
     expect(orden.every(position => position >= 0)).toBe(true);
     expect([...orden].sort((a, b) => a - b)).toEqual(orden);
   });
@@ -23,7 +23,7 @@ describe("entrada como la maqueta de Inicio", () => {
     const html = renderToStaticMarkup(<BeginnerEntry />);
     expect(html).toContain("Si recién empezás");
     expect(html).toContain('href="/pcs/import#ayuda"'); expect(html).toContain('href="/pcs"'); expect(html).toContain('href="/pcs/import"');
-    expect(html.indexOf("No sé qué tengo")).toBeLessThan(html.indexOf("Sé qué piezas tiene"));
+    expect(html.indexOf("No sé qué tengo")).toBeLessThan(html.indexOf("Sé qué componentes tiene"));
     expect(html).toContain('aria-describedby="beginner-paste-note"'); expect(html).toContain('id="beginner-paste-note"');
     expect(html).toContain("Pegá lo que te pasó el vendedor o un programa.");
   });

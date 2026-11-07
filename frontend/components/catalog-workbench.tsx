@@ -31,17 +31,17 @@ export default function CatalogWorkbench({ data, query = { q: "", category: "", 
   return <>
     <section className="catalog-tools" aria-label="Buscar y filtrar">
       <form action="/catalog" method="get" className="catalog-search" role="search">
-        <Search aria-hidden="true" size={20} /><input type="search" name="q" aria-label="Buscar piezas" maxLength={100} defaultValue={query.q} placeholder="Por ejemplo: memoria, 4060, disco de 1 TB" />
+        <Search aria-hidden="true" size={20} /><input type="search" name="q" aria-label="Buscar componentes" maxLength={100} defaultValue={query.q} placeholder="Por ejemplo: memoria, 4060, disco de 1 TB" />
         {query.category && <input type="hidden" name="category" value={query.category} />}<input type="hidden" name="sort" value={query.sort} /><input type="hidden" name="page" value="1" /><input type="hidden" name="page_size" value={query.page_size} />
       </form>
-      <nav className="catalog-chips" aria-label="Tipo de pieza">{[["", "Todas"], ...Object.entries(catalogCategories)].map(([category, label]) => <Link key={category} href={`/catalog?${towerQueryString({ ...query, category }, 1)}`} aria-current={query.category === category ? "page" : undefined}>{label}</Link>)}</nav>
+      <nav className="catalog-chips" aria-label="Tipo de componente">{[["", "Todas"], ...Object.entries(catalogCategories)].map(([category, label]) => <Link key={category} href={`/catalog?${towerQueryString({ ...query, category }, 1)}`} aria-current={query.category === category ? "page" : undefined}>{label}</Link>)}</nav>
       <div className="catalog-bar">
         <label>¿Encaja en…? <select value={selected} onChange={event => setSelected(event.target.value)}><option value="">No mostrar</option>{pcs.map(pc => <option key={pc.id} value={pc.id}>{pc.name}</option>)}</select></label>
-        <span className="results-count" role="status">{data.total} {data.total === 1 ? "pieza" : "piezas"}</span>
+        <span className="results-count" role="status">{data.total} {data.total === 1 ? "componente" : "componentes"}</span>
         <label>Ordenar <select value={query.sort} onChange={event => router.push(`/catalog?${towerQueryString({ ...query, sort: event.target.value as TowerCatalogQuery["sort"] }, 1)}`)}><option value="retail_first">Con fotos y precios primero</option><option value="id">Orden habitual</option><option value="price_asc">Más baratas primero</option><option value="price_desc">Más caras primero</option></select></label>
       </div>
-      {access === "guest" && <Link className="catalog-session-help" href="/account">Entrá para ver si las piezas encajan en tu PC</Link>}
-      {access === "ready" && pcs.length === 0 && <Link className="catalog-session-help" href="/pcs">Agregá una PC para ver si las piezas encajan</Link>}
+      {access === "guest" && <Link className="catalog-session-help" href="/account">Entrá para ver si los componentes encajan en tu PC</Link>}
+      {access === "ready" && pcs.length === 0 && <Link className="catalog-session-help" href="/pcs">Agregá una PC para ver si los componentes encajan</Link>}
       {access === "error" && <Link className="catalog-session-help" href="/pcs">No pudimos cargar tus PCs. Revisá tus PCs para volver a intentar.</Link>}
     </section>
     {data.items.length ? <section className="catalog-piece-grid" aria-label="Resultados">{data.items.map(part => {

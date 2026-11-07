@@ -49,7 +49,7 @@ export function PriceTag({ monto, moneda, condicion, fecha, tienda, enlace, comp
     return (
       <div className="grid gap-[2px] font-sans-uj">
         <span className="text-[20px] leading-6 font-bold text-tinta-suave">Sin precio</span>
-        <span className={metaClase}>{catalogo ? "No lo vimos en los últimos días" : "No tenemos un precio reciente de esta pieza."}</span>
+        <span className={metaClase}>{catalogo ? "No lo vimos en los últimos días" : "No tenemos un precio reciente de este componente."}</span>
       </div>
     );
   }

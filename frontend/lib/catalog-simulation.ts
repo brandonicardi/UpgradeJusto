@@ -10,7 +10,7 @@ export function catalogTechnicalText(part: TowerComponent): string {
     const value = part.attributes[key]?.trim();
     return value ? [`${label}: ${value}`] : [];
   });
-  return details.slice(0, 2).join(" · ") || detalleDePieza(part.category, part.attributes) || "No tenemos más datos de esta pieza todavía";
+  return details.slice(0, 2).join(" · ") || detalleDePieza(part.category, part.attributes) || "No tenemos más datos de este componente todavía";
 }
 export async function loadCatalogPCs(signal: AbortSignal): Promise<{ pcs: Tower[]; access: "guest" | "ready" | "error" }> {
   try {

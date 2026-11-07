@@ -77,7 +77,7 @@ describe("CU09 tower shares: synthetic unit data, not real API evidence", () => 
     data.missing_fields = [{ code: "public_evidence_withheld", count: 2 }] as typeof data.missing_fields;
     const html = renderToStaticMarkup(<PublicTowerShareView data={data} />);
     expect(html).toContain("No se pudo confirmar");
-    expect(html).toContain("Veredicto del motor conservado: Falta un dato");
+    expect(html).toContain("Resultado guardado: Falta un dato");
     expect(html).not.toContain("No encaja");
     expect(html).toContain("Evidencia pública reservada: 2 datos.");
     expect(html).not.toContain("public_evidence_withheld");
@@ -94,7 +94,7 @@ describe("CU09 tower shares: synthetic unit data, not real API evidence", () => 
     expect(summaries).toContain("Procesador y placa"); expect(summaries).toContain("Detalle de lo comprobado");
     expect(host.textContent).not.toContain("Cobertura"); expect(host.textContent).toContain("Qué pudimos comprobar");
     const detail = [...host.querySelectorAll("details")].find(item => item.querySelector(":scope > summary")?.textContent?.includes("Procesador y placa"));
-    expect(detail?.textContent).toContain("Código interno: T01");
+    expect(detail?.textContent).not.toContain("Código interno");
   });
   it("projects only public DTO keys and rejects schema1, invalid money and unresolved component refs", () => {
     const source = syntheticPublicShare(), before = JSON.stringify(source);

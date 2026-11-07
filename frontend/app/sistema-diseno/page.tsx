@@ -61,7 +61,7 @@ const MEJORA_BASE = {
   titulo: "Cambiá la placa de video",
   actual: "GTX 1650 · 4 GB",
   nueva: "RTX 4060 · 8 GB",
-  motivos: ["Es la pieza que más frena tus juegos hoy.", "Tu fuente de 550 W alcanza y entra en tu gabinete."],
+  motivos: ["Es el componente que más frena tus juegos hoy.", "Tu fuente de 550 W alcanza y entra en tu gabinete."],
   precio: PRECIO_A,
   veredicto: "compatible",
 };
@@ -100,7 +100,7 @@ export default function SistemaDisenoPage() {
         <header className="grid max-w-[60ch] gap-space-3">
           <h1 className="font-display text-titular-l! min-[600px]:text-titular-xl!">Sistema de diseño</h1>
           <p className="text-cuerpo-l text-tinta-suave">
-            Así se ve cada pieza de la interfaz en todos sus estados. Los nombres, precios y tiendas son de
+            Así se ve cada componente de la interfaz en todos sus estados. Los nombres, precios y tiendas son de
             ejemplo.
           </p>
         </header>
@@ -108,7 +108,7 @@ export default function SistemaDisenoPage() {
         <Seccion
           id="veredictos"
           titulo="Veredictos"
-          bajada="Dicen si una pieza encaja. Si no hay respuesta clara, nunca muestran «Encaja»."
+          bajada="Dicen si un componente encaja. Si no hay respuesta clara, nunca muestran «Encaja»."
         >
           <div className={GRILLA}>
             <Estado nombre="Encaja">
@@ -167,7 +167,7 @@ export default function SistemaDisenoPage() {
 
         <Seccion
           id="piezas"
-          titulo="Piezas"
+          titulo="Componentes"
           bajada="El nombre simple va primero y el modelo técnico después. Sin foto, se muestra el ícono de la categoría."
         >
           <div className="grid gap-space-4">
@@ -193,7 +193,7 @@ export default function SistemaDisenoPage() {
               precio={{ ...PRECIO_B, monto: 58900 }}
               veredicto="incompatible"
             />
-            <PartCard categoria="Gabinete" beneficio="Para guardar y ventilar tus piezas" modelo="Gabinete mediano con ventana" />
+            <PartCard categoria="Gabinete" beneficio="Para guardar y ventilar tus componentes" modelo="Gabinete mediano con ventana" />
           </div>
         </Seccion>
 
@@ -228,7 +228,7 @@ export default function SistemaDisenoPage() {
                 </Button>
               </Estado>
               <Estado nombre="Deshabilitado con motivo">
-                <Button peso="principal" disabled motivo="Elegí una pieza para seguir">
+                <Button peso="principal" disabled motivo="Elegí un componente para seguir">
                   Sumar al plan
                 </Button>
               </Estado>
@@ -263,7 +263,7 @@ export default function SistemaDisenoPage() {
             <Estado nombre="Varias líneas">
               <Field
                 multilinea
-                etiqueta="Contanos qué piezas tiene tu PC"
+                etiqueta="Contanos qué componentes tiene tu PC"
                 placeholder="Pegá acá la lista que copiaste"
                 ayuda="Después de leerla, te pedimos que la revises antes de guardar."
               />
@@ -274,7 +274,7 @@ export default function SistemaDisenoPage() {
         <Seccion
           id="mi-pc"
           titulo="Mi PC"
-          bajada="Las nueve piezas, siempre en el mismo orden. Lo que falta se puede agregar y lo que está en duda dice qué dato falta."
+          bajada="Los nueve componentes, siempre en el mismo orden. Lo que falta se puede agregar y lo que está en duda dice qué dato falta."
         >
           <PcSlots
             hrefAgregar={() => "#mi-pc"}
@@ -379,7 +379,7 @@ export default function SistemaDisenoPage() {
         <Seccion
           id="charla"
           titulo="Charla con el asistente"
-          bajada="El asistente explica lo que dice el comparador de piezas; el veredicto no lo decide él."
+          bajada="El asistente explica lo que dice el comparador de componentes; el veredicto no lo decide él."
         >
           <div className="grid max-w-[560px] gap-space-3">
             <ChatBubble autor="persona">¿Le puedo poner una RTX 4060 a mi PC?</ChatBubble>

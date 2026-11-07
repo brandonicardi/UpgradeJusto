@@ -14,7 +14,7 @@ export function RemoteProductName({ id, category, summary = false, compact = fal
   }, [id, category]);
   if (compact && part?.id === id) return <div className="inventory-product-identity"><TowerProductPhoto part={part} /><div><p>{part.name}</p><details><summary>Ficha y evidencia</summary><TowerProductSummary part={part} /></details></div></div>;
   if (summary && part?.id === id) return <TowerProductSummary part={part} />;
-  return <span>{part?.id === id ? part.name : failed ? "No se pudo cargar el nombre de esta pieza" : "Consultando referencia…"}{failed && <details><summary>Referencia técnica</summary><code>{id}</code></details>}</span>;
+  return <span>{part?.id === id ? part.name : failed ? "No se pudo cargar el nombre de este componente" : "Consultando referencia…"}{failed && <details><summary>Referencia técnica</summary><code>{id}</code></details>}</span>;
 }
 
 export default function RemoteProductSelector({ category, value, onChange }: { category: TowerCategory; value: string | null; onChange: (id: string) => void }) {

@@ -79,8 +79,8 @@ describe("Agregar por lista: interacción real", () => {
     stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);
     await type(byLabel(host, "Almacenamiento") ?? host.querySelector('input[aria-label="Almacenamiento"]'), "");
     await click(button(host, "Está bien, seguir"));
-    expect(host.querySelector(".imp-summary")?.textContent).toContain("9 piezas sin dato");
-    expect(host.querySelector(".imp-summary")?.textContent).not.toContain("pieza a medias");
+    expect(host.querySelector(".imp-summary")?.textContent).toContain("9 componentes sin dato");
+    expect(host.querySelector(".imp-summary")?.textContent).not.toContain("componente a medias");
   });
   it("el paso 3 deja declarar si la PC ya está armada y lo envía al confirmar", async () => {
     const api = stubApi(); const host = await mount(createElement(ImportTower)); await toStep2(host);

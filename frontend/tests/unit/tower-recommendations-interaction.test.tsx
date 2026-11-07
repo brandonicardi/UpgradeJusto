@@ -36,8 +36,8 @@ describe("Preparar una propuesta sin guardarla", () => {
     await click(button(host, "Buscar propuestas para mi torre")); await settle();
     expect(host.querySelector('[aria-label="Editor de plan de torre"]')).toBeNull();
     request.mockClear(); await click(button(host, "Preparar plan"));
-    const editor = host.querySelector('[aria-label="Borrador de plan por etapas"]');
-    expect(editor).not.toBeNull(); expect(editor?.textContent).toContain("Disco declarado"); expect(editor?.textContent).toContain("Borrador de etapas: no guardado");
+    const editor = host.querySelector('[aria-label="Borrador del plan por compras"]');
+    expect(editor).not.toBeNull(); expect(editor?.textContent).toContain("Disco declarado"); expect(editor?.textContent).toContain("Borrador de compras: no guardado");
     expect(button(editor!, "Confirmar y guardar mi plan")?.disabled).toBe(true);
     expect(host.textContent).not.toMatch(/quedó agregado|agregamos|plan guardado/i);
     expect(request).not.toHaveBeenCalled();

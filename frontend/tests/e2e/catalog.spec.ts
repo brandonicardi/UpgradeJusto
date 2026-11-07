@@ -14,8 +14,8 @@ test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ pa
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Quiero mejorar mi PC");
   await page.getByRole("main").getByRole("link", { name: "Explorar el catálogo", exact: true }).click();
   await expect(page).toHaveURL(/\/catalog$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Todas las piezas");
-  await expect(page.locator(".results-count")).toContainText("piezas");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Todos los componentes");
+  await expect(page.locator(".results-count")).toContainText("componentes");
   await expect(page.locator(".results-count")).not.toContainText(data.dataset_version);
   await expect(page.locator("article[data-component-id]")).toHaveCount(12);
   await page.getByRole("link", { name: "Página siguiente" }).click();
@@ -25,8 +25,8 @@ test("raíz, filtros AND, paginación y detalle con evidencia real", async ({ pa
   const piece = data.items.find(item => item.prices.length > 0)!;
   expect(piece).toBeTruthy();
   await page.goto(`/catalog?category=${piece.category}`);
-  await page.getByRole("searchbox", { name: "Buscar piezas" }).fill(piece.name);
-  await page.getByRole("searchbox", { name: "Buscar piezas" }).press("Enter");
+  await page.getByRole("searchbox", { name: "Buscar componentes" }).fill(piece.name);
+  await page.getByRole("searchbox", { name: "Buscar componentes" }).press("Enter");
   const filtered = await request.get(`${api}?category=${piece.category}&q=${encodeURIComponent(piece.name)}&page_size=12`);
   const expected: CatalogPage = await filtered.json();
   await expect(page.locator("article[data-component-id]")).toHaveCount(expected.items.length);
@@ -82,11 +82,11 @@ async function expectOffers(page: Page, request: APIRequestContext, id: string) 
 
 test("vacío, página fuera de rango y errores accesibles sin mocks", async ({ page }) => {
   await page.goto("/catalog?q=zzzzsinresultados31b");
-  await expect(page.locator(".results-count")).toContainText("0 piezas");
-  await expect(page.getByRole("heading", { name: "No encontramos piezas con esos filtros" })).toBeVisible();
+  await expect(page.locator(".results-count")).toContainText("0 componentes");
+  await expect(page.getByRole("heading", { name: "No encontramos componentes con esos filtros" })).toBeVisible();
   await page.goto("/catalog?page=10000");
   await expect(page.locator("article[data-component-id]")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "No hay piezas para mostrar" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No hay componentes para mostrar" })).toBeVisible();
   await page.getByRole("link", { name: "Ir a la primera página" }).click();
   await expect(page.locator("article[data-component-id]")).toHaveCount(12);
   await page.goto("/catalog?category=invalid");

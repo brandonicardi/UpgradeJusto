@@ -155,7 +155,7 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
     <section className="admin-dashboard" aria-busy={busy}>
       <header className="admin-head">
         <h1>Qué hay que atender</h1>
-        <p>Piezas a las que les faltan datos y precios que ya están viejos. Sin datos, el revisor dice “Falta un dato”; sin precio reciente, la pieza no se recomienda.</p>
+        <p>Componentes a los que les faltan datos y precios que ya están viejos. Sin datos, el revisor dice “Falta un dato”; sin precio reciente, el componente no se recomienda.</p>
       </header>
 
       {busy && !data && !error && <p role="status">Consultando el tablero…</p>}
@@ -164,7 +164,7 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
       {data && (
         <>
           <section className="admin-stats" aria-label="Resumen">
-            <div className="admin-stat"><b>{data.metrics.components}</b><span>Piezas en el catálogo</span></div>
+            <div className="admin-stat"><b>{data.metrics.components}</b><span>Componentes en el catálogo</span></div>
             <div className="admin-stat warn"><b>{data.metrics.missing_data}</b><span>Con datos faltantes</span></div>
             <div className="admin-stat bad"><b>{data.metrics.without_recent_price}</b><span>Sin precio de los últimos 7 días</span></div>
             <div className="admin-stat"><b>{data.metrics.stores}</b><span>Tiendas que usamos como fuente</span></div>
@@ -180,7 +180,7 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
               {tab === "datos" && (
                 <div className="admin-table" role="tabpanel">
                   <table>
-                    <thead><tr><th>Pieza</th><th>Le falta</th><th>Afecta a</th><th></th></tr></thead>
+                    <thead><tr><th>Componente</th><th>Le falta</th><th>Afecta a</th><th></th></tr></thead>
                     <tbody>
                       {listing!.missing_data.items.map((item) => (
                         <tr key={item.component_id} className={selectedId === item.component_id ? "is-selected" : undefined} aria-selected={selectedId === item.component_id}>
@@ -199,7 +199,7 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
               {tab === "precios" && (
                 <div className="admin-table" role="tabpanel">
                   <table>
-                    <thead><tr><th>Pieza</th><th>Último precio</th><th>Visto el</th><th></th></tr></thead>
+                    <thead><tr><th>Componente</th><th>Último precio</th><th>Visto el</th><th></th></tr></thead>
                     <tbody>
                       {listing!.old_prices.items.map((item) => (
                         <tr key={item.component_id} className={selectedId === item.component_id ? "is-selected" : undefined} aria-selected={selectedId === item.component_id}>
@@ -221,7 +221,7 @@ function Dashboard({ onComplete }: { onComplete: (item: MissingDataItem) => void
               <p>Todos los campos son obligatorios. Un precio sin fuente o sin fecha no se publica.</p>
 
               <div className="grid w-full content-start gap-space-2 font-sans-uj text-tinta">
-                <label htmlFor="precio-pieza" className="text-cuerpo-fuerte">Pieza</label>
+                <label htmlFor="precio-pieza" className="text-cuerpo-fuerte">Componente</label>
                 <select id="precio-pieza" className={SELECT} value={pieceId} onChange={(event) => { setPieceId(event.target.value); setConfirmed(false); setPriceError(""); setPriceNotice(""); }}>
                   <option value="">Elegí una</option>
                   {pieces.map((piece) => <option key={piece.id} value={piece.id}>{piece.name} · {storeLabel(piece.store)}</option>)}
@@ -302,8 +302,8 @@ function RevisionEditor({ pendingComplete, onPendingHandled }: { pendingComplete
       const target = pendingRef.current;
       const page = await loadRows({ ...draft, active: false }, "components");
       const match = page.items.find(r => r.id === target.component_id);
-      if (match) { setRow(match); setJson(JSON.stringify(match.data, null, 2)); setNotice("Borrador creado. La pieza quedó abierta en el editor para completar sus datos."); }
-      else { setNotice("Borrador creado, pero la pieza no aparece entre los componentes de este borrador."); }
+      if (match) { setRow(match); setJson(JSON.stringify(match.data, null, 2)); setNotice("Borrador creado. El componente quedó abierto en el editor para completar sus datos."); }
+      else { setNotice("Borrador creado, pero el componente no aparece entre los componentes de este borrador."); }
       pendingRef.current = null;
       onPendingHandled();
     } else {

@@ -12,8 +12,8 @@ describe("catálogo desde el servidor", () => {
     const sent = new URLSearchParams(pageFetch.mock.calls[0][0]);
     expect(Object.fromEntries(sent)).toEqual({ q: "silencioso", category: "fan", sort: "id", page: "2", page_size: "6" });
     for (const page of [1, 3]) expect(html).toContain(`page=${page}&amp;page_size=6&amp;sort=id&amp;category=fan&amp;q=silencioso`);
-    expect(html).toContain("50 piezas");
-    expect(html).toContain("Todas las piezas");
+    expect(html).toContain("50 componentes");
+    expect(html).toContain("Todos los componentes");
     expect(html).not.toMatch(/Aplicar filtros|Por página|Ver al lado|Datos curados/);
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
   });

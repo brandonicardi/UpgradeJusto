@@ -37,7 +37,7 @@ export function filasDeRevision(preview: Pick<TowerExtraction, "evidence">, draf
     const dudosa = evidencia?.lines.find(line => line.resolution === "needs_review" && line.candidate_ids.length > 0);
     const sinCatalogo = lineas.some(line => !line.component_id);
     const sinCantidad = lineas.some(line => line.quantity === null);
-    if (sinCatalogo && dudosa) return { category, marca: "revisar" as const, citas, pregunta: "Encontramos varias piezas que podrían ser. ¿Cuál es la tuya?", candidatos: dudosa.candidate_ids };
+    if (sinCatalogo && dudosa) return { category, marca: "revisar" as const, citas, pregunta: "Encontramos varios componentes que podrían ser. ¿Cuál es la tuya?", candidatos: dudosa.candidate_ids };
     if (sinCatalogo) return { category, marca: "revisar" as const, citas, pregunta: "No la encontramos en nuestro catálogo. La guardamos como la escribiste y no podemos comprobar si encaja.", candidatos: [] };
     if (sinCantidad) return { category, marca: "revisar" as const, citas, pregunta: `No encontramos cuántos ${unidadesPorCategoria[category].plural} son. Indicalo para poder guardar.`, candidatos: [] };
     return { category, marca: "leida" as const, citas, pregunta: null, candidatos: [] };
@@ -58,10 +58,10 @@ export function resumenParaGuardar(filas: Pick<FilaDeRevision, "category" | "mar
   const completas = nombres("leida"), medias = nombres("revisar"), sinDato = nombres("sin_dato"), ausentes = nombres("sin_dato", true);
   const sinDatoReal = sinDato;
   const salida: LineaDeResumen[] = [];
-  if (completas.length) salida.push({ destacado: plural(completas.length, "pieza completa", "piezas completas"), resto: `: ${lista(completas)}.` });
-  if (medias.length) salida.push({ destacado: plural(medias.length, "pieza a medias", "piezas a medias"), resto: ` (${lista(medias)}). Les falta algún dato, y eso queda como «Falta un dato» hasta que lo completes.` });
-  if (sinDatoReal.length) salida.push({ destacado: plural(sinDatoReal.length, "pieza sin dato", "piezas sin dato"), resto: ` (${lista(sinDatoReal)}). Lo que falta queda como «Falta un dato» hasta que lo completes.` });
-  if (ausentes.length) salida.push({ destacado: plural(ausentes.length, "pieza que no tenés", "piezas que no tenés"), resto: ` (${lista(ausentes)}).` });
+  if (completas.length) salida.push({ destacado: plural(completas.length, "componente completo", "componentes completos"), resto: `: ${lista(completas)}.` });
+  if (medias.length) salida.push({ destacado: plural(medias.length, "componente a medias", "componentes a medias"), resto: ` (${lista(medias)}). Les falta algún dato, y eso queda como «Falta un dato» hasta que lo completes.` });
+  if (sinDatoReal.length) salida.push({ destacado: plural(sinDatoReal.length, "componente sin dato", "componentes sin dato"), resto: ` (${lista(sinDatoReal)}). Lo que falta queda como «Falta un dato» hasta que lo completes.` });
+  if (ausentes.length) salida.push({ destacado: plural(ausentes.length, "componente que no tenés", "componentes que no tenés"), resto: ` (${lista(ausentes)}).` });
   if (medias.length || sinDatoReal.length) salida.push({ destacado: "", resto: "Mientras falten datos, algunas sugerencias van a decir «Falta un dato» en vez de «Encaja»." });
   return salida;
 }

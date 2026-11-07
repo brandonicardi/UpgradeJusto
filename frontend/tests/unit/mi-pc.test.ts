@@ -34,7 +34,7 @@ describe("estado de cada tarjeta", () => {
   });
   it("identificada sin datos técnicos no es «completar»: lo dice y no inventa", () => {
     expect(estadoDeTarjeta("present", [linea("gpu", "cg-3")], ["sin_datos"])).toBe("sin_datos");
-    expect(faltaDeLaTarjeta([linea("gpu", "cg-3")], ["sin_datos"])).toBe("El catálogo todavía no tiene los datos técnicos de esta pieza");
+    expect(faltaDeLaTarjeta([linea("gpu", "cg-3")], ["sin_datos"])).toBe("El catálogo todavía no tiene los datos técnicos de este componente");
     expect(estadoDeTarjeta("present", [linea("gpu", "cg-3")], ["error"])).toBe("sin_datos");
     expect(faltaDeLaTarjeta([linea("gpu", "cg-3")], ["error"])).toBe("No pudimos leer los datos técnicos");
     expect(estadoDeTarjeta("present", [linea("gpu", "cg-3")], ["cargando"])).toBe("cargando");
@@ -50,10 +50,10 @@ describe("estado de cada tarjeta", () => {
     const pc = { ...emptyTower(), category_status: { ...emptyTower().category_status, cpu: "present" as const, motherboard: "present" as const, cooler: "present" as const, fan: "present" as const }, lines: [linea("cpu", "cg-1"), linea("motherboard", "cg-2"), linea("cooler", "cg-9"), linea("fan", "cg-10")] };
     const carga = cargaDeLaPc(pc);
     expect(carga.cargadas).toBe(2); expect(carga.total).toBe(7); expect(carga.porConfirmar).toBe(0);
-    expect(carga.porConfirmarTexto).toBe("Sin piezas por confirmar"); expect(carga.etiqueta).toBe("2 de 7 piezas esenciales cargadas, sin piezas por confirmar");
+    expect(carga.porConfirmarTexto).toBe("Sin componentes por confirmar"); expect(carga.etiqueta).toBe("2 de 7 componentes esenciales cargados, sin componentes por confirmar");
     expect(carga.opcionales).toBe("Refrigeración y ventiladores: opcionales");
     expect(carga.puntos).toEqual(["ok", "ok", "e", "e", "e", "e", "e"]);
-    expect(cargaDeLaPc(emptyTower()).porConfirmarTexto).toBe("Sin piezas por confirmar");
+    expect(cargaDeLaPc(emptyTower()).porConfirmarTexto).toBe("Sin componentes por confirmar");
   });
 });
 

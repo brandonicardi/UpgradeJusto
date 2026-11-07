@@ -5,7 +5,7 @@ import { pieceState, splitPieceChecks } from "../lib/catalog-piece";
 import { towerRuleLabels, type TowerEvaluation } from "../lib/tower-compatibility";
 type Rule = TowerEvaluation["rule_results"][number];
 function Checks({ rules, id }: { rules: Rule[]; id?: string }) {
-  return <ul className="piece-checks" id={id}>{rules.map((rule, index) => { const Icon = rule.state === "pass" ? Check : rule.state === "fail" ? X : CircleHelp; return <li key={`${rule.rule_id}-${index}`} data-state={rule.state}><Icon size={20} aria-hidden="true" /><span>{towerRuleLabels[rule.rule_id] ?? "Comprobación de la pieza"}<small>{pieceState[rule.state] ?? "Falta un dato"}</small></span></li>; })}</ul>;
+  return <ul className="piece-checks" id={id}>{rules.map((rule, index) => { const Icon = rule.state === "pass" ? Check : rule.state === "fail" ? X : CircleHelp; return <li key={`${rule.rule_id}-${index}`} data-state={rule.state}><Icon size={20} aria-hidden="true" /><span>{towerRuleLabels[rule.rule_id] ?? "Comprobación del componente"}<small>{pieceState[rule.state] ?? "Falta un dato"}</small></span></li>; })}</ul>;
 }
 /** Muestra primero lo que toca a esta pieza; el resto queda en un desplegable (abierto si alguna no encaja). */
 export default function PieceChecks({ rules, category }: { rules: Rule[]; category: string }) {

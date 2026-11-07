@@ -24,7 +24,7 @@ export default function EncajeDeLaPc({ pc }: { pc: Tower }) {
   const nota = evaluacion ? towerEssentialNote(evaluacion) : null;
   return <div className="pcs-card" aria-busy={!actual}>
     <h2>¿Encaja todo entre sí?</h2>
-    {!actual && <p role="status">Revisando tus piezas…</p>}
+    {!actual && <p role="status">Revisando tus componentes…</p>}
     {actual?.fallo && <><p role="alert">No pudimos revisar si todo encaja. Probá de nuevo en un rato.</p><button type="button" className="pcs-quiet" onClick={() => setIntento(intento + 1)}>Volver a revisar</button></>}
     {evaluacion && <>
       <ul className="pcs-status-list">{filasDeEncaje(evaluacion).map(fila => <li key={fila.id}>

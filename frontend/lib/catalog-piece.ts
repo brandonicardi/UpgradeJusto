@@ -5,14 +5,14 @@ import { towerCompatibilityRequest, towerSimulationInput } from "./tower-compati
 import { emptyManualPlan, type TowerPlanDraft } from "./tower-plans";
 import type { RecommendationDraft } from "./tower-recommendations";
 export const pieceCategories = { cpu: "Procesadores", motherboard: "Placas madre", ram: "Memorias", gpu: "Placas de video", psu: "Fuentes", case: "Gabinetes", storage: "Almacenamiento", cooler: "Coolers", fan: "Ventiladores" };
-const labels: Record<string, string> = { recommended_psu: "Fuente que necesita", length: "Largo de la pieza", interface: "Conexión", power_connector: "Cable de energía", continuous_power: "Potencia continua", capacity_per_module: "Capacidad por módulo", cores: "Núcleos", threads: "Hilos", tdp: "Consumo declarado", vram: "Memoria de video", motherboard_formats: "Formatos de placa madre", gpu_length_limit: "Largo máximo de placa de video", socket: "Conexión del procesador", memory_type: "Tipo de memoria", form_factor: "Formato", length_mm: "Largo (mm)", tdp_w: "Consumo (W)", power_connectors: "Cables de energía", capacity_gb: "Capacidad (GB)", rpm: "Velocidad de giro", wattage: "Potencia" };
+const labels: Record<string, string> = { recommended_psu: "Fuente que necesita", length: "Largo del componente", interface: "Conexión", power_connector: "Cable de energía", continuous_power: "Potencia continua", capacity_per_module: "Capacidad por módulo", cores: "Núcleos", threads: "Hilos", tdp: "Consumo declarado", vram: "Memoria de video", motherboard_formats: "Formatos de placa madre", gpu_length_limit: "Largo máximo de placa de video", socket: "Conexión del procesador", memory_type: "Tipo de memoria", form_factor: "Formato", length_mm: "Largo (mm)", tdp_w: "Consumo (W)", power_connectors: "Cables de energía", capacity_gb: "Capacidad (GB)", rpm: "Velocidad de giro", wattage: "Potencia" };
 export function pieceFacts(part: TowerComponent) {
   const facts = Object.entries(labels).filter(([key]) => Object.hasOwn(part.attributes, key)).map(([key, label]) => ({ label, value: part.attributes[key]?.trim() || "Falta un dato" }));
   if (facts.length) return facts;
   const detalle = detalleDePieza(part.category, part.attributes);
   return [detalle
     ? { label: "Según datos de referencia", value: detalle }
-    : { label: "Información de la pieza", value: "No tenemos ese dato todavía" }];
+    : { label: "Información del componente", value: "No tenemos ese dato todavía" }];
 }
 // Solo ordena la presentación: qué comprobaciones hablan de la categoría de la pieza. No decide ningún veredicto.
 const todas = Object.keys(pieceCategories);

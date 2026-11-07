@@ -31,7 +31,7 @@ describe("CU06 torre: criterio explícito, precisión y preview efímero", () =>
     expect(visible).not.toContain("Otra memoria propuesta"); expect(visible).not.toContain("Disco adicional");
     expect(visible).not.toContain("datos o condiciones pendientes"); expect(visible).not.toContain("Disponibilidad sin confirmar");
     expect(visible).not.toContain("Pieza del catálogo"); expect(visible).not.toContain("Reemplazar conjunto completo");
-    expect(article).toContain("Todos los cambios y piezas propuestas"); expect(article).toContain("Otra memoria propuesta");
+    expect(article).toContain("Todos los cambios y componentes propuestos"); expect(article).toContain("Otra memoria propuesta");
     expect(article).toContain("Disco adicional"); expect(article).toContain("3 unidades"); expect(article).toContain("2 módulos");
     expect(article).toContain("Datos pendientes y dependencias"); expect(article).toContain("Disponibilidad sin confirmar");
     expect(article).toContain("datos o condiciones pendientes");

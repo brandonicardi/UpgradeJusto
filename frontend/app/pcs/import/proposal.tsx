@@ -95,7 +95,7 @@ export default function ImportTower() {
           </details>
         </Panel>
 
-        <Panel id="p2" n={2} titulo="Revisá lo que entendimos" descripcion="Cada pieza muestra de qué parte de tu texto la sacamos. Corregí lo que esté mal. Lo que no sepas, dejalo así: no lo vamos a adivinar." bloqueado={!(preview && draft)} headingRef={h2}>
+        <Panel id="p2" n={2} titulo="Revisá lo que entendimos" descripcion="Cada componente muestra de qué parte de tu texto lo sacamos. Corregí lo que esté mal. Lo que no sepas, dejalo así: no lo vamos a adivinar." bloqueado={!(preview && draft)} headingRef={h2}>
           {preview && draft && <>
             <div className="imp-count" role="group" aria-label="Resumen">
               <span className="imp-tag imp-tag-leida"><Check aria-hidden="true" strokeWidth={2.25} />{conteo.leidas} las leímos bien</span>
@@ -105,7 +105,7 @@ export default function ImportTower() {
             <div className="imp-info" role="status"><Info aria-hidden="true" strokeWidth={2.25} /><div><strong>Todavía no guardamos nada</strong><p>Esto es una propuesta. Tu PC se guarda recién cuando confirmes en el paso 3.</p></div></div>
             <form aria-label="Propuesta editable de tu PC" className="imp-review" onSubmit={event => { event.preventDefault(); if (!faltanCantidades) setReviewing(3); }}>
               <ul className="imp-rows">{filas.map(fila => <FilaDeRevisionView key={fila.category} fila={fila} draft={draft} deshabilitado={busy} onDraft={setDraft} />)}</ul>
-              {faltanCantidades && <p className="imp-help" role="status">Falta indicar cuántas son en algunas piezas. Completalo para seguir.</p>}
+              {faltanCantidades && <p className="imp-help" role="status">Falta indicar cuántas son en algunos componentes. Completalo para seguir.</p>}
               <div className="imp-actions">
                 <Button peso="principal" type="submit" disabled={busy || faltanCantidades}>Está bien, seguir</Button>
                 {!busy && state.blocked !== "uncertain" && <Button peso="quieto" onClick={descartar}>Volver a pegar</Button>}
@@ -114,7 +114,7 @@ export default function ImportTower() {
           </>}
         </Panel>
 
-        <Panel id="p3" n={3} titulo="Guardala" descripcion="Fijate el resumen y confirmá. Después vas a poder cambiar cualquier pieza desde Mi PC." bloqueado={!(preview && draft && (step === 3 || saved))} headingRef={h3}>
+        <Panel id="p3" n={3} titulo="Guardala" descripcion="Fijate el resumen y confirmá. Después vas a poder cambiar cualquier componente desde Mi PC." bloqueado={!(preview && draft && (step === 3 || saved))} headingRef={h3}>
           {preview && draft && <>
             <AssemblyStateSelect value={draft.context.assembly_state ?? null} disabled={busy || !!saved} onChange={assembly_state => setDraft({ ...draft, context: { ...draft.context, assembly_state } })} />
             <Field etiqueta="¿Cómo le decimos a esta PC?" maxLength={100} value={draft.name} disabled={busy || !!saved} onChange={event => setDraft({ ...draft, name: event.target.value })} />
@@ -128,7 +128,7 @@ export default function ImportTower() {
             {state.blocked === "catalog" && <Notice tono="revisar" titulo="El catálogo cambió">Tus correcciones se conservan. <Link href="/catalog">Mirá el catálogo</Link> y, cuando quieras, volvé a pegar tu lista para armar una propuesta nueva.</Notice>}
             {state.blocked === "uncertain" && <div className="imp-uncertain"><Notice tono="revisar" titulo="No sabemos si se guardó">Primero <Link href="/pcs">revisá Mi PC</Link>: puede que ya esté guardada. No vamos a reenviar nada solos.</Notice><Button peso="secundario" chico disabled={busy} onClick={() => controller.current?.allowExplicitRetry()}>Ya la revisé: quiero guardar de nuevo</Button></div>}
             {saved && <div className="imp-saved" role="status">
-              <Notice tono="encaja" titulo={`Listo, guardamos «${saved.name}»`}>Tiene {carga?.cargadas ?? 0} de {carga?.total ?? 7} piezas esenciales{carga && carga.porConfirmar > 0 ? " y a algunas les falta un dato" : ""}. Cuando quieras, {carga && carga.porConfirmar > 0 ? "las completás" : "la revisás"} desde Mi PC.</Notice>
+              <Notice tono="encaja" titulo={`Listo, guardamos «${saved.name}»`}>Tiene {carga?.cargadas ?? 0} de {carga?.total ?? 7} componentes esenciales{carga && carga.porConfirmar > 0 ? " y a algunos les falta un dato" : ""}. Cuando quieras, {carga && carga.porConfirmar > 0 ? "las completás" : "la revisás"} desde Mi PC.</Notice>
               <div className="imp-actions"><Link className="imp-link-btn imp-link-principal" href={rutaConviene}>Ver qué me conviene</Link><Link className="imp-link-btn imp-link-secundario" href="/pcs">Ir a Mi PC</Link>
                 <button type="button" className="imp-quiet" onClick={() => { setSaved(null); controller.current?.cancel(); setText(""); }}>Agregar otra PC con otra lista</button></div>
             </div>}
@@ -138,9 +138,9 @@ export default function ImportTower() {
 
       <aside className="imp-side" aria-label="Cómo funciona">
         <div className="imp-card imp-trust"><h2>Vos tenés la última palabra</h2>
-          <ul><li><Check aria-hidden="true" strokeWidth={2.25} />Solo leemos las piezas de tu texto.</li><li><Check aria-hidden="true" strokeWidth={2.25} />Te mostramos de dónde salió cada dato.</li><li><Check aria-hidden="true" strokeWidth={2.25} />Nada se guarda hasta que confirmes.</li></ul></div>
+          <ul><li><Check aria-hidden="true" strokeWidth={2.25} />Solo leemos los componentes de tu texto.</li><li><Check aria-hidden="true" strokeWidth={2.25} />Te mostramos de dónde salió cada dato.</li><li><Check aria-hidden="true" strokeWidth={2.25} />Nada se guarda hasta que confirmes.</li></ul></div>
         <div className="imp-card"><h2>¿Y si no sé algo?</h2><p>No pasa nada. Lo dejamos como «sin dato» y te avisamos cuando haga falta. Nunca lo completamos por nuestra cuenta.</p></div>
-        <div className="imp-card"><h2>¿Preferís otra forma?</h2><p>Si conocés las piezas, podés elegirlas una por una del catálogo.</p><Link className="imp-link-btn imp-link-secundario imp-chico" href="/pcs?nueva=1">Elegir pieza por pieza</Link></div>
+        <div className="imp-card"><h2>¿Preferís otra forma?</h2><p>Si conocés los componentes, podés elegirlos uno por uno del catálogo.</p><Link className="imp-link-btn imp-link-secundario imp-chico" href="/pcs?nueva=1">Elegir pieza por pieza</Link></div>
       </aside>
     </div>
   </section>;

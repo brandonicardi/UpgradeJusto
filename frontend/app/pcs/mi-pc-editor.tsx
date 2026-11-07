@@ -39,14 +39,14 @@ export default function EditorDePieza({ category, inicial, ocupado, error, texto
   return <form ref={formulario} className="pcs-editor" aria-labelledby={`${uid}-titulo`} onSubmit={event => { event.preventDefault(); onGuardar({ status, lines }); }}>
     <div className="pcs-editor-head">
       <div><h2 id={`${uid}-titulo`}>{esPlaca ? "Completá tu placa madre" : `Contanos de ${articulo}`}</h2>
-        <p>{esPlaca ? "Elegí el modelo exacto de tu placa del catálogo o escribilo. Con el modelo podemos revisar si tu procesador entra en ella." : "Elegí la pieza del catálogo o escribí el modelo. Lo que no sepas, dejalo así: no lo adivinamos."}</p></div>
+        <p>{esPlaca ? "Elegí el modelo exacto de tu placa del catálogo o escribilo. Con el modelo podemos revisar si tu procesador entra en ella." : "Elegí el componente del catálogo o escribí el modelo. Lo que no sepas, dejalo así: no lo adivinamos."}</p></div>
       <Button peso="quieto" chico onClick={onCancelar}>Cerrar</Button>
     </div>
     <div className="pcs-fields">
       <div className="pcs-field">
         <label htmlFor={towerStatusId(category)}>¿Qué tenés de esto?</label>
         <select id={towerStatusId(category)} value={status} disabled={ocupado} onChange={event => elegirEstado(event.target.value as CategoryStatus)}>
-          <option value="unknown">Todavía no lo sé</option><option value="absent">No tengo esta pieza</option><option value="present">Tengo esta pieza</option>
+          <option value="unknown">Todavía no lo sé</option><option value="absent">No tengo este componente</option><option value="present">Tengo este componente</option>
         </select>
         <span className="pcs-help">«No lo sé» no es lo mismo que «No tengo».</span>
       </div>
@@ -62,7 +62,7 @@ export default function EditorDePieza({ category, inicial, ocupado, error, texto
       </>;
       return <fieldset key={index} className="pcs-line" disabled={ocupado}><legend>{lines.length > 1 ? `${nombre} ${index + 1}` : nombre}</legend>
         {/* Una pieza ya elegida no se vuelve a buscar: el selector queda a un clic, para cambiarla. */}
-        {line.component_id ? <details className="pcs-howto"><summary>Cambiar por otra pieza</summary><div className="pcs-line-choice">{eleccion}</div></details> : eleccion}
+        {line.component_id ? <details className="pcs-howto"><summary>Cambiar por otro componente</summary><div className="pcs-line-choice">{eleccion}</div></details> : eleccion}
       {limites[category][1] > 1 && <Field etiqueta={`Cantidad de ${unidad(category, true)}`} type="number" min={1} max={limites[category][1]} step={1} required value={Number.isNaN(line.quantity) ? "" : line.quantity} onChange={event => cambiarLinea(index, { quantity: event.target.valueAsNumber })} ayuda={category === "ram" ? "Contá los módulos (los palitos), no los GB." : undefined} />}
       {lines.length > 1 && <Button peso="quieto" chico onClick={() => setLines(lines.filter((_, i) => i !== index))}>Quitar esta línea</Button>}
       </fieldset>;

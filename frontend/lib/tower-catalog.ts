@@ -21,6 +21,6 @@ export type TowerComponent = Omit<Component, "category" | "image"> & {
 export type TowerCatalogPage = { items: TowerComponent[]; total: number; page: number; page_size: number; dataset_version: string };
 export async function remoteCatalog<T>(suffix: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`/api/catalog/components${suffix}`, { cache: "no-store", credentials: "same-origin", signal });
-  if (!response.ok) throw new Error("Catálogo no disponible. La referencia guardada se conserva; no se sustituye por otra pieza.");
+  if (!response.ok) throw new Error("Catálogo no disponible. La referencia guardada se conserva; no se sustituye por otro componente.");
   return response.json() as Promise<T>;
 }

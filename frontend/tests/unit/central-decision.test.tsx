@@ -18,7 +18,7 @@ describe("central decision presentation, no domain inference", () => {
     expect(steps[0]).not.toMatch(/Gráfica|Refrigeración|Ventiladores/);
     const fields = Array.from({ length: 56 }, () => "unmapped-engine-code");
     const html = renderToStaticMarkup(<PendingFields fields={fields} configuration={pc} />);
-    expect(html).toContain("56 datos o condiciones pendientes"); expect(html).toContain("no de piezas distintas"); expect(html).toContain('href="/pcs"');
+    expect(html).toContain("56 datos o condiciones pendientes"); expect(html).toContain("no de componentes distintos"); expect(html).toContain('href="/pcs"');
     expect(html.match(/<code>unmapped-engine-code<\/code>/g)).toHaveLength(56); expect(JSON.stringify(pc)).toBe(before);
   });
   it("keeps unknown declarations distinct from absent and never diagnoses a BIOS version", () => {
@@ -118,9 +118,9 @@ describe("central decision presentation, no domain inference", () => {
   it("keeps stage editor semantic selectors, explicit consent and disabled save after grid regrouping", () => {
     const pc: Tower = { ...emptyTower(), id: "12345678-1234-1234-1234-123456789abc", revision: 1, origin_schema: 2 };
     const html = renderToStaticMarkup(<TowerPlanEditor pc={pc} onSaved={() => {}} seed={{ name: "Plan sintético", pc_id: pc.id, expected_pc_revision: 1, expected_catalog_version: "synthetic", objective: "general", workload: null, budget_ars: "10.00", price_condition: "cash", stages: [1, 2].map(index => ({ name: `Etapa ${index}`, budget_ars: "5.00", materials: [], actions: [{ category: "storage", action: "replace_category", line_id: null, candidates: [{ component_id: null, declared_model: "Disco declarado sin ficha", quantity: 1 }] }] })) }} />);
-    expect(html).toContain('aria-label="Editor de plan de torre"'); expect(html).toContain('aria-label="Editar etapa 2"');
-    expect(html).toContain("Almacenamiento"); expect(html).toContain("Reemplazar conjunto completo"); expect(html).toContain("storage · replace_category");
-    expect(html).toContain("Revisé etapas, cantidades y contexto; confirmo guardar sin modificar mi PC");
+    expect(html).toContain('aria-label="Editor de plan de torre"'); expect(html).toContain('aria-label="Editar la compra 2"');
+    expect(html).toContain("Almacenamiento"); expect(html).toContain("Reemplazar conjunto completo"); expect(html).not.toContain("storage · replace_category");
+    expect(html).toContain("Revisé las compras y las cantidades. Confirmo guardar sin cambiar mi PC");
     expect(html).not.toContain('checked=""'); expect(html).toMatch(/<button disabled="">Confirmar y guardar mi plan/);
   });
 });

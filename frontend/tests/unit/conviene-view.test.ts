@@ -54,8 +54,8 @@ describe("armado de «Lo que te conviene»", () => {
   it("«Hoy tenés» y «Pasás a» llevan la cantidad, para que dos memorias distintas no parezcan la misma", () => {
     const sides = swapSides(proposal({ actions: [{ action: "replace_category", category: "ram", line_id: null, candidates: [{ component_id: "ram-1", declared_model: null, quantity: 2 }] }] }), { lines: [line("ram", "ram-1")], category_status: {} } as unknown as Tower, metadata);
     expect(sides).toEqual({ actual: "16 GB DDR4", nueva: "2 × 16 GB DDR4" });
-    expect(swapSides(proposal(), { lines: [], category_status: { gpu: "absent" } } as unknown as Tower, metadata)).toEqual({ actual: "Sin pieza de este tipo", nueva: "RTX 5070" });
-    expect(swapSides(proposal(), null, { status: "unavailable", entries: new Map() } as unknown as MetadataSnapshot)).toEqual({ actual: "Por confirmar", nueva: "Pieza por confirmar" });
+    expect(swapSides(proposal(), { lines: [], category_status: { gpu: "absent" } } as unknown as Tower, metadata)).toEqual({ actual: "Sin componente de este tipo", nueva: "RTX 5070" });
+    expect(swapSides(proposal(), null, { status: "unavailable", entries: new Map() } as unknown as MetadataSnapshot)).toEqual({ actual: "Por confirmar", nueva: "Componente por confirmar" });
   });
   it("la mejora usa la unidad solo si la API la declara y nunca promete FPS", () => {
     expect(benefitLine(proposal({ benefit: { status: "supported", before: "16", after: "32", label: "RAM capacity GB only; not universal performance" } }))).toBe("Tu memoria pasa de 16 GB a 32 GB.");

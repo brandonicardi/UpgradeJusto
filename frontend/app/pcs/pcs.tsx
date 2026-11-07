@@ -59,7 +59,7 @@ export default function PCs({ nueva: abrirNueva = false }: { nueva?: boolean }) 
   }
   function guardarPieza(category: TowerCategory, cambio: CambioDePieza) {
     if (borrador) {
-      try { setBorrador(conCambio(borrador, category, cambio)); cerrar(); } catch (falla) { setErrorEditor(falla instanceof Error ? falla.message : "Revisá los datos de la pieza."); }
+      try { setBorrador(conCambio(borrador, category, cambio)); cerrar(); } catch (falla) { setErrorEditor(falla instanceof Error ? falla.message : "Revisá los datos del componente."); }
       return;
     }
     if (!seleccionada) return;
@@ -91,12 +91,12 @@ export default function PCs({ nueva: abrirNueva = false }: { nueva?: boolean }) 
   const vista = borrador ?? seleccionada;
   const carga = vista ? cargaDeLaPc(vista) : null;
   const titulo = borrador ? (borrador.name.trim() || "Una PC nueva") : seleccionada?.name ?? "Mi PC";
-  const subtitulo = borrador ? "Cargá las piezas que conozcas y guardala. Lo que no sepas queda para después."
+  const subtitulo = borrador ? "Cargá los componentes que conozcas y guardala. Lo que no sepas queda para después."
     : seleccionada ? "Esto es lo que sabemos de tu PC."
       : lista && !lista.total ? "Cargá tu primera PC para empezar." : "Un momento, estamos buscando tus PCs.";
   const editor = (category: TowerCategory) => {
     const lines = vista!.lines.filter(line => line.category === category);
-    return <EditorDePieza key={`${vista === borrador ? "nueva" : seleccionada!.id}-${category}-${seleccionada?.revision ?? 0}`} category={category} ocupado={ocupado} error={errorEditor} textoDeGuardar={borrador ? "Guardar esta pieza" : "Guardar cambios"}
+    return <EditorDePieza key={`${vista === borrador ? "nueva" : seleccionada!.id}-${category}-${seleccionada?.revision ?? 0}`} category={category} ocupado={ocupado} error={errorEditor} textoDeGuardar={borrador ? "Guardar este componente" : "Guardar cambios"}
       inicial={{ status: vista!.category_status[category], lines }} onCancelar={cerrar} onGuardar={cambio => guardarPieza(category, cambio)} />;
   };
 
@@ -111,7 +111,7 @@ export default function PCs({ nueva: abrirNueva = false }: { nueva?: boolean }) 
     <header className="pcs-head">
       <div><h1>{titulo}</h1><p>{subtitulo}</p></div>
       {carga && !borrador && <div className="pcs-complete" role="group" aria-label={carga.etiqueta}>
-        <div className="pcs-complete-top"><strong>{carga.cargadas} de {carga.total} piezas esenciales</strong><span>{carga.porConfirmarTexto}</span></div>
+        <div className="pcs-complete-top"><strong>{carga.cargadas} de {carga.total} componentes esenciales</strong><span>{carga.porConfirmarTexto}</span></div>
         <ul className="pcs-dots" aria-hidden="true">{carga.puntos.map((punto, index) => <li key={index} className={punto === "ok" ? "" : punto} />)}</ul>
         <p className="pcs-complete-opcional">{carga.opcionales}</p>
       </div>}
@@ -121,7 +121,7 @@ export default function PCs({ nueva: abrirNueva = false }: { nueva?: boolean }) 
     {error && <div className="pcs-notice"><Notice tono="no" titulo="No pudimos hacerlo">{error}</Notice></div>}
 
     <div className="pcs-body">
-      <section aria-label="Piezas de tu PC" className="pcs-main">
+      <section aria-label="Componentes de tu PC" className="pcs-main">
         {aviso && <div className="pcs-notice"><Notice tono="encaja" titulo={aviso}>Ya podemos revisar si todo encaja de nuevo.</Notice></div>}
         {borrador && <div className="pcs-card pcs-new"><Field etiqueta="¿Cómo le decimos a esta PC?" maxLength={100} value={borrador.name} placeholder="Por ejemplo: La de casa" ayuda={borrador.name.trim() ? undefined : "Poné un nombre para poder guardarla."} onChange={event => setBorrador({ ...borrador, name: event.target.value })} /><AssemblyStateSelect value={borrador.context.assembly_state ?? null} onChange={assembly_state => setBorrador({ ...borrador, context: { ...borrador.context, assembly_state } })} disabled={ocupado} /></div>}
         {vista && <PiezasDeLaPc pc={vista} editando={editando} editor={editando ? editor(editando) : null} onEditar={ocupado ? undefined : abrir} />}

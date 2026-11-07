@@ -41,14 +41,14 @@ describe("Resumen breve de una propuesta", () => {
   it("no muestra IDs ni nombres de otra categoría o catálogo no confirmado", () => {
     const tower = pc(); tower.lines = [{ line_id: null, category: "gpu", component_id: "old-id", declared_model: null, quantity: 1 }];
     for (const status of ["catalog_changed", "unavailable"] as const) {
-      expect(proposalSwap({ actions: [action()], versions }, tower, { ...metadata(), status })).toEqual({ actual: "Por confirmar", nueva: "Pieza por confirmar" });
+      expect(proposalSwap({ actions: [action()], versions }, tower, { ...metadata(), status })).toEqual({ actual: "Por confirmar", nueva: "Componente por confirmar" });
     }
-    expect(proposalSwap({ actions: [action("cpu")], versions }, tower, metadata())).toEqual({ actual: "Por confirmar", nueva: "Pieza por confirmar" });
+    expect(proposalSwap({ actions: [action("cpu")], versions }, tower, metadata())).toEqual({ actual: "Por confirmar", nueva: "Componente por confirmar" });
     tower.lines = []; tower.category_status.gpu = "absent";
-    expect(proposalSwap({ actions: [action()], versions }, tower, metadata()).actual).toBe("Sin pieza de este tipo");
-    expect(proposalSwap({ actions: [], versions }, undefined, metadata())).toEqual({ actual: "Por confirmar", nueva: "Pieza por confirmar" });
+    expect(proposalSwap({ actions: [action()], versions }, tower, metadata()).actual).toBe("Sin componente de este tipo");
+    expect(proposalSwap({ actions: [], versions }, undefined, metadata())).toEqual({ actual: "Por confirmar", nueva: "Componente por confirmar" });
     const withoutCandidate = action(); withoutCandidate.candidates = [];
-    expect(proposalSwap({ actions: [withoutCandidate], versions }, tower, metadata()).nueva).toBe("Pieza por confirmar");
+    expect(proposalSwap({ actions: [withoutCandidate], versions }, tower, metadata()).nueva).toBe("Componente por confirmar");
   });
   it.each(["unknown", "supported", "not_an_improvement"] as const)("muestra tres motivos para beneficio %s sin inventar rendimiento", status => {
     const reasons = proposalReasons({ status, before: "10", after: "20", source: [], workload: null });

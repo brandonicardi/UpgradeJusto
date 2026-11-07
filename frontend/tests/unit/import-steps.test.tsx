@@ -48,7 +48,7 @@ describe("pasos para agregar por lista", () => {
     const rows = draftSummary(draft()), by = (key: string) => rows.find(row => row.category === key)!.text;
     expect(rows).toHaveLength(9);
     expect(by("ram")).toBe("DDR4 de 8 GB · 2 módulos"); expect(by("psu")).toBe("Dijiste que no la tenés");
-    expect(by("storage")).toBe("Pieza elegida del catálogo (falta la cantidad)"); expect(by("cpu")).toBe("No sé: queda sin completar");
+    expect(by("storage")).toBe("Componente elegido del catálogo (falta la cantidad)"); expect(by("cpu")).toBe("No sé: queda sin completar");
     const html = confirmStep(); expect(html).not.toMatch(/%|FPS|\$/); expect(html).toContain("Todavía no se guardó nada");
   });
   it("catálogo cambiado ofrece revisar el catálogo y no habilita el envío", () => {

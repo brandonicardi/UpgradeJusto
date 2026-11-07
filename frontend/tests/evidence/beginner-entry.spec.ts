@@ -40,9 +40,9 @@ test("@entry38-ui acciones, anclas y foco sin superposición1440/390", async ({ 
       await page.screenshot({ path: path.join(directory, `01-entry-${viewport.width}-fullpage.png`), fullPage: true, animations: "disabled" });
       phase = "guide-keyboard";
       await help.press("Enter");
-      const heading = page.getByRole("heading", { name: "Encontrá las piezas sin abrir la PC", exact: true });
+      const heading = page.getByRole("heading", { name: "Encontrá los componentes sin abrir la PC", exact: true });
       await expect(heading).toBeFocused(); await expect(skip).not.toBeInViewport();
-      const guide = page.getByRole("region", { name: "Encontrá las piezas sin abrir la PC", exact: true });
+      const guide = page.getByRole("region", { name: "Encontrá los componentes sin abrir la PC", exact: true });
       const task = guide.getByText("Procesador y memoria: empezá por Configuración", { exact: true });
       await page.keyboard.press("Tab"); await expect(task).toBeFocused(); await task.press("Enter");
       await expect(task.locator("..")).toHaveJSProperty("open", true);
@@ -80,7 +80,7 @@ test("@entry38 entrada, ayuda y continuidad real PC a propuesta sin guardado imp
     await captureBoth(page, directory, "01-entrada-principiante");
     phase = "guide-keyboard";
     await page.getByRole("main").getByRole("link", { name: "Necesito ayuda", exact: true }).click();
-    const guide = page.getByRole("region", { name: "Encontrá las piezas sin abrir la PC", exact: true });
+    const guide = page.getByRole("region", { name: "Encontrá los componentes sin abrir la PC", exact: true });
     const summary = guide.getByText("Procesador y memoria: empezá por Configuración", { exact: true });
     await summary.focus(); await summary.press("Enter");
     await expect(guide.getByRole("link", { name: "Cómo encontrar información del dispositivo en Microsoft", exact: false })).toBeVisible();
