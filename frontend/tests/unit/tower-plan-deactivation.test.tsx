@@ -2,15 +2,14 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import TowerPlanDeactivation from "../../components/tower-plan-deactivation";
 
-describe("baja lógica de plan: renderer real, sin promesa de borrado físico", () => {
-  it("explica historial conservado y requiere confirmación explícita", () => {
+describe("borrar un plan: pide confirmación y no promete nada de más", () => {
+  it("explica qué pasa y requiere confirmación explícita", () => {
     const html = renderToStaticMarkup(<TowerPlanDeactivation busy={false} onConfirm={() => {}} onCancel={() => {}} />);
-    expect(html).toContain("Dar de baja el plan"); expect(html).toContain("El historial se conserva; no es borrado físico");
-    expect(html).toContain("Esto no publica el historial ni ofrece restauración");
+    expect(html).toContain("Borrar este plan lo saca de tu lista"); expect(html).toContain("Tu PC guardada no cambia");
     expect(html).toMatch(/type="checkbox"[^>]*required=""/);
     expect(html).not.toContain('checked=""');
-    expect(html).toContain("Confirmo dar de baja este plan"); expect(html).toContain("Cancelar baja del plan");
-    expect(html).not.toContain("definitivamente"); expect(html).not.toContain("eliminar este plan y sus revisiones"); expect(html).not.toContain("href=");
+    expect(html).toContain("Quiero borrar este plan"); expect(html).toContain("Borrar el plan"); expect(html).toContain("Mejor no");
+    expect(html).not.toMatch(/baja|historial|físico|revisiones/i); expect(html).not.toContain("href=");
   });
   it("deshabilita checkbox y botones durante la operación", () => {
     const html = renderToStaticMarkup(<TowerPlanDeactivation busy onConfirm={() => {}} onCancel={() => {}} />);

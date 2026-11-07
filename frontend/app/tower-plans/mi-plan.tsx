@@ -1,29 +1,33 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Plus } from "lucide-react";
-import { Notice, PriceTag, Verdict } from "../../components/uj";
-import { IconoDeCategoria } from "../../components/uj/part-card";
+import { Notice } from "../../components/uj";
 import TowerPlanEditor from "../../components/tower-plan-editor";
 import TowerPlanDeactivation from "../../components/tower-plan-deactivation";
 import { createPreviewMetadataLoader, type MetadataSnapshot } from "../../lib/preview-metadata";
-import { budgetBarPercent, checkRows, proposalOffer } from "../../lib/conviene-presentation";
-import { categoryNames, joinLabels, moneyText, swapSides, unknownChecks } from "../../lib/conviene-view";
-import { boughtOn, doneCount, finishedParts, objectiveWords, planMetadataQueries, priceRangeText, spentAmount, spentText, stageKicker } from "../../lib/mi-plan-view";
-import { planDraftFromRead, planStageStates, positiveRevision, setStageProgress, towerPlanRequest, type TowerPlanDraft, type TowerPlanPage, type TowerPlanRead } from "../../lib/tower-plans";
-import { physicalSpaceNote, towerEssentialNote, towerRuleLabels } from "../../lib/tower-compatibility";
+import { comparePlans, monthsToFinish, objectiveWords, parseMonthly, planMetadataQueries, priceChangeText, type PriceChange } from "../../lib/mi-plan-view";
+import { pcMatchesPlan, updateMyPc } from "../../lib/mi-plan-pc";
+import { createTowerPlanWriter, planConflictMessage, planDraftFromRead, planStageStates, positiveRevision, setStageProgress, towerPlanRequest, type PlanWriteState, type TowerPlanDraft, type TowerPlanPage, type TowerPlanRead } from "../../lib/tower-plans";
 import { towerRequest, type Tower } from "../../lib/towers";
 import { remoteCatalog, type TowerCatalogPage } from "../../lib/tower-catalog";
+import { EmptyView, EndCard, MoneyStrip, NextPurchase, PcOffer, PurchaseList, SavingsCard, ShareCard, type PcOfferState } from "./mi-plan-sections";
 import "./mi-plan.css";
 
 const sinDatos: MetadataSnapshot = { status: "active", entries: new Map() };
+const monthlyKey = "uj:mi-plan:aporte-mensual";
+// «Actualizar precios» guarda una versión nueva del plan; lo que cambió se cuenta después de guardar.
+type Refresh = { phase: "confirmar" } | { phase: "guardado"; change: PriceChange; pcChanged: boolean } | { phase: "conflicto" } | { phase: "incierto" } | { phase: "error" };
 
 export default function MiPlan({ initialId }: { initialId?: string }) {
   const [list, setList] = useState<TowerPlanPage | null>(null), [plan, setPlan] = useState<TowerPlanRead | null>(null);
   const [progress, setProgress] = useState<{ plan: TowerPlanRead; value: Record<string, string> } | null>(null);
   const [busy, setBusy] = useState(true), [error, setError] = useState(""), [metadata, setMetadata] = useState<{ plan: TowerPlanRead; snapshot: MetadataSnapshot } | null>(null);
   const [edit, setEdit] = useState<{ draft: TowerPlanDraft; pc: Tower; key: number } | null>(null), [deleting, setDeleting] = useState(false), nextEdit = useRef(0), lock = useRef(false);
-  const [reload, setReload] = useState(0);
+  const [reload, setReload] = useState(0), [monthly, setMonthly] = useState(""), [refresh, setRefresh] = useState<Refresh | null>(null), [offer, setOffer] = useState<PcOfferState | null>(null), [offerClosed, setOfferClosed] = useState<string | null>(null), [showAll, setShowAll] = useState(false);
+  const planRef = useRef<TowerPlanRead | null>(null), writer = useRef<ReturnType<typeof createTowerPlanWriter> | null>(null);
+  useEffect(() => { planRef.current = plan; }, [plan]);
+  useEffect(() => () => { writer.current?.dispose(); }, []);
+  useEffect(() => { const timer = setTimeout(() => { try { const saved = window.localStorage.getItem(monthlyKey); if (saved) setMonthly(saved); } catch { /* sin almacenamiento: se escribe de nuevo */ } }, 0); return () => clearTimeout(timer); }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,14 +41,14 @@ export default function MiPlan({ initialId }: { initialId?: string }) {
         const detail = id ? await (await towerPlanRequest(`/${id}`, "GET", undefined, controller.signal)).json() as TowerPlanRead : null;
         if (controller.signal.aborted) return;
         setPlan(detail);
-        setProgress(null); setEdit(null); setDeleting(false);
+        setProgress(null); setEdit(null); setDeleting(false); setOffer(null);
       } catch { if (!controller.signal.aborted) setError("No pudimos cargar tus planes. Probá de nuevo en un momento."); }
       finally { if (!controller.signal.aborted) setBusy(false); }
     })();
     return () => controller.abort();
   }, [initialId, reload]);
 
-  // Los nombres de las piezas salen del catálogo; sin ellos se dice «Por confirmar».
+  // Los nombres de los componentes salen del catálogo; sin ellos se dice «Por confirmar».
   useEffect(() => {
     if (!plan) return;
     const loader = createPreviewMetadataLoader();
@@ -56,34 +60,83 @@ export default function MiPlan({ initialId }: { initialId?: string }) {
 
   const marks = plan && progress?.plan === plan ? progress.value : plan?.progress;
   const states = useMemo(() => plan ? planStageStates(plan, marks) : [], [plan, marks]);
+  const finished = states.length > 0 && states.every(state => state === "hecha");
 
-  async function mark(stageKey: string, done: boolean) {
+  async function offerPcUpdate(target: TowerPlanRead, index: number) {
+    if (!target.pc_id) return;
+    try {
+      const pc = await (await towerRequest(`/${target.pc_id}`)).json() as Tower;
+      setOffer({ phase: pcMatchesPlan(target, pc, index) ? "listo" : "cambio", index });
+    } catch { setOffer(null); }
+  }
+  // Plan terminado: se ofrece actualizar Mi PC una vez, salvo que la persona ya lo haya cerrado.
+  useEffect(() => { if (!plan || !finished || offer || offerClosed === plan.id) return; const timer = setTimeout(() => void offerPcUpdate(plan, plan.snapshot.stages.length - 1), 0); return () => clearTimeout(timer); }, [plan, finished, offer, offerClosed]);
+
+  async function mark(stageKey: string, done: boolean, index: number) {
     if (!plan || lock.current) return;
     lock.current = true; setBusy(true); setError("");
-    try { setProgress({ plan, value: await setStageProgress(plan.id, stageKey, done) }); }
-    catch { setError("No pudimos confirmar el cambio. Revisá el plan antes de volver a intentar; no se repitió el envío."); }
+    try {
+      setProgress({ plan, value: await setStageProgress(plan.id, stageKey, done) });
+      if (done) await offerPcUpdate(plan, index); else setOffer(null);
+    } catch { setError("No pudimos confirmar el cambio. Revisá el plan antes de volver a intentar; no se repitió el envío."); }
     finally { lock.current = false; setBusy(false); }
   }
+
+  async function confirmPcUpdate() {
+    if (!plan?.pc_id || !offer || lock.current) return;
+    lock.current = true; setBusy(true);
+    try {
+      const pc = await (await towerRequest(`/${plan.pc_id}`)).json() as Tower;
+      if (!pcMatchesPlan(plan, pc, offer.index)) { setOffer({ phase: "cambio", index: offer.index }); return; }
+      await updateMyPc(pc, plan, offer.index);
+      setOffer({ phase: "hecho", index: offer.index });
+    } catch { setOffer({ phase: "error", index: offer.index }); }
+    finally { lock.current = false; setBusy(false); }
+  }
+  function closeOffer() { if (plan) setOfferClosed(plan.id); setOffer(null); }
 
   async function choose(id: string) {
     if (lock.current) return;
     lock.current = true; setBusy(true); setError("");
-    try { const next = await (await towerPlanRequest(`/${id}`)).json() as TowerPlanRead; setPlan(next); setProgress(null); setEdit(null); setDeleting(false); }
+    try { const next = await (await towerPlanRequest(`/${id}`)).json() as TowerPlanRead; setPlan(next); setProgress(null); setEdit(null); setDeleting(false); setOffer(null); setRefresh(null); }
     catch { setError("No pudimos abrir ese plan. Probá de nuevo en un momento."); }
     finally { lock.current = false; setBusy(false); }
   }
 
-  async function prepareEdit(extraStage = false) {
+  async function prepareEdit(extraPurchase = false) {
     if (!plan?.pc_id || lock.current) return;
     lock.current = true; setBusy(true); setError("");
     try {
       const pc = await (await towerRequest(`/${plan.pc_id}`)).json() as Tower;
       const catalog = await remoteCatalog<TowerCatalogPage>("?page=1&page_size=1");
       const draft = planDraftFromRead(plan, pc, catalog.dataset_version);
-      if (extraStage) draft.stages.push({ name: `Etapa ${draft.stages.length + 1}`, budget_ars: draft.budget_ars, actions: [], materials: [] });
+      if (extraPurchase) draft.stages.push({ name: `Compra ${draft.stages.length + 1}`, budget_ars: draft.budget_ars, actions: [], materials: [] });
       setEdit({ draft, pc, key: ++nextEdit.current });
       requestAnimationFrame(() => document.getElementById("borrador-plan")?.scrollIntoView({ block: "start" }));
     } catch { setError("No pudimos preparar el cambio del plan. Probá de nuevo en un momento."); }
+    finally { lock.current = false; setBusy(false); }
+  }
+
+  // Actualizar precios recalcula y guarda una versión nueva del plan (tu PC no cambia). Sin vista previa en el servidor,
+  // la persona confirma antes y después ve cuánto cambió respecto del plan que tenía abierto.
+  async function updatePrices() {
+    const current = planRef.current;
+    if (!current?.pc_id || lock.current) return;
+    lock.current = true; setBusy(true); setError("");
+    try {
+      const pc = await (await towerRequest(`/${current.pc_id}`)).json() as Tower;
+      const catalog = await remoteCatalog<TowerCatalogPage>("?page=1&page_size=1");
+      const draft = planDraftFromRead(current, pc, catalog.dataset_version, true);
+      writer.current?.dispose();
+      writer.current = createTowerPlanWriter({
+        onState: (state: PlanWriteState) => {
+          if (state.phase === "uncertain") setRefresh({ phase: "incierto" });
+          else if (state.phase === "error") { if (state.message === planConflictMessage) { setRefresh({ phase: "conflicto" }); setReload(value => value + 1); } else setRefresh({ phase: "error" }); }
+        },
+        onSaved: saved => { setRefresh({ phase: "guardado", change: comparePlans(current.snapshot, saved.snapshot), pcChanged: saved.snapshot.pc_revision !== current.snapshot.pc_revision }); setPlan(saved); setProgress(null); setOffer(null); },
+      });
+      await writer.current.save(draft, current.id, current.revision);
+    } catch { setRefresh({ phase: "error" }); }
     finally { lock.current = false; setBusy(false); }
   }
 
@@ -92,112 +145,60 @@ export default function MiPlan({ initialId }: { initialId?: string }) {
     if (!plan || !positiveRevision(plan.revision) || lock.current) return;
     lock.current = true; setBusy(true); setError("");
     try { await towerPlanRequest(`/${plan.id}`, "DELETE", JSON.stringify({ expected_plan_revision: plan.revision })); setDeleting(false); setReload(value => value + 1); }
-    catch { setError("No pudimos dar de baja el plan. Revisá tus planes antes de volver a intentar; no se repitió el envío."); }
+    catch { setError("No pudimos borrar el plan. Revisá tus planes antes de volver a intentar; no se repitió el envío."); }
     finally { lock.current = false; setBusy(false); }
   }
 
+  function changeMonthly(value: string) { setMonthly(value); try { if (value) window.localStorage.setItem(monthlyKey, value); else window.localStorage.removeItem(monthlyKey); } catch { /* solo se pierde el recuerdo */ } }
+
   if (!plan) {
-    return <div className="mp">
-      <section className="mp-head"><h1>Tu plan, paso a paso</h1><p>Comprá de a una pieza, cuando puedas. Cada etapa la revisamos con tu PC tal como quedaría después de las anteriores.</p></section>
-      {busy && <div className="mp-status" role="status" aria-busy="true"><strong>Buscando tus planes…</strong></div>}
-      {!busy && error && <div className="mp-status" role="alert"><Notice tono="no" titulo="No pudimos cargar tus planes">{error}</Notice><div className="mp-row"><Link className="mp-btn mp-btn-secundario" href="/account">Ingresar a mi cuenta</Link></div></div>}
-      {!busy && !error && <div className="mp-status"><Notice tono="info" titulo="Todavía no tenés ningún plan">Elegí qué querés mejorar y sumá el cambio que más te convenga: va a aparecer acá, etapa por etapa.</Notice><div className="mp-row"><Link className="mp-btn mp-btn-principal" href="/">Ver qué me conviene</Link></div></div>}
-    </div>;
+    if (busy) return <div className="mp"><section className="mp-head"><h1>Tu plan, paso a paso</h1></section><div className="mp-status" role="status" aria-busy="true"><strong>Buscando tus planes…</strong></div></div>;
+    if (error) return <div className="mp"><section className="mp-head"><h1>Tu plan, paso a paso</h1></section><div className="mp-status" role="alert"><Notice tono="no" titulo="No pudimos cargar tus planes">{error}</Notice><div className="mp-row"><Link className="mp-btn mp-btn-secundario" href="/account">Ingresar a mi cuenta</Link></div></div></div>;
+    return <EmptyView />;
   }
 
-  const snapshot = plan.snapshot, comprado = doneCount(states), spent = spentText(plan, states), total = moneyText(snapshot.cost.total_ars);
-  const percent = budgetBarPercent(spentAmount(plan, states), snapshot.cost.total_ars);
-  const parts = finishedParts(plan, names), range = priceRangeText(plan), pending = snapshot.stages.length - comprado;
+  const snapshot = plan.snapshot, current = states.findIndex(state => state === "actual"), canChange = Boolean(plan.pc_id);
+  const months = monthsToFinish(plan.remaining_ars, parseMonthly(monthly)), hasRemaining = plan.remaining_ars !== null && plan.remaining_ars !== undefined;
+  const showBody = !finished || showAll;
 
   return <div className="mp">
     <section className="mp-head">
-      <span className="mp-eyebrow">{snapshot.base_configuration.name} · {objectiveWords[snapshot.objective]}</span>
-      <h1>Tu plan, paso a paso</h1>
-      <p>Comprá de a una pieza, cuando puedas. Cada etapa la revisamos con tu PC tal como quedaría después de las anteriores.</p>
+      {finished ? <><span className="mp-eyebrow">{snapshot.base_configuration.name} · {objectiveWords[snapshot.objective]}</span><h1>¡Listo, terminaste tu plan!</h1><p>Compraste todo lo que tenías planeado.</p></>
+        : <><span className="mp-eyebrow">{snapshot.base_configuration.name} · {objectiveWords[snapshot.objective]}</span><h1>Tu plan, paso a paso</h1><p>Comprá de a un componente, cuando puedas. Ya revisamos que cada compra encaje con las anteriores.</p></>}
       {!initialId && list && list.items.length > 1 && <select aria-label="Elegir otro plan" value={plan.id} onChange={event => void choose(event.target.value)}>{list.items.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>}
     </section>
     {error && <div className="mp-status" role="alert"><Notice tono="no" titulo="Algo no salió como esperábamos">{error}</Notice></div>}
 
-    <section className="mp-money" aria-label="Plata del plan">
-      <div className="mp-m total"><span className="mp-m-label">Todo el plan</span><span className="mp-m-value">{total ?? "Sin total"}</span><small>{total ? (range ?? "Con los precios que guardamos") : "Falta el precio de alguna etapa"}</small></div>
-      <div className="mp-m"><span className="mp-m-label">Ya compraste</span><span className="mp-m-value">{comprado === 0 ? "Nada todavía" : spent ?? `${comprado} ${comprado === 1 ? "etapa" : "etapas"}`}</span>{percent !== null && <div className="mp-prog" aria-hidden="true"><i style={{ width: `${percent}%` }} /></div>}<small>{comprado} de {snapshot.stages.length} {snapshot.stages.length === 1 ? "etapa" : "etapas"}</small></div>
-      <div className="mp-m"><span className="mp-m-label">Te falta</span><span className="mp-m-value">{pending === 0 ? "Nada" : `${pending} ${pending === 1 ? "etapa" : "etapas"}`}</span><small>Los precios cambian: revisalos antes de comprar.</small></div>
-    </section>
+    {finished ? (offer && <PcOffer offer={offer} plan={plan} names={names} busy={busy} finished onConfirm={() => void confirmPcUpdate()} onDecline={closeOffer} />)
+      : current >= 0 && <NextPurchase plan={plan} index={current} names={names} busy={busy} canChange={canChange} onBuy={key => void mark(key, true, current)} onOther={() => void prepareEdit()} />}
+    {!finished && offer && <PcOffer offer={offer} plan={plan} names={names} busy={busy} finished={false} onConfirm={() => void confirmPcUpdate()} onDecline={closeOffer} />}
 
-    <div className="mp-body">
-      <section aria-label="Etapas">
-        <ol className="mp-stages">{snapshot.stages.map((stage, index) => {
-          const state = states[index] ?? "pendiente", key = plan.stage_keys?.[index], first = stage.actions[0], category = first?.category;
-          const offer = proposalOffer(stage), faltan = unknownChecks({ evaluation: stage.evaluation } as never), swap = swapSides({ actions: stage.actions as TowerPlanDraft["stages"][number]["actions"], versions: { catalog: snapshot.versions.catalog } }, index === 0 ? snapshot.base_configuration : snapshot.stages[index - 1].evaluated_configuration, names);
-          const day = boughtOn(marks, key), price = moneyText(stage.cost.total_ars), spaceNote = towerEssentialNote(stage.evaluation)?.includes(physicalSpaceNote) ? physicalSpaceNote : null;
-          const sinEvaluar = stage.evaluation.rule_results.filter(rule => rule.state === "not_applicable").map(rule => towerRuleLabels[rule.rule_id] ?? "Otra comprobación");
-          return <li key={key ?? stage.position} className={state === "hecha" ? "mp-stage is-done" : state === "actual" ? "mp-stage is-now" : "mp-stage"} aria-current={state === "actual" ? "step" : undefined}>
-            <span className="mp-dot" aria-hidden="true">{state === "hecha" ? <Check className="mp-icon" /> : stage.position}</span>
-            <article className="mp-sc">
-              <div className="mp-sc-head">
-                <div><div className="mp-sc-kicker">{stageKicker(stage.position, category, state)}</div><h2>{stage.name}</h2></div>
-                {state === "hecha"
-                  ? <span className="mp-bought"><Check className="mp-icon" aria-hidden="true" />{day ? `Comprado el ${day}` : "Comprado"}{key && <><span aria-hidden="true">·</span><button type="button" className="mp-btn mp-btn-quieto mp-btn-chico" disabled={busy} aria-label={`Deshacer: ${stage.name}`} onClick={() => void mark(key, false)}>Deshacer</button></>}</span>
-                  : <Verdict estado={stage.evaluation.verdict} />}
-              </div>
-              {state === "hecha"
-                ? <div className="mp-acc">{swap.nueva}{price ? ` · ${price}` : ""}</div>
-                : <>
-                  <div className="mp-swap">
-                    <div className="mp-swap-side"><div className="mp-swap-label">Sale</div><div className="mp-part-name">{swap.actual}</div></div>
-                    <ArrowRight className="mp-icon" aria-label="se cambia por" />
-                    <div className="mp-swap-side is-new"><div className="mp-swap-label">Entra</div><div className="mp-part-name">{swap.nueva}</div></div>
-                  </div>
-                  {stage.evaluation.verdict === "compatible" && <div className="mp-acc ok"><Check className="mp-icon" aria-hidden="true" /><span>{`${index === 0 ? "Encaja con tu PC actual." : "Con lo que cambia en las etapas anteriores, todo sigue encajando."}${spaceNote ? ` ${spaceNote}` : ""}`}</span></div>}
-                  {stage.evaluation.verdict !== "compatible" && <Notice tono={stage.evaluation.verdict === "incompatible" ? "no" : "revisar"} titulo={stage.evaluation.verdict === "incompatible" ? "Este cambio no encaja" : "Falta un dato para estar seguros"}>{stage.evaluation.verdict === "incompatible" ? `No pasó: ${joinLabels(checkRows({ evaluation: stage.evaluation } as never).filter(row => row.estado === "incompatible").map(row => row.label)) || "alguna comprobación"}.` : faltan.length ? `No pudimos confirmar: ${joinLabels(faltan)}. Completá esos datos en Mi PC.` : "Todavía no pudimos comprobar si encaja con tu PC."}</Notice>}
-                  {sinEvaluar.length > 0 && <p className="mp-acc">No evaluado: {sinEvaluar.join(", ")}. No es un dato que falte.</p>}
-                  <div className="mp-sc-foot">
-                    <PriceTag monto={stage.cost.total_ars} moneda="ARS" condicion={offer?.condition} fecha={offer?.date} tienda={offer?.store} enlace={offer?.url} />
-                    <div className="mp-row">
-                      {state === "actual" && <button type="button" className="mp-btn mp-btn-quieto mp-btn-chico" disabled={busy || !plan.pc_id} onClick={() => void prepareEdit()}>Cambiar pieza</button>}
-                      {state === "actual" && key && <button type="button" className="mp-btn mp-btn-principal" disabled={busy} aria-label={`Ya la compré: ${stage.name}`} onClick={() => void mark(key, true)}>Ya la compré</button>}
-                      {state !== "actual" && stage.evaluation.verdict === "requiere_verificacion" && <Link className="mp-btn mp-btn-secundario mp-btn-chico" href="/pcs">Completar el dato</Link>}
-                    </div>
-                  </div>
-                </>}
-            </article>
-          </li>;
-        })}</ol>
-        <button type="button" className="mp-add" disabled={busy || !plan.pc_id} onClick={() => void prepareEdit(true)}><Plus className="mp-icon" aria-hidden="true" />Agregar otra etapa</button>
-      </section>
+    {refresh?.phase === "confirmar" && <div className="mp-status"><Notice tono="info" titulo="¿Buscamos los precios de hoy?">Guardamos una versión nueva de tu plan y te contamos si subió o bajó y si algo dejó de encajar. Tu PC guardada no cambia.</Notice><div className="mp-row"><button type="button" className="mp-btn mp-btn-principal" disabled={busy} onClick={() => void updatePrices()}>Buscar precios nuevos</button><button type="button" className="mp-btn mp-btn-quieto mp-btn-chico" disabled={busy} onClick={() => setRefresh(null)}>Ahora no</button></div></div>}
+    {refresh?.phase === "guardado" && <div className="mp-status"><Notice tono={refresh.change.stopsFitting.length ? "revisar" : "encaja"} titulo="Actualizamos los precios de tu plan">{priceChangeText(refresh.change)}{refresh.change.stopsFitting.length > 0 && ` Dejó de encajar: ${refresh.change.stopsFitting.join(", ")}.`}{refresh.pcChanged && " Lo calculamos con tu PC de hoy."}</Notice></div>}
+    {refresh?.phase === "conflicto" && <div className="mp-status"><Notice tono="info" titulo="Algo cambió mientras mirabas">Tu PC, los precios del catálogo o el plan son otros. No se guardó nada y volvimos a cargar todo. Si querés, actualizá los precios de nuevo.</Notice></div>}
+    {refresh?.phase === "incierto" && <div className="mp-status" role="alert"><Notice tono="revisar" titulo="No sabemos si se guardó">Puede que el plan ya tenga los precios nuevos. Recargá la página para verlo antes de volver a intentar.</Notice><div className="mp-row"><button type="button" className="mp-btn mp-btn-secundario mp-btn-chico" onClick={() => void writer.current?.retry()}>Volver a intentar</button></div></div>}
+    {refresh?.phase === "error" && <div className="mp-status" role="alert"><Notice tono="no" titulo="No pudimos actualizar los precios">Tu plan sigue como estaba. Probá de nuevo en un momento.</Notice></div>}
 
-      <aside className="mp-side">
-        <div className="mp-card">
-          <h2>Compartí tu plan</h2>
-          <p>Mandáselo a alguien para que te dé una mano o te lo regale.</p>
-          <ul className="mp-rules">
-            <li><Check className="mp-icon" aria-hidden="true" />Quien lo abra puede verlo, pero no cambiarlo.</li>
-            <li><Check className="mp-icon" aria-hidden="true" />No mostramos tu correo ni tus otras PCs.</li>
-            <li><Check className="mp-icon" aria-hidden="true" />Lo apagás y el enlace deja de funcionar al instante.</li>
-          </ul>
-          <Link className="mp-btn mp-btn-secundario mp-btn-chico" href={`/tower-plans/${plan.id}/shares`}>Crear o apagar enlaces</Link>
-        </div>
-        {parts.length > 0 && <div className="mp-card">
-          <h2>Tu PC al terminar</h2>
-          <div className="mp-end">{parts.map(part => {
-            const unknown = part.name === "Por confirmar" || part.name === "Sin pieza de este tipo";
-            return <div key={part.category} className={unknown ? "mp-slot is-unknown" : "mp-slot"}><span className="mp-slot-icon"><IconoDeCategoria categoria={categoryNames[part.category]} tamano="size-[18px]" /></span><span style={{ minWidth: 0 }}><span className="mp-slot-kind">{part.label}</span><div className="mp-slot-name">{part.name === "Por confirmar" ? "Falta un dato" : part.name}</div></span></div>;
-          })}</div>
-          <p>El resto de tus piezas sigue igual.</p>
-        </div>}
-        <Notice tono="info" titulo="Tu PC guardada no cambia sola">Marcar una etapa como comprada no modifica tu PC guardada. Si querés actualizarla, hacelo desde Mi PC.</Notice>
-      </aside>
-    </div>
+    {finished && <div className="mp-cta"><button type="button" className="mp-btn mp-btn-secundario mp-btn-chico" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}>{showAll ? "Ocultar mis compras" : "Ver todas mis compras"}</button></div>}
+    {showBody && <>
+      <MoneyStrip plan={plan} states={states} busy={busy} canRefresh={canChange} onRefresh={() => setRefresh({ phase: "confirmar" })} />
+      <div className="mp-body">
+        <PurchaseList plan={plan} states={states} names={names} marks={marks} busy={busy} canChange={canChange} onUndo={key => void mark(key, false, 0)} onAdd={() => void prepareEdit(true)} />
+        <aside className="mp-side">
+          <SavingsCard value={monthly} onChange={changeMonthly} months={months} hasRemaining={hasRemaining} />
+          <EndCard plan={plan} names={names} />
+          <ShareCard planId={plan.id} />
+        </aside>
+      </div>
+    </>}
 
-    {edit && <section id="borrador-plan" className="mp-draft" aria-labelledby="mp-borrador"><h2 id="mp-borrador">Cambiar tu plan</h2><Notice tono="info" titulo="Todavía no se guardó nada">Revisá las etapas, sumá lo que falte y confirmá. Guardar crea una nueva versión del plan y no toca tu PC guardada.</Notice><TowerPlanEditor key={edit.key} seed={edit.draft} pc={edit.pc} planId={plan.id} revision={plan.revision} onSaved={saved => { setPlan(saved); setEdit(null); setProgress(null); }} /></section>}
+    {edit && <section id="borrador-plan" className="mp-draft" aria-labelledby="mp-borrador"><h2 id="mp-borrador">Cambiar tu plan</h2><Notice tono="info" titulo="Todavía no se guardó nada">Revisá las compras, sumá lo que falte y confirmá. Guardar actualiza tu plan y no toca tu PC guardada.</Notice><TowerPlanEditor key={edit.key} seed={edit.draft} pc={edit.pc} planId={plan.id} revision={plan.revision} onSaved={saved => { setPlan(saved); setEdit(null); setProgress(null); setOffer(null); }} /></section>}
 
-    <div className="mp-danger">
-      {!deleting ? <button type="button" className="mp-btn mp-btn-quieto mp-btn-chico" disabled={busy} onClick={() => setDeleting(true)}>Dar de baja este plan</button> : <TowerPlanDeactivation busy={busy} onCancel={() => setDeleting(false)} onConfirm={event => void remove(event)} />}
-    </div>
+    {deleting && <div className="mp-danger"><TowerPlanDeactivation busy={busy} onCancel={() => setDeleting(false)} onConfirm={event => void remove(event)} /></div>}
 
     <div className="mp-foot">
-      <span>Los precios son de tiendas argentinas y muestran la fecha en que los vimos. Verificá stock antes de comprar.</span>
-      <span><Link href="/">Volver a lo que te conviene</Link></span>
+      <span>{finished ? "Nada cambia en tu PC guardada hasta que lo confirmes." : "Precios de tiendas argentinas, con la fecha en que los vimos. Verificá stock antes de comprar."}</span>
+      <span className="mp-row">{finished && <Link href="/">Ver qué más te conviene</Link>}{!deleting && <button type="button" className="mp-link" disabled={busy} onClick={() => setDeleting(true)}>Borrar este plan</button>}</span>
     </div>
   </div>;
 }

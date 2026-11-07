@@ -15,6 +15,7 @@ loses it and its old mark is ignored, never transferred.
 
 import hashlib
 import json
+from decimal import Decimal
 
 
 def _canonical(semantic):
@@ -77,3 +78,31 @@ def snapshot_keys(snapshot):
         seen[signature] = occurrence + 1
         keys[stage_key(stage, occurrence, totals[signature])] = stage["position"]
     return keys
+
+
+def money_progress(snapshot, keys, marks):
+    """Return ``(spent_ars, remaining_ars)`` as ``"0.00"`` strings, or ``None``.
+
+    Spent is the sum of the stage totals of every marked stage and remaining the
+    sum of the unmarked ones, both taken from the prices frozen in the snapshot
+    (ARS, Decimal). A side is ``None`` when any stage that belongs to it has no
+    known total: an unknown price is never read as zero. ``keys`` is the
+    ``stage_keys`` list aligned by index with ``snapshot["stages"]``.
+    """
+    spent, remaining = Decimal(0), Decimal(0)
+    spent_known = remaining_known = True
+    for key, stage in zip(keys, snapshot.get("stages", []), strict=True):
+        total = stage.get("cost", {}).get("total_ars")
+        if key in marks:
+            if total is None:
+                spent_known = False
+            else:
+                spent += Decimal(total)
+        elif total is None:
+            remaining_known = False
+        else:
+            remaining += Decimal(total)
+    return (
+        f"{spent:.2f}" if spent_known else None,
+        f"{remaining:.2f}" if remaining_known else None,
+    )

@@ -6,282 +6,203 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mi plan — UpgradeJusto</title>
 <style>
-  .pg { max-width: 1280px; margin: 0 auto; }
-  .wrap { padding-inline: var(--space-7); }
+.pg{container-type:inline-size;color:var(--tinta);font:400 16px/24px var(--font-sans)}
+.pg *{box-sizing:border-box}
+.in{max-width:1280px;margin:0 auto;padding-inline:var(--space-7)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding-block:var(--space-5)}
+.logo{font:700 24px/30px var(--font-display);letter-spacing:-.01em;color:var(--tinta);text-decoration:none}
+.nav{display:flex;gap:var(--space-2)}
+.nav a{color:var(--tinta);text-decoration:none;font-weight:600;padding:var(--space-2) var(--space-3);border-radius:var(--radius-pill)}
+.nav a[aria-current]{background:var(--pino-suave)}
+.head{display:grid;gap:var(--space-2);max-width:760px;padding-block:var(--space-6) var(--space-5)}
+.eyebrow,.label{font:700 13px/16px var(--font-sans);letter-spacing:.02em;color:var(--tinta-suave)}
+h1{margin:0;font:700 48px/52px var(--font-display);letter-spacing:-.02em}
+.head p{margin:0;font-size:18px;line-height:28px;color:var(--tinta-suave)}
+h2{margin:0;font:650 24px/30px var(--font-display);letter-spacing:-.01em}
+h3{margin:0;font:650 20px/26px var(--font-display)}
+.next{background:var(--papel-alto);border:1px solid var(--pino);border-radius:var(--radius-lg);box-shadow:var(--sombra-2);padding:var(--space-6);display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:var(--space-6);align-items:stretch}
+.next-main{display:grid;gap:var(--space-4);align-content:start}
+.next-buy{display:grid;gap:var(--space-3);align-content:end;border-left:1px solid var(--linea);padding-left:var(--space-6)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap}
+.swap{display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);gap:var(--space-3);align-items:center}
+.side{background:var(--papel-hundido);border-radius:var(--radius-sm);padding:var(--space-3) var(--space-4);display:grid;gap:2px;min-width:0}
+.side.new{background:var(--pino-suave)}
+.side b{font-weight:600}
+.gain{display:flex;gap:var(--space-3);align-items:center;flex-wrap:wrap}
+.gain strong{background:var(--lima);color:var(--sobre-lima);border-radius:var(--radius-pill);padding:var(--space-1) var(--space-3);font:700 15px/22px var(--font-sans)}
+.chico{font:500 14px/20px var(--font-sans);color:var(--tinta-suave)}
+.chico a,.link{color:var(--pino);font-weight:600}
+.price{font:700 34px/40px var(--font-display);letter-spacing:-.015em;font-variant-numeric:tabular-nums}
+.verdict{display:inline-flex;align-items:center;gap:var(--space-1);border-radius:var(--radius-pill);padding:var(--space-1) var(--space-3);font:700 13px/16px var(--font-sans);letter-spacing:.02em}
+.v-ok{color:var(--encaja);background:var(--encaja-fondo)}
+.v-rev{color:var(--revisar);background:var(--revisar-fondo)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.verdict .ic{width:16px;height:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:48px;padding:var(--space-3) var(--space-5);border-radius:var(--radius-pill);font:600 16px/24px var(--font-sans);border:1.5px solid transparent;text-decoration:none;cursor:pointer;background:transparent;color:var(--tinta)}
+.btn-p{background:var(--pino);color:var(--sobre-pino)}
+.btn-s{border-color:var(--linea-fuerte);color:var(--tinta)}
+.btn-q{color:var(--pino)}
+.btn-c{min-height:40px;padding:var(--space-2) var(--space-4);font-size:15px}
+.money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3);padding-block:var(--space-5)}
+.m{background:var(--papel-alto);border:1px solid var(--linea);border-radius:var(--radius-md);padding:var(--space-5);display:grid;gap:var(--space-2);align-content:start}
+.m b{font:700 28px/32px var(--font-display);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.prog{height:10px;border-radius:var(--radius-pill);background:var(--papel-hundido);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--pino);border-radius:var(--radius-pill)}
+.body{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:var(--space-6);align-items:start;padding-bottom:var(--space-6)}
+.list{list-style:none;margin:var(--space-4) 0 0;padding:0;display:grid;gap:var(--space-3)}
+.item{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:var(--space-4);align-items:center;background:var(--papel-alto);border:1px solid var(--linea);border-radius:var(--radius-md);padding:var(--space-4) var(--space-5)}
+.item.done{background:transparent;border-style:dashed}
+.item.now{background:var(--pino-suave);border-color:var(--pino-suave)}
+.dot{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 16px/1 var(--font-display);background:var(--papel-hundido);color:var(--tinta-suave)}
+.done .dot{background:var(--pino);color:var(--sobre-pino)}
+.now .dot{background:var(--pino);color:var(--sobre-pino)}
+.item-t{display:grid;gap:2px;min-width:0}
+.item-t b{font-weight:600}
+.item-r{display:grid;justify-items:end;gap:var(--space-1);font-variant-numeric:tabular-nums;font-weight:600}
+.warn{grid-column:2/-1;background:var(--revisar-fondo);border-radius:var(--radius-sm);padding:var(--space-3) var(--space-4);display:flex;gap:var(--space-3);align-items:center;justify-content:space-between;flex-wrap:wrap}
+.add{display:flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:56px;width:100%;margin-top:var(--space-3);border:1.5px dashed var(--linea-fuerte);border-radius:var(--radius-md);background:transparent;color:var(--pino);font:700 16px/24px var(--font-sans);cursor:pointer}
+.aside{display:grid;gap:var(--space-4)}
+.card{background:var(--papel-alto);border:1px solid var(--linea);border-radius:var(--radius-md);padding:var(--space-5);display:grid;gap:var(--space-3)}
+.card p{margin:0}
+.field{display:grid;gap:var(--space-1);font-weight:600}
+.field input{min-height:48px;border:1.5px solid var(--linea-fuerte);border-radius:var(--radius-sm);padding:0 var(--space-3);font:400 16px/24px var(--font-sans);background:var(--papel);color:var(--tinta);width:100%}
+.slot{display:flex;justify-content:space-between;gap:var(--space-3);border-bottom:1px solid var(--linea);padding-block:var(--space-2)}
+.slot:last-of-type{border-bottom:0}
+.slot b{font-weight:600;text-align:right}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--space-4);padding-block:var(--space-5);border-top:1px solid var(--linea)}
+.center{display:grid;gap:var(--space-4);justify-items:start;max-width:640px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3)}
+@container (max-width:900px){
+.in{padding-inline:var(--space-4)}
+.nav a:not([aria-current]){display:none}
+h1{font-size:34px;line-height:40px}
+.next{grid-template-columns:1fr;padding:var(--space-5);border-radius:var(--radius-md);gap:var(--space-4)}
+.next-buy{border-left:0;border-top:1px solid var(--linea);padding:var(--space-4) 0 0}
+.swap{grid-template-columns:1fr}
+.swap>.ic{transform:rotate(90deg);justify-self:center}
+.money,.body,.steps{grid-template-columns:1fr}
+.item{grid-template-columns:40px minmax(0,1fr);padding:var(--space-4)}
+.item-r{grid-column:2;justify-items:start}
+.warn{grid-column:1/-1}
+.btn{width:100%}
+}
 
-  /* Barra superior */
-  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); }
-  .logo { font: 700 24px/30px var(--font-display); letter-spacing: -.01em; color: var(--tinta); text-decoration: none; }
-  .nav { display: flex; align-items: center; gap: var(--space-2); }
-  .nav a { color: var(--tinta); text-decoration: none; font-weight: 600; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
-  .nav a:hover { background: var(--papel-hundido); }
-  .nav a[aria-current] { background: var(--pino-suave); }
-
-  /* Encabezado */
-  .head { padding-top: var(--space-7); padding-bottom: var(--space-5); display: grid; gap: var(--space-2); max-width: 760px; }
-  .eyebrow { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
-  .head h1 { margin: 0; font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
-  .head p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
-
-  /* Plata */
-  .money { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: var(--space-3); padding-bottom: var(--space-6); }
-  .m { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-2); align-content: start; }
-  .m-label { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
-  .m-value { font: 700 34px/40px var(--font-display); letter-spacing: -.015em; font-variant-numeric: tabular-nums; }
-  .m small { font-size: 14px; line-height: 20px; color: var(--tinta-suave); font-weight: 500; }
-  .m.total { background: var(--tinta); border-color: var(--tinta); color: var(--papel); }
-  .m.total .m-label, .m.total small { color: var(--papel); opacity: .8; }
-  .prog { height: 10px; border-radius: var(--radius-pill); background: var(--papel-hundido); overflow: hidden; }
-  .prog i { display: block; height: 100%; background: var(--pino); border-radius: var(--radius-pill); transition: width .3s; }
-
-  /* Cuerpo */
-  .body { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: var(--space-6); align-items: start; }
-
-  .stages { list-style: none; margin: 0; padding: 0; display: grid; }
-  .stage { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--space-4); position: relative; padding-bottom: var(--space-5); }
-  .stage:not(:last-child)::before { content: ""; position: absolute; left: 23px; top: 48px; bottom: 0; width: 2px; background: var(--linea); }
-  .dot { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font: 700 18px/1 var(--font-display); background: var(--papel-hundido); color: var(--tinta-suave); }
-  .stage.is-done .dot { background: var(--pino); color: var(--sobre-pino); }
-  .stage.is-now .dot { background: var(--lima); color: var(--sobre-lima); }
-
-  .sc { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-4); min-width: 0; }
-  .stage.is-now .sc { border-color: var(--pino); box-shadow: var(--sombra-2); border-radius: var(--radius-lg); padding: var(--space-6); }
-  .stage.is-done .sc { background: transparent; border-style: dashed; padding-block: var(--space-4); }
-  .sc-head { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); flex-wrap: wrap; }
-  .sc-kicker { font: 700 13px/16px var(--font-sans); letter-spacing: .02em; color: var(--tinta-suave); }
-  .sc h2 { margin: 2px 0 0; font: 650 24px/30px var(--font-display); letter-spacing: -.01em; }
-  .stage.is-done h2 { font-size: 20px; line-height: 26px; }
-  .sc .uj-swap-side { padding: var(--space-2) var(--space-3); }
-  .acc { font-size: 15px; line-height: 22px; display: flex; gap: var(--space-2); align-items: start; }
-  .acc .uj-icon { margin-top: 1px; flex: none; }
-  .acc.ok { color: var(--tinta); } .acc.ok .uj-icon { color: var(--encaja); }
-  .sc-foot { display: flex; justify-content: space-between; align-items: end; gap: var(--space-4); flex-wrap: wrap; border-top: 1px solid var(--linea); padding-top: var(--space-4); }
-  .sc-foot .uj-price-amount { font-size: 24px; line-height: 28px; }
-  .bought { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 600; color: var(--pino); }
-  .bought .uj-icon { stroke-width: 2.25; }
-  .add { display: flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 64px; border: 1.5px dashed var(--linea-fuerte); border-radius: var(--radius-md); color: var(--pino); font-weight: 700; background: transparent; width: 100%; cursor: pointer; font-family: var(--font-sans); font-size: 16px; }
-  .add:hover { background: var(--papel-alto); }
-
-  /* Columna lateral */
-  .side { display: grid; gap: var(--space-4); position: sticky; top: var(--space-5); }
-  .card { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-4); }
-  .card h2 { margin: 0; font: 650 20px/26px var(--font-display); }
-  .card > p { margin: 0; color: var(--tinta-suave); }
-  .switch { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); font-weight: 600; cursor: pointer; }
-  .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-  .track { width: 52px; height: 30px; border-radius: var(--radius-pill); background: var(--papel-hundido); border: 1.5px solid var(--linea-fuerte); position: relative; flex: none; transition: background-color .15s; }
-  .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 21px; height: 21px; border-radius: 50%; background: var(--tinta-suave); transition: transform .15s, background-color .15s; }
-  .switch input:checked + .track { background: var(--pino); border-color: var(--pino); }
-  .switch input:checked + .track::after { transform: translateX(22px); background: var(--sobre-pino); }
-  .switch input:focus-visible + .track { outline: 2px solid var(--foco); outline-offset: 2px; }
-  .link-box { display: none; gap: var(--space-3); }
-  .link-box.on { display: grid; }
-  .link-row { display: flex; gap: var(--space-2); }
-  .link-row .uj-input { flex: 1; min-width: 0; font-size: 14px; background: var(--papel); }
-  .rules { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); font-size: 14px; line-height: 20px; color: var(--tinta-suave); font-weight: 500; }
-  .rules li { display: flex; gap: var(--space-2); }
-  .rules .uj-icon { width: 16px; height: 16px; color: var(--pino); margin-top: 2px; }
-  .end-list { display: grid; gap: var(--space-2); }
-  .end-list .uj-slot { padding: var(--space-2) var(--space-3); grid-template-columns: 32px 1fr; }
-  .end-list .uj-slot-icon { width: 32px; height: 32px; }
-  .end-list .uj-slot-icon .uj-icon { width: 18px; height: 18px; }
-
-  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-8); padding-block: var(--space-6); border-top: 1px solid var(--linea); color: var(--tinta-suave); font-size: 14px; line-height: 20px; }
-  .foot a { color: var(--pino); }
-
-  @media (max-width: 1100px) {
-    .body { grid-template-columns: 1fr; }
-    .side { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (max-width: 700px) {
-    .wrap { padding-inline: var(--space-4); }
-    .nav a:not([aria-current]) { display: none; }
-    .head h1 { font-size: 36px; line-height: 40px; }
-    .money, .side { grid-template-columns: 1fr; }
-    .stage { grid-template-columns: 36px minmax(0, 1fr); gap: var(--space-3); }
-    .dot { width: 36px; height: 36px; font-size: 15px; }
-    .stage:not(:last-child)::before { left: 17px; top: 36px; }
-    .stage.is-now .sc { padding: var(--space-5); border-radius: var(--radius-md); }
-    .uj-swap { grid-template-columns: 1fr; }
-    .uj-swap > .uj-icon { transform: rotate(90deg); justify-self: center; }
-  }
+.var{border-top:2px dashed var(--linea);margin-top:var(--space-7)}
 </style>
-<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
+<link rel="stylesheet" href="../../estilos/tokens.css"><link rel="stylesheet" href="../../estilos/componentes.css"></head>
 <body>
 <div class="pg">
+<div class="in">
+<header class="top">
+<a class="logo" href="#">UpgradeJusto</a>
+<nav class="nav" aria-label="Principal"><a href="#">Mi PC</a><a href="#">Lo que te conviene</a><a href="#" aria-current="page">Mi plan</a><a href="#">Catálogo</a><a href="#">Tu cuenta</a></nav>
+</header>
+<section class="head">
+<span class="eyebrow">La de casa · para jugar mejor</span>
+<h1>Tu plan, paso a paso</h1>
+<p>Comprá de a un componente, cuando puedas. Ya revisamos que cada compra encaje con las anteriores.</p>
+</section>
 
-  <header class="top wrap">
-    <a class="logo" href="#">UpgradeJusto</a>
-    <nav class="nav" aria-label="Principal">
-      <a href="#">Mi PC</a>
-      <a href="#">Lo que te conviene</a>
-      <a href="#" aria-current="page">Mi plan</a>
-      <a href="#">Asistente</a>
-    </nav>
-  </header>
+<section class="next" aria-label="Tu próxima compra">
+<div class="next-main">
+<div class="row"><span class="label">Tu próxima compra · 2 de 3</span><span class="verdict v-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Encaja</span></div>
+<h2>Placa de video nueva</h2>
+<div class="swap">
+<div class="side"><span class="chico">Hoy tenés</span><b>GTX 1650 · 4 GB</b></div>
+<svg class="ic" viewBox="0 0 24 24" role="img" aria-label="se cambia por"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+<div class="side new"><span class="chico">Comprás</span><b>RTX 4060 · 8 GB</b></div>
+</div>
+<div class="gain"><strong>Rinde cerca del doble</strong><span class="chico">Según datos de referencia. No son FPS.</span></div>
+</div>
+<div class="next-buy">
+<div class="price">$ 389.900</div>
+<span class="chico">Contado · visto el 28/10 en <a href="#">Tienda de ejemplo A</a></span>
+<a class="btn btn-p" href="#">Ya la compré</a>
+<a class="btn btn-s" href="#">Ver en la tienda</a>
+<a class="btn btn-q btn-c" href="#">Elegir otro componente</a>
+</div>
+</section>
 
-  <main>
-    <section class="head wrap">
-      <span class="eyebrow">La de casa · para jugar mejor</span>
-      <h1>Tu plan, paso a paso</h1>
-      <p>Comprá de a una pieza, cuando puedas. Cada etapa la revisamos con tu PC tal como quedaría después de las anteriores.</p>
-    </section>
+<section class="money" aria-label="Plata del plan">
+<div class="m"><span class="label">Todo el plan</span><b>$ 542.400</b><span class="chico">Con los precios del 26/10 al 28/10</span></div>
+<div class="m"><span class="label">Ya gastaste</span><b>$ 92.500</b><div class="prog" aria-hidden="true"><i style="width:17%"></i></div><span class="chico">1 de 3 compras</span></div>
+<div class="m"><span class="label">Te falta</span><b>$ 449.900</b><span class="chico">Los precios cambian. <a href="#">Actualizar precios</a></span></div>
+</section>
 
-    <section class="money wrap" aria-label="Plata del plan">
-      <div class="m total">
-        <span class="m-label">Todo el plan</span>
-        <span class="m-value">$ 542.400</span>
-        <small>Suma de precios vistos entre el 26/10 y el 28/10</small>
-      </div>
-      <div class="m">
-        <span class="m-label">Ya compraste</span>
-        <span class="m-value" id="spent">$ 92.500</span>
-        <div class="prog" aria-hidden="true"><i id="bar" style="width:17%"></i></div>
-        <small id="stages-done">1 de 3 etapas</small>
-      </div>
-      <div class="m">
-        <span class="m-label">Te falta</span>
-        <span class="m-value" id="left">$ 449.900</span>
-        <small>Los precios cambian: revisalos antes de comprar.</small>
-      </div>
-    </section>
+<div class="body">
+<section aria-label="Todas tus compras">
+<h2>Todas tus compras</h2>
+<ol class="list">
+<li class="item done"><span class="dot"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg></span><span class="item-t"><b>Más memoria</b><span class="chico">2 × 16 GB DDR4 · comprada el 20/10</span></span><span class="item-r">$ 92.500<a class="chico" href="#">Deshacer</a></span></li>
+<li class="item now" aria-current="step"><span class="dot">2</span><span class="item-t"><b>Placa de video nueva</b><span class="chico">RTX 4060 · es tu próxima compra</span></span><span class="item-r">$ 389.900</span></li>
+<li class="item"><span class="dot">3</span><span class="item-t"><b>Disco más grande</b><span class="chico">SSD de 1 TB, se suma al que ya tenés</span></span><span class="item-r">$ 60.000<span class="verdict v-rev">Falta un dato</span></span>
+<div class="warn"><span class="chico">No sabemos si tu placa madre tiene otro lugar para un disco.</span><a class="btn btn-s btn-c" href="#">Completar el dato</a></div></li>
+</ol>
+<button class="add" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Agregar otra compra</button>
+</section>
 
-    <div class="body wrap">
-      <section aria-label="Etapas">
-        <ol class="stages" id="stages">
-
-          <li class="stage is-done">
-            <span class="dot"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>
-            <article class="sc">
-              <div class="sc-head">
-                <div><div class="sc-kicker">Etapa 1 · Memoria</div><h2>Más memoria</h2></div>
-                <span class="bought"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Comprado el 20/10</span>
-              </div>
-              <div class="acc">2 × 8 GB → 2 × 16 GB DDR4 3200 · $ 92.500</div>
-            </article>
-          </li>
-
-          <li class="stage is-now" data-price="389900">
-            <span class="dot">2</span>
-            <article class="sc">
-              <div class="sc-head">
-                <div><div class="sc-kicker">Etapa 2 · Placa de video · la que sigue</div><h2>Placa de video nueva</h2></div>
-                <span class="uj-verdict uj-verdict-encaja"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Encaja</span>
-              </div>
-              <div class="uj-swap">
-                <div class="uj-swap-side"><div class="uj-swap-label">Sale</div><div class="uj-part-name">GTX 1650 · 4 GB</div></div>
-                <svg class="uj-icon" viewBox="0 0 24 24" aria-label="se cambia por"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                <div class="uj-swap-side is-new"><div class="uj-swap-label">Entra</div><div class="uj-part-name">RTX 4060 · 8 GB</div></div>
-              </div>
-              <div class="acc ok"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><span>Con la memoria nueva de la etapa 1, todo sigue encajando.</span></div>
-              <div class="sc-foot">
-                <div class="uj-price"><span class="uj-price-amount"><small>ARS</small>$ 389.900</span><span class="uj-price-meta">Contado · visto el 28/10 en <a href="#">Tienda de ejemplo A</a></span></div>
-                <div class="uj-row">
-                  <button class="uj-btn uj-btn-quieto uj-btn-chico">Cambiar pieza</button>
-                  <button class="uj-btn uj-btn-principal" id="buy">Ya la compré</button>
-                </div>
-              </div>
-            </article>
-          </li>
-
-          <li class="stage" data-price="60000">
-            <span class="dot">3</span>
-            <article class="sc">
-              <div class="sc-head">
-                <div><div class="sc-kicker">Etapa 3 · Almacenamiento</div><h2>Disco más grande</h2></div>
-                <span class="uj-verdict uj-verdict-revisar"><svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></svg>Falta un dato</span>
-              </div>
-              <div class="acc">Se suma un SSD de 1 TB al que ya tenés.</div>
-              <div class="uj-notice uj-notice-revisar">
-                <svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></svg>
-                <div><strong>No sabemos si te queda un lugar libre para otro disco</strong><p>No sabemos cuántos lugares de este tipo tiene tu placa madre, y el que conocemos ya lo usa tu SSD actual. Contanos si tiene otro o elegimos un disco que se conecte con cable.</p></div>
-              </div>
-              <div class="sc-foot">
-                <div class="uj-price"><span class="uj-price-amount"><small>ARS</small>$ 60.000</span><span class="uj-price-meta">Contado · visto el 26/10 en <a href="#">Tienda de ejemplo B</a></span></div>
-                <div class="uj-row">
-                  <button class="uj-btn uj-btn-quieto uj-btn-chico">Quitar</button>
-                  <button class="uj-btn uj-btn-secundario uj-btn-chico">Completar el dato</button>
-                </div>
-              </div>
-            </article>
-          </li>
-        </ol>
-        <button class="add"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Agregar otra etapa</button>
-      </section>
-
-      <aside class="side">
-        <div class="card">
-          <h2>Compartí tu plan</h2>
-          <p>Mandáselo a alguien para que te dé una mano o te lo regale.</p>
-          <label class="switch"><span>Enlace para compartir</span><input type="checkbox" id="share"><span class="track" aria-hidden="true"></span></label>
-          <div class="link-box" id="link-box">
-            <div class="link-row">
-              <input class="uj-input" id="link" readonly value="upgradejusto.app/p/k7Q2mX" aria-label="Enlace del plan">
-              <button class="uj-btn uj-btn-secundario uj-btn-chico" id="copy">Copiar</button>
-            </div>
-            <span class="uj-help" id="copied" role="status"></span>
-          </div>
-          <ul class="rules">
-            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Quien lo abra puede verlo, pero no cambiarlo.</li>
-            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>No mostramos tu correo ni tus otras PCs.</li>
-            <li><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Lo apagás y el enlace deja de funcionar al instante.</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h2>Tu PC al terminar</h2>
-          <div class="end-list">
-            <div class="uj-slot"><span class="uj-slot-icon"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M3 8h18v8H3z"/><path d="M7 16v3M11 16v3M15 16v3M19 16v3"/></svg></span><span style="min-width:0"><span class="uj-slot-kind">Memoria</span><div class="uj-slot-name">32 GB</div></span></div>
-            <div class="uj-slot"><span class="uj-slot-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><span style="min-width:0"><span class="uj-slot-kind">Placa de video</span><div class="uj-slot-name">RTX 4060</div></span></div>
-            <div class="uj-slot is-unknown"><span class="uj-slot-icon"><svg class="uj-icon" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 12h.01M11 12h.01"/></svg></span><span style="min-width:0"><span class="uj-slot-kind">Almacenamiento</span><div class="uj-slot-name">1,5 TB · falta un dato</div></span></div>
-          </div>
-          <p>El resto de tus piezas sigue igual.</p>
-        </div>
-
-        <div class="uj-notice uj-notice-info">
-          <svg class="uj-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
-          <div><strong>Tu PC guardada no cambia sola</strong><p>Cuando marcás una etapa como comprada, te preguntamos si querés actualizar tu PC.</p></div>
-        </div>
-      </aside>
-    </div>
-  </main>
-
-  <footer class="foot wrap">
-    <span>Los precios son de tiendas argentinas y muestran la fecha en que los vimos. Verificá stock antes de comprar.</span>
-    <span><a href="#">Volver a lo que te conviene</a></span>
-  </footer>
+<aside class="aside">
+<div class="card">
+<h3>¿Cuánto podés apartar?</h3>
+<label class="field">Por mes<input value="$ 100.000" aria-label="Cuánto podés apartar por mes"></label>
+<p>Terminás en <b>unos 5 meses</b>.</p>
+<span class="chico">Es una estimación con los precios de hoy.</span>
+</div>
+<div class="card">
+<h3>Tu PC al terminar</h3>
+<div><div class="slot"><span>Memoria</span><b>32 GB</b></div><div class="slot"><span>Placa de video</span><b>RTX 4060</b></div><div class="slot"><span>Almacenamiento</span><b>Falta un dato</b></div></div>
+<span class="chico">El resto de tus componentes sigue igual.</span>
+</div>
+<div class="card">
+<h3>Compartí tu plan</h3>
+<span class="chico">Quien lo abra solo puede mirarlo. Lo apagás cuando quieras.</span>
+<a class="btn btn-s btn-c" href="#">Crear enlace</a>
+</div>
+</aside>
 </div>
 
-<script>
-  function money(n) { return '$ ' + Number(n).toLocaleString('es-AR'); }
-  var total = 542400, spent = 92500;
-  document.getElementById('buy').addEventListener('click', function () {
-    var now = document.querySelector('.stage.is-now');
-    if (!now) return;
-    spent += +now.dataset.price;
-    now.classList.remove('is-now'); now.classList.add('is-done');
-    var k = now.querySelector('.sc-kicker'); k.textContent = k.textContent.replace(' · la que sigue', '');
-    now.querySelector('.dot').innerHTML = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
-    now.querySelector('.sc-foot').outerHTML = '<span class="bought"><svg class="uj-icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>Comprado hoy · ¿actualizamos tu PC? <button class="uj-btn uj-btn-quieto uj-btn-chico">Sí, actualizar</button></span>';
-    var next = now.nextElementSibling;
-    if (next) { next.classList.add('is-now'); next.querySelector('.sc-kicker').textContent += ' · la que sigue'; }
-    document.getElementById('spent').textContent = money(spent);
-    document.getElementById('left').textContent = money(total - spent);
-    document.getElementById('bar').style.width = Math.round(spent / total * 100) + '%';
-    document.getElementById('stages-done').textContent = document.querySelectorAll('.stage.is-done').length + ' de 3 etapas';
-  });
-  var share = document.getElementById('share'), box = document.getElementById('link-box'), copied = document.getElementById('copied');
-  share.addEventListener('change', function () {
-    box.classList.toggle('on', true);
-    document.querySelector('.link-row').style.display = share.checked ? '' : 'none';
-    copied.textContent = share.checked ? 'Enlace activo. Cualquiera que lo tenga puede ver el plan.' : 'Enlace apagado: ya no funciona para nadie.';
-  });
-  document.getElementById('copy').addEventListener('click', function () {
-    var l = document.getElementById('link'); l.select();
-    try { navigator.clipboard.writeText(l.value); } catch (e) {}
-    copied.textContent = 'Copiado. Pegalo donde quieras.';
-  });
-</script>
+<footer class="foot chico"><span>Precios de tiendas argentinas, con la fecha en que los vimos. Verificá stock antes de comprar.</span><a href="#">Borrar este plan</a></footer>
+</div>
+</div>
+<div class="pg var"><h3 style="margin:48px 0 0;font:700 13px/16px var(--font-sans);letter-spacing:.02em;color:var(--tinta-suave)">Cuando terminás el plan</h3>
+<div class="in">
+<section class="head">
+<span class="eyebrow">La de casa · para jugar mejor</span>
+<h1>¡Listo, terminaste tu plan!</h1>
+<p>Compraste todo lo que tenías planeado.</p>
+</section>
+<section class="next" aria-label="Actualizar Mi PC">
+<div class="next-main">
+<span class="label">Último paso</span>
+<h2>¿Actualizamos Mi PC?</h2>
+<p style="margin: 0">Tu PC guardada todavía tiene los componentes viejos. Si la actualizás, las próximas recomendaciones parten de lo que tenés ahora.</p>
+<div><div class="slot"><span>Memoria</span><b>2 × 8 GB → 2 × 16 GB</b></div><div class="slot"><span>Placa de video</span><b>GTX 1650 → RTX 4060</b></div><div class="slot"><span>Almacenamiento</span><b>Se suma un SSD de 1 TB</b></div></div>
+</div>
+<div class="next-buy">
+<span class="label">Gastaste en total</span>
+<div class="price">$ 542.400</div>
+<span class="chico">Según los precios guardados en tu plan</span>
+<a class="btn btn-p" href="#">Sí, actualizar Mi PC</a>
+<a class="btn btn-q btn-c" href="#">Ahora no</a>
+</div>
+</section>
+<footer class="foot chico" style="margin-top: 32px"><span>Nada cambia en tu PC guardada hasta que lo confirmes.</span><a href="#">Ver qué más te conviene</a></footer>
+</div>
+</div>
+<div class="pg var"><h3 style="margin:48px 0 0;font:700 13px/16px var(--font-sans);letter-spacing:.02em;color:var(--tinta-suave)">Cuando todavía no hay plan</h3>
+<div class="in">
+<section class="head">
+<h1>Todavía no tenés un plan</h1>
+<p>Un plan ordena tus compras para que mejores la PC de a poco, sin gastar todo junto.</p>
+</section>
+<section class="steps" aria-label="Cómo funciona">
+<div class="m"><span class="label">1</span><h3>Contanos qué querés</h3><span class="chico">Jugar mejor, trabajar más rápido o que abra todo sin esperar.</span></div>
+<div class="m"><span class="label">2</span><h3>Elegí lo que te conviene</h3><span class="chico">Te mostramos qué cambiar primero y cuánto sale.</span></div>
+<div class="m"><span class="label">3</span><h3>Comprá a tu ritmo</h3><span class="chico">Vas marcando lo que comprás y ves cuánto te falta.</span></div>
+</section>
+<div style="padding-block: 24px"><a class="btn btn-p" href="#">Ver qué me conviene</a></div>
+</div>
+</div>
 
 <div class="uj-ayuda" id="ayuda">
   <section class="uj-ayuda-panel" id="ayuda-panel" role="dialog" aria-labelledby="ayuda-title">
@@ -301,7 +222,7 @@
 <script>
   // Asistente flotante: respuestas de ejemplo según la pantalla. En la app real responde el asistente con los datos de la PC.
   (function () {
-    var CTX = 'Mi plan · La de casa', OPEN = false, QA = [["¿En qué orden compro?", "En el del plan: ahora sigue la placa de video. Cada etapa ya está revisada con las anteriores."], ["¿Qué pasa con la etapa 3?", "Falta saber si tu placa madre tiene otro lugar M.2. Si no lo tiene, te proponemos un disco que se conecte con cable."], ["¿Puedo compartirlo?", "Sí. Creás un enlace, quien lo abre solo puede mirar, y lo apagás cuando quieras."]];
+    var CTX = 'Mi plan · La de casa', OPEN = false, QA = [["¿En qué orden compro?", "En el del plan: ahora sigue la placa de video. Cada compra ya está revisada con las anteriores."], ["¿Qué pasa con la compra 3?", "Falta saber si tu placa madre tiene otro lugar M.2. Si no lo tiene, te proponemos un disco que se conecte con cable."], ["¿Puedo compartirlo?", "Sí. Creás un enlace, quien lo abre solo puede mirar, y lo apagás cuando quieras."]];
     var root = document.getElementById('ayuda'), btn = document.getElementById('ayuda-btn'), body = document.getElementById('ayuda-body');
     var inp = document.getElementById('ayuda-in'), started = false, asked = [];
     var ICON_CHAT = btn.querySelector('svg').outerHTML, ICON_X = '<svg class="uj-icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';

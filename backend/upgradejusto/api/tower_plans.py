@@ -1,4 +1,4 @@
-"""Private CU07 router, not mounted until coordinated ingress/main gate."""
+"""Private tower-plan routes (CU07): owner-scoped, mounted behind the ingress check."""
 
 import re
 from typing import Annotated

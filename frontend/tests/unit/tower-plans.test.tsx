@@ -9,8 +9,7 @@ import TowerPlanActionEditor from "../../components/tower-plan-action-editor";
 import TowerPlanView from "../../components/tower-plan-view";
 import TowerPlanEditor from "../../components/tower-plan-editor";
 import TowerRecommendations from "../../app/pcs/tower-recommendations";
-import TowerPlans from "../../app/tower-plans/workspace";
-import { button, byLabel, click, mount, settle, type, unmountAll } from "./support/dom";
+import { button, byLabel, click, mount, type, unmountAll } from "./support/dom";
 
 afterEach(async () => { vi.useRealTimers(); await unmountAll(); vi.unstubAllGlobals(); });
 
@@ -30,35 +29,6 @@ function writer(statuses: number[]) {
   return { controller: createTowerPlanWriter({ onState, onSaved, request, uuid }), request, onState, onSaved, uuid };
 }
 describe("CU07 private tower plans: structural requests and operation identity", () => {
-  it("el workspace conserva edición, recálculo y baja, y permite consultar y dejar una versión anterior sin escrituras", async () => {
-    const plan = saved();
-    const request = vi.fn<typeof fetch>().mockImplementation(async input => {
-      const path = String(input);
-      if (path === "/api/tower-plans?page=1&page_size=20") return Response.json({ items: [plan], total: 1, page: 1, page_size: 20 });
-      if (path === `/api/tower-plans/${other}` || path === `/api/tower-plans/${other}/revisions/1`) return Response.json(plan);
-      if (path === `/api/towers/${id}`) return Response.json(pc());
-      if (path.startsWith("/api/catalog/components?")) return Response.json({ dataset_version: "synthetic-catalog", items: [], total: 0, page: 1, page_size: 1 });
-      throw new Error(`Solicitud inesperada: ${path}`);
-    });
-    vi.stubGlobal("fetch", request);
-    const host = await mount(<TowerPlans initialId={other} />); await settle();
-    await click(button(host, "Preparar un NUEVO borrador con PC y catálogo actuales (reemplaza borrador sin guardar)"));
-    expect(host.querySelector('[aria-label="Editor de plan de torre"]')).not.toBeNull();
-    expect(button(host, "Confirmar y guardar los cambios del plan")?.disabled).toBe(true);
-    await click(button(host, "Preparar baja del plan"));
-    const deactivation = host.querySelector('[aria-label="Confirmar baja de plan de torre"]');
-    expect(deactivation).not.toBeNull(); expect(deactivation?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(false);
-    expect(button(host, "Dar de baja el plan")).not.toBeNull();
-    await click(button(host, "Cancelar baja del plan"));
-    await type(byLabel(host, "Número de versión"), "1");
-    await click(button(host, "Ver la versión anterior"));
-    expect(host.textContent).toContain("Versión anterior del plan");
-    expect(button(host, "Preparar baja del plan")).toBeNull(); expect(host.querySelector('[aria-label="Editor de plan de torre"]')).toBeNull();
-    await click(button(host, "Volver a la versión actual"));
-    expect(host.textContent).not.toContain("Versión anterior del plan"); expect(button(host, "Preparar baja del plan")).not.toBeNull();
-    expect(request.mock.calls.some(([path]) => String(path).endsWith("/revisions/1"))).toBe(true);
-    expect(request.mock.calls.every(([, options]) => !options?.method || options.method === "GET")).toBe(true);
-  });
   it("muestra tres estados reales como propuestas, con costes informados y sin progreso de compra", () => {
     const plan = saved();
     plan.snapshot.stages = ["ready", "blocked", "requires_verification"].map((status, index) => ({ ...plan.snapshot.stages[0], position: index + 1, name: `Cambio ${index + 1}`, status: status as "ready" | "blocked" | "requires_verification", evaluation: { ...plan.snapshot.stages[0].evaluation, verdict: (["compatible", "incompatible", "requiere_verificacion"] as const)[index] }, cost: { ...plan.snapshot.cost, total_ars: index === 2 ? null : "900719925474099300.19" }, cumulative_cost: { ...plan.snapshot.cost, total_ars: index === 2 ? null : "900719925474099301.21" } }));
@@ -71,8 +41,8 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const visible = root.cloneNode(true) as HTMLElement;
     visible.querySelectorAll("details").forEach(detail => detail.remove());
     const brief = visible.textContent!;
-    for (const text of ["Cantidad explícita: 1", "Costo por confirmar", "No pudimos revisar todo: todavía no confirma que encaje", "Encaja", "No encaja", "Falta un dato", "No evaluado: Largo de la gráfica. No es un dato que falte", "Plan bloqueado", "Plan pendiente de verificación", "Listo según el servidor", "2 con precio completo", "1 con costo por confirmar", "Así quedaría tu plan", "Tu PC con todo el plan", "Para el uso de todos los días", "Supera el presupuesto guardado"]) expect(brief).toContain(text);
-    expect(brief).not.toContain("Antes de esta etapa");
+    for (const text of ["Cantidad: 1", "Costo por confirmar", "No pudimos revisar todo: todavía no confirma que encaje", "Encaja", "No encaja", "Falta un dato", "No evaluado: Largo de la gráfica. No es un dato que falte", "Plan bloqueado", "Plan pendiente de verificación", "Listo según el servidor", "2 con precio completo", "1 con costo por confirmar", "Así quedaría tu plan", "Tu PC con todo el plan", "Para el uso de todos los días", "Supera el presupuesto guardado"]) expect(brief).toContain(text);
+    expect(brief).not.toContain("Antes de esta compra");
     expect(brief).not.toMatch(/Hecha|Comprada|Ya compraste|etapas compradas|snapshot|coverage|schema|PASS/);
     expect(root.querySelector("progress,[role=progressbar]")).toBeNull();
     expect(root.querySelectorAll("[aria-current=step]")).toHaveLength(1); expect(brief).toContain("Paso actual");
@@ -80,7 +50,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     expect(root.querySelectorAll(".accordion.plan-stage")).toHaveLength(3);
     expect(html).toContain('<details class="stage-technical-evaluation">'); expect(html).toContain('<details class="plan-comparison">');
     expect(brief).toContain("900.719.925.474.099.300,19"); expect(brief).toContain("900.719.925.474.099.301,21"); expect(brief).toContain("900.719.925.474.099.302,23");
-    expect(html).toContain("Antes de esta etapa"); expect(html).toContain("Costo acumulado hasta etapa 3"); expect(html).toContain("Versiones, cobertura completa y copia evaluada"); expect(JSON.stringify(plan)).toBe(before);
+    expect(html).toContain("Antes de esta compra"); expect(html).toContain("Costo acumulado hasta la compra 3"); expect(html).toContain("Versiones, cobertura completa y copia evaluada"); expect(JSON.stringify(plan)).toBe(before);
   });
   it("places saved inventory before secondary material confirmation while preserving the unchecked control", () => {
     const html = renderToStaticMarkup(<TowerRecommendations pc={pc()} disabled={false} configuration={<div>saved-inventory-sentinel</div>} />);
@@ -95,7 +65,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     expect(seed.stages).toHaveLength(1); expect(seed.stages[0].actions).toEqual([]); expect(seed.stages[0].materials).toEqual([]); expect(JSON.stringify(own)).toBe(before);
     expect(() => towerPlanInput(seed, id)).toThrow();
     const html = renderToStaticMarkup(<TowerPlanEditor pc={own} seed={seed} onSaved={() => {}} />);
-    expect(html).toContain("Agregá al menos una acción a cada etapa"); expect(html).toContain("Confirmar y guardar mi plan"); expect(html).not.toContain('checked=""');
+    expect(html).toContain("Sumá al menos un cambio a cada compra"); expect(html).toContain("Confirmar y guardar mi plan"); expect(html).not.toContain('checked=""');
     expect(() => emptyManualPlan(own, { objective: "general", budget_ars: "", price_condition: "cash", workload: null, thermal_available: false }, "synthetic")).toThrow();
   });
   it("consume omisión canónica line_id sólo en replace_category/add_line y emite null sin mutar origen", () => {
@@ -152,8 +122,8 @@ describe("CU07 private tower plans: structural requests and operation identity",
     });
     vi.stubGlobal("fetch", request);
     const host = await mount(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={() => {}} />);
-    await type(byLabel(host, "Qué pieza querés cambiar"), "gpu");
-    const input = byLabel(host, "Modelo de la pieza") as HTMLInputElement;
+    await type(byLabel(host, "Qué componente querés cambiar"), "gpu");
+    const input = byLabel(host, "Modelo del componente") as HTMLInputElement;
     await type(input, "RTX");
     expect(request).not.toHaveBeenCalled();
     await act(async () => { await vi.advanceTimersByTimeAsync(260); });
@@ -170,9 +140,9 @@ describe("CU07 private tower plans: structural requests and operation identity",
   it("deja el texto libre como modelo declarado si no se elige una sugerencia", async () => {
     const onAdd = vi.fn();
     const host = await mount(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={onAdd} />);
-    await type(byLabel(host, "Modelo de la pieza"), "Placa rara sin ficha");
-    await type(byLabel(host, "Cantidad de la pieza 1"), "1");
-    await click(button(host, "Sumar el cambio a esta etapa"));
+    await type(byLabel(host, "Modelo del componente"), "Placa rara sin ficha");
+    await type(byLabel(host, "Cantidad del componente 1"), "1");
+    await click(button(host, "Sumar el cambio a esta compra"));
     expect(onAdd).toHaveBeenCalledTimes(1);
     expect(onAdd.mock.calls[0][0].candidates[0]).toMatchObject({ component_id: null, declared_model: "Placa rara sin ficha", quantity: 1 });
   });
@@ -195,9 +165,9 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const plan = saved(); plan.snapshot.stages[0].materials = [{ kind: "thermal_compound", state: "available_confirmed", confirmed: true }];
     plan.snapshot.stages[0].offers = [{ offer_id: "synthetic", store: "venex", product_id: "synthetic", component_id: "synthetic", variant_key: "synthetic", amount: "123.45", currency: "ARS", condition: "cash", availability: "unknown", stock_quantity: null, source_url: "https://example.com/synthetic", observed_at: "2026-10-24T10:00:00Z", expires_at: "2026-10-25T10:00:00Z", status: "fresh" }];
     const before = JSON.stringify(plan), html = renderToStaticMarkup(<TowerPlanView plan={plan} historical now={Date.parse("2026-10-26T10:00:00Z")} />);
-    expect(html).toContain("Versión anterior del plan"); expect(html).toContain("Este plan se guardó 1 vez · tu PC cambió 1 vez"); expect(html).not.toMatch(/revisión \d|snapshot/i); expect(html).toContain("Cotizaciones conservadas de esta versión"); expect(html).toContain("123,45"); expect(html).toContain("https://example.com/synthetic"); expect(html).toContain("Costo acumulado hasta etapa 2"); expect(html).toContain("Total desconocido / incompleto"); expect(html).toContain("Consultar no actualiza precios ni reserva stock"); expect(JSON.stringify(plan)).toBe(before);
-    expect(html).toContain("Estado original del precio"); expect(html).toContain("fresh"); expect(html).toContain("El precio guardado venció"); expect(plan.snapshot.stages[0].offers[0].status).toBe("fresh");
-    expect(html).toContain('class="saved-plan-layout"'); expect(html).toContain('aria-label="Decisión sobre el plan"'); expect(html).toContain("Sólo se cobran las acciones de compra, no las piezas conservadas"); expect(html).toContain("Cantidad explícita: 1");
+    expect(html).toContain("Versión anterior del plan"); expect(html).toContain("Tu PC cuando armaste el plan"); expect(html).not.toMatch(/revisión \d|snapshot/i); expect(html).toContain("Cotizaciones conservadas de esta versión"); expect(html).toContain("123,45"); expect(html).toContain("https://example.com/synthetic"); expect(html).toContain("Costo acumulado hasta la compra 2"); expect(html).toContain("Total desconocido / incompleto"); expect(html).toContain("Consultar no actualiza precios ni reserva stock"); expect(JSON.stringify(plan)).toBe(before);
+    expect(html).toContain("Precios usados en esta compra"); expect(html).not.toContain("fresh"); expect(html).toContain("El precio guardado venció"); expect(plan.snapshot.stages[0].offers[0].status).toBe("fresh");
+    expect(html).toContain('class="saved-plan-layout"'); expect(html).toContain('aria-label="Decisión sobre el plan"'); expect(html).toContain("Solo se suma lo que comprás, no los componentes que ya tenés"); expect(html).toContain("Cantidad: 1");
     expect(html).toContain('aria-label="Comparación del plan"'); expect(html).toContain("Base del plan"); expect(html).toContain("Resultado propuesto");
     expect(html).toContain("Configuración del plan, no prueba de hardware poseído"); expect(html).not.toContain("1080p"); expect(html).not.toContain("500 W");
     const edited = planDraftFromRead(plan, pc(), "current-catalog"); expect(edited.stages.every(stage => !stage.materials.length)).toBe(true); expect(plan.snapshot.stages[0].materials).toHaveLength(1);
@@ -224,45 +194,6 @@ describe("CU07 private tower plans: structural requests and operation identity",
     const history = document.createElement("div"); history.innerHTML = renderToStaticMarkup(<TowerPlanView plan={plan} now={0} historical onProgress={() => {}} />);
     expect(Array.from(history.querySelectorAll("button")).some(item => /Ya lo compré|Deshacer/.test(item.textContent ?? ""))).toBe(false);
     expect(history.textContent).not.toMatch(/etapas compradas|Hecha|Paso actual/); expect(history.textContent).toContain("Cambio propuesto");
-  });
-  it("marca y desmarca con CSRF, sin cuerpo ni user_id, y muestra el progreso confirmado por el servidor", async () => {
-    const plan = saved(), first = "a".repeat(64); let progress: Record<string, string> = {};
-    const request = vi.fn<typeof fetch>().mockImplementation(async (input, options) => {
-      const path = String(input);
-      if (path === "/api/tower-plans?page=1&page_size=20") return Response.json({ items: [plan], total: 1, page: 1, page_size: 20 });
-      if (path === `/api/tower-plans/${other}`) return Response.json(plan);
-      if (path === "/api/auth/csrf") return Response.json({ csrf_token: "synthetic" });
-      if (path === `/api/tower-plans/${other}/stages/${first}/progress`) { progress = options?.method === "PUT" ? { [first]: "2026-11-05T10:00:00Z" } : {}; return Response.json({ kind: "tower_plan_progress", plan_id: other, revision: 1, progress }); }
-      throw new Error(`Solicitud inesperada: ${path}`);
-    });
-    vi.stubGlobal("fetch", request);
-    const host = await mount(<TowerPlans initialId={other} />); await settle();
-    expect(host.textContent).not.toContain("etapas compradas");
-    await click(button(host, /^Ya lo compré: Stage1$/));
-    expect(host.textContent).toContain("1 de 2 etapas compradas"); expect(button(host, /^Deshacer: Stage1$/)).not.toBeNull();
-    const writes = request.mock.calls.filter(([path]) => String(path).includes("/progress"));
-    expect(writes).toHaveLength(1); expect(writes[0][1]!.method).toBe("PUT"); expect(writes[0][1]!.body).toBeUndefined(); expect((writes[0][1]!.headers as Headers).get("X-CSRF-Token")).toBe("synthetic");
-    expect(JSON.stringify(request.mock.calls)).not.toContain("user_id");
-    await click(button(host, /^Deshacer: Stage1$/));
-    expect(host.textContent).not.toContain("etapas compradas"); expect(button(host, /^Ya lo compré: Stage1$/)).not.toBeNull();
-    expect(request.mock.calls.filter(([path]) => String(path).includes("/progress")).map(([, options]) => options?.method)).toEqual(["PUT", "DELETE"]);
-  });
-  it("si falla marcar, muestra un aviso y conserva el plan sin inventar marcas ni reintentar", async () => {
-    const plan = saved(), first = "a".repeat(64);
-    const request = vi.fn<typeof fetch>().mockImplementation(async input => {
-      const path = String(input);
-      if (path === "/api/tower-plans?page=1&page_size=20") return Response.json({ items: [plan], total: 1, page: 1, page_size: 20 });
-      if (path === `/api/tower-plans/${other}`) return Response.json(plan);
-      if (path === "/api/auth/csrf") return Response.json({ csrf_token: "synthetic" });
-      if (path === `/api/tower-plans/${other}/stages/${first}/progress`) return Response.json({ detail: "private" }, { status: 503 });
-      throw new Error(`Solicitud inesperada: ${path}`);
-    });
-    vi.stubGlobal("fetch", request);
-    const host = await mount(<TowerPlans initialId={other} />); await settle();
-    await click(button(host, /^Ya lo compré: Stage1$/));
-    const alert = host.querySelector('[role="alert"]'); expect(alert?.textContent).toContain("No pudimos confirmar el cambio"); expect(alert?.textContent).not.toContain("private");
-    expect(host.querySelector('[aria-label="Detalle de plan de torre"]')).not.toBeNull(); expect(button(host, /^Ya lo compré: Stage1$/)).not.toBeNull(); expect(host.textContent).not.toContain("etapas compradas");
-    expect(request.mock.calls.filter(([path]) => String(path).includes("/progress"))).toHaveLength(1);
   });
   it("setStageProgress rechaza ids y claves inválidas antes de enviar y valida la respuesta", async () => {
     const request = vi.fn<typeof fetch>().mockImplementation(async path => path === "/api/auth/csrf" ? Response.json({ csrf_token: "synthetic" }) : Response.json({ kind: "tower_plan_progress", progress: { nope: "x" } }));

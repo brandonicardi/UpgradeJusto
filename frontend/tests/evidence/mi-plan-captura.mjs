@@ -48,17 +48,12 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   p.on("pageerror", e => errores.push(e.message));
   p.on("console", msg => { if (msg.type() === "error") errores.push(msg.text()); });
   await p.goto(`${base}/tower-plans/${plan.id}`);
-  await p.waitForSelector(".mp-stage", { timeout: 30000 }).catch(async () => { await p.screenshot({ path: path.join(salida, `${corrida}-${w}-error.png`), fullPage: true }); console.log("sin etapas; errores:", errores.slice(0, 4)); });
+  await p.waitForSelector(".mp h1", { timeout: 30000 }).catch(async () => { await p.screenshot({ path: path.join(salida, `${corrida}-${w}-error.png`), fullPage: true }); console.log("sin etapas; errores:", errores.slice(0, 4)); });
   await p.waitForTimeout(3500);
   await p.screenshot({ path: path.join(salida, `${corrida}-${w}-real.png`), fullPage: true });
   const resumen = await p.evaluate(() => ({ etapas: document.querySelectorAll(".mp-stage").length, hechas: document.querySelectorAll(".mp-stage.is-done").length, ancho: document.documentElement.scrollWidth, vista: window.innerWidth, nav: [...document.querySelectorAll("nav#principal a")].map(a => [a.textContent, a.getAttribute("href"), a.getAttribute("aria-current")]) }));
   if (resumen.ancho > resumen.vista) errores.push(`desborde horizontal: ${resumen.ancho} > ${resumen.vista}`);
   console.log(w, JSON.stringify(resumen), "errores:", errores.slice(0, 4));
-  if (w === 1440) {
-    await p.getByRole("button", { name: /^Ya la compré: Placa de video nueva/ }).click();
-    await p.waitForTimeout(1500);
-    console.log("tras comprar:", await p.locator(".mp-stage.is-done").count(), "hechas;", await p.locator(".mp-stage.is-now .mp-sc-kicker").textContent());
-  }
   await p.close(); await ctx.close();
 }
 await browser.close();

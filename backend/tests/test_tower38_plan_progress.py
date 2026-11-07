@@ -910,3 +910,21 @@ def test_proxy_policy_closed_list_adds_only_the_two_progress_methods():
             + b"/progress",
         )
     )
+
+
+def test_plan_read_derives_spent_and_remaining_without_touching_the_plan(
+    progress_context,
+):
+    ctx = progress_context
+    first = stage(name="Install CPU", position=1, cost={"total_ars": "10.00"})
+    second = stage(name="Install RAM", position=2, cost={"total_ars": "5.50"})
+    document = snapshot(first, second)
+    plan = seed_plan(ctx.repo.engine, ctx.a[2], document)
+
+    before = ctx.repo.get(ctx.a[2], plan)
+    assert (before["spent_ars"], before["remaining_ars"]) == ("0.00", "15.50")
+
+    ctx.repo.set_progress(ctx.a[2], plan, stage_key(first), True)
+    read = ctx.repo.get(ctx.a[2], plan)
+    assert (read["spent_ars"], read["remaining_ars"]) == ("10.00", "5.50")
+    assert read["snapshot"] == document

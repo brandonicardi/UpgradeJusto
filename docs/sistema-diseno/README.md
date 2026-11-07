@@ -95,7 +95,7 @@ Dos familias, ambas de Google Fonts: **Bricolage Grotesque** para titulares (cer
 1. **Inicio**: «¿Qué querés que tu PC haga mejor?» con `GoalPicker` y `BudgetSlider`. Un único botón principal: «Ver qué me conviene».
 2. **Tu PC**: `PcSlots` con las nueve piezas. Las vacías invitan a completarlas; las dudosas se marcan con «Falta un dato».
 3. **Lo que te conviene**: una `UpgradeCard` principal arriba y alternativas como `PartCard` debajo.
-4. **Tu plan**: `PlanSteps` con el costo de cada etapa y el veredicto de la PC resultante.
+4. **Tu plan**: `PlanSteps` con el costo de cada compra y el veredicto de la PC resultante.
 5. **Preguntale al asistente**: `ChatBubble` con sugerencias rápidas para no arrancar de cero. En el resto de las pantallas está a mano como `AsistenteFlotante`, abajo a la derecha.
 6. **Ingreso y registro**: dos pestañas en un mismo lugar; errores en criollo debajo de cada campo.
 7. **Agregar PC**: pegar la lista, revisar lo que entendimos y confirmar antes de guardar.

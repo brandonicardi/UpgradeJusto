@@ -87,6 +87,10 @@ class TowerPlanRead(InputModel):
     in this snapshot to the timestamp it was marked as bought. Both fields are
     derived at read time: the stored snapshot is never modified, and marks of
     stages that no longer exist are omitted, never transferred or invented.
+
+    ``spent_ars`` and ``remaining_ars`` are ARS amounts (two decimals) summed
+    from the prices frozen in the snapshot for the marked and the unmarked
+    stages. They are ``None`` when any stage on that side has no price.
     """
 
     kind: Literal["tower_plan"] = "tower_plan"
@@ -100,6 +104,8 @@ class TowerPlanRead(InputModel):
     snapshot: dict
     stage_keys: list[str] = []
     progress: dict[str, datetime] = {}
+    spent_ars: str | None = None
+    remaining_ars: str | None = None
 
 
 class TowerPlanPage(InputModel):

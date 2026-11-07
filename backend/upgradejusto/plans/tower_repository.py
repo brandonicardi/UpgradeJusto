@@ -15,7 +15,7 @@ from upgradejusto.recommendations.tower_repository import (
     published_identities,
 )
 
-from .tower_progress import snapshot_keys
+from .tower_progress import money_progress, snapshot_keys
 from .tower_tables import headers, progress, revisions
 
 MAX_STORED_REVISION = 2147483647  # PostgreSQL INTEGER, not the API route limit.
@@ -77,6 +77,8 @@ class TowerPlanRepository:
         if row is None:
             raise PCError(404, "Plan revision not found")
         keys = snapshot_keys(row["snapshot"])
+        marks = TowerPlanRepository.progress_for(conn, header["id"], row["snapshot"])
+        spent, remaining = money_progress(row["snapshot"], list(keys), marks)
         return {
             "kind": "tower_plan",
             "schema_version": 2,
@@ -90,9 +92,10 @@ class TowerPlanRepository:
             # Derived per read, never stored: one key per stage of this exact
             # snapshot, aligned by index, plus only the marks of those keys.
             "stage_keys": list(keys),
-            "progress": TowerPlanRepository.progress_for(
-                conn, header["id"], row["snapshot"]
-            ),
+            "progress": marks,
+            # Money is derived the same way: never stored, null if a price is missing.
+            "spent_ars": spent,
+            "remaining_ars": remaining,
         }
 
     def get(self, owner, identity, revision=None):
