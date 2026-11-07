@@ -5,6 +5,7 @@ import RemoteProductSelector from "./remote-product-selector";
 import { TowerProductPhoto } from "./tower-product-summary";
 import { parseCatalogTowerComponent, parseCatalogTowerPage } from "../lib/catalog-tower-consumer";
 import { bestOffer, isSingleUnitCategory, quantityLimit } from "../lib/catalog-offers";
+import { pcError } from "../lib/pcs";
 import { remoteCatalog } from "../lib/tower-catalog";
 import { towerCategories, towerKeys, towerRequest, type Tower, type TowerCategory } from "../lib/towers";
 import { formatRetailARS } from "../lib/retail-presentation";
@@ -12,8 +13,7 @@ import { purchaseAdd, purchaseInput, purchasePlan, purchaseSubtotal, type Purcha
 import PurchaseCostSummary from "./purchase-cost-summary";
 import type { RecommendationDraft } from "../lib/tower-recommendations";
 import type { TowerPlanDraft, TowerPlanRead } from "../lib/tower-plans";
-import TowerCompatibility from "../app/pcs/tower-compatibility";
-import TowerRecommendations from "../app/pcs/tower-recommendations";
+import EncajeDeLaPc from "../app/pcs/mi-pc-encaje";
 import TowerPlanEditor from "./tower-plan-editor";
 import TowerPlanView from "./tower-plan-view";
 import HardwareArt from "./hardware-art";
@@ -22,6 +22,7 @@ import { GoalPicker } from "./uj/goal-picker";
 import { BUILD_OBJECTIVES, emptyBuildCriteria, isBuildObjective, withBudget, withObjective, withWorkload } from "../lib/build-criteria";
 import { Notice } from "./uj/notice";
 import { firstBuildReason, firstBuildRequest, loadFirstBuild, proposalBudget, type FirstBuildGoal } from "../lib/first-build";
+import "../app/pcs/pcs.css";
 import "./purchase-builder.css";
 
 const SELECCION = "block w-full min-h-12 rounded-sm border-[1.5px] border-solid border-linea-fuerte bg-papel-alto px-space-4 py-space-3 text-cuerpo text-tinta font-sans-uj focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
@@ -99,7 +100,7 @@ export default function PurchaseBuilder() {
     let input; try { input = purchaseInput(lines, name); } catch (failure) { setError(failure instanceof Error ? failure.message : "Revisá la configuración."); return; }
     lock.current = true; setBusy(true); setError("");
     try { const response = await towerRequest("", "POST", input); const result = await response.json() as Tower; if (alive.current) { setSaved(result); setConfirmed(false); } }
-    catch { if (alive.current) { setUncertain(true); setError("Guardado no confirmado: pudo crearse la configuración. Revisá Mis PCs antes de volver a guardar. No se reintenta automáticamente."); } }
+    catch (failure) { if (failure instanceof Error && failure.message === pcError(401)) { if (alive.current) setError("Ingresá a tu cuenta para guardar. Tu armado sigue acá."); return; } if (alive.current) { setUncertain(true); setError("Guardado no confirmado: pudo crearse la configuración. Revisá Mis PCs antes de volver a guardar. No se reintenta automáticamente."); } }
     finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   async function preparePlan() {
@@ -114,7 +115,7 @@ export default function PurchaseBuilder() {
   return <section className="build-screen" aria-label="Armado desde cero">
     <header className="build-hero">
       <h1>Armemos una PC nueva</h1>
-      <p>{auto?.state === "ready" ? "Esta es la PC que te proponemos. Nada se guarda hasta que vos lo confirmes." : "Contanos para qué la querés y cuánto querés gastar. Después elegí los componentes que pensás comprar. Elegir no guarda nada. Si los componentes encajan entre sí lo revisamos en el resumen, después de guardar."}</p>
+      <p>{saved ? "Tu PC quedó guardada. Abajo ves si todo encaja, y podés planificar las compras." : auto?.state === "ready" ? "Esta es la PC que te proponemos. Nada se guarda hasta que vos lo confirmes." : "Contanos para qué la querés y cuánto querés gastar. Después elegí los componentes que pensás comprar. Elegir no guarda nada. Si los componentes encajan entre sí lo revisamos en el resumen, después de guardar."}</p>
     </header>
 
     <div className="build-notice">
@@ -180,13 +181,13 @@ export default function PurchaseBuilder() {
         <PurchaseCostSummary lines={lines} condition={criteria.price_condition} budget={criteria.budget_ars} />
         <p className="build-note">Sólo compras elegidas. Envío, financiación y mano de obra excluidos.</p>
         <details><summary>Cómo guardar y comprobar</summary><p>Guardá tu propuesta para comprobarla. No se compra, publica ni modifica otra PC automáticamente. Los precios y el stock deben verificarse antes de comprar.</p></details>
-        {!saved ? <form aria-label="Guardar armado propuesto" onSubmit={save} className="stack-sm"><fieldset disabled={busy || uncertain} className="stack-sm"><label>Nombre del armado propuesto<input maxLength={60} value={name} onChange={event => { setName(event.target.value); setConfirmed(false); }} /></label><label className="share-consent"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} />Confirmo guardar una configuración por comprar, no una PC que ya poseo</label><button disabled={!confirmed || !lines.length}>Guardar configuración propuesta</button></fieldset></form> : <><p role="status">Configuración propuesta guardada. No se realizó una compra ni se acreditó compatibilidad.</p><button type="button" disabled={busy} onClick={() => { void preparePlan(); }}>Planificar compras seleccionadas</button><p>El servidor cotiza de nuevo al guardar el plan; revisá diferencias con el subtotal local.</p></>}
+        {!saved ? <form aria-label="Guardar armado propuesto" onSubmit={save} className="stack-sm"><fieldset disabled={busy || uncertain} className="stack-sm"><label>Nombre del armado propuesto<input maxLength={60} value={name} onChange={event => { setName(event.target.value); setConfirmed(false); }} /></label><label className="share-consent"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} />Confirmo guardar una configuración por comprar, no una PC que ya poseo</label><button disabled={!confirmed || !lines.length}>Guardar configuración propuesta</button></fieldset></form> : <><p role="status">Tu PC quedó guardada en Mis PCs. Todavía no compraste nada.</p><button type="button" disabled={busy} onClick={() => { void preparePlan(); }}>Planificar las compras</button><p className="build-note">Al guardar el plan actualizamos los precios.</p></>}
         <Link href="/pcs">Mis PCs y configuraciones guardadas</Link>
         <Link href="/catalog">Explorar fichas del catálogo</Link>
       </aside>
     </div>
 
-    {saved && <><section className="surface"><h2>Comprobar la configuración propuesta guardada</h2><TowerCompatibility pc={saved} disabled={busy} /></section><TowerRecommendations pc={saved} disabled={busy} initialDraft={criteria} /></>}
+    {saved && <div className="build-saved"><EncajeDeLaPc pc={saved} porComprar /></div>}
     {seed && !plan && saved && <TowerPlanEditor key={`${saved.id}-${preparation}`} seed={seed} pc={saved} onSaved={setPlan} />}{plan && <><TowerPlanView plan={plan} /><Link href={`/tower-plans/${plan.id}`}>Abrir plan guardado e historial</Link></>}
   </section>;
 }

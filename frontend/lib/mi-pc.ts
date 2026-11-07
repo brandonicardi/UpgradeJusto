@@ -159,7 +159,7 @@ export function causaDeFaltante(regla: string, faltantes: readonly unknown[] | n
 
 function motivoNoEvaluado(condiciones: readonly unknown[] | null | undefined): string {
   const textos = campos(condiciones);
-  return textos.find(texto => /Espacio físico no evaluado|ya está armada/i.test(texto)) ?? "El servidor no evaluó esta comprobación.";
+  return textos.find(texto => /Espacio físico no evaluado|ya está armada/i.test(texto)) ?? "Varía según el modelo. Chequealo antes de comprar.";
 }
 
 /** Una fila por comprobación que devolvió el motor, con su estado tal cual y la causa del faltante. */

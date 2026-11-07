@@ -77,3 +77,6 @@
 }
 .build-quantity { display: grid; gap: var(--space-1); max-width: 160px; }
 .build-quantity input { min-height: 48px; }
+
+/* Después de guardar: el mismo panel de Mi PC, sin comprobaciones técnicas. */
+.build-saved { margin-top: var(--space-6); }

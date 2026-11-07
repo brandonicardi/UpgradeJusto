@@ -7,7 +7,7 @@ import { towerCompatibilityRequest, towerEssentialNote, type TowerEvaluation } f
 import type { Tower } from "../../lib/towers";
 
 /** «¿Encaja todo entre sí?»: muestra lo que devuelve el motor del servidor para la PC guardada. Consultar no la modifica. */
-export default function EncajeDeLaPc({ pc }: { pc: Tower }) {
+export default function EncajeDeLaPc({ pc, porComprar = false }: { pc: Tower; porComprar?: boolean }) {
   const [resultado, setResultado] = useState<{ clave: string; evaluacion: TowerEvaluation | null; fallo: boolean } | null>(null), [intento, setIntento] = useState(0);
   const clave = `${pc.id}:${pc.revision}:${intento}`;
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function EncajeDeLaPc({ pc }: { pc: Tower }) {
         <span className="pcs-status-label"><span>{fila.texto}</span>{fila.motivo && <small className="pcs-status-why">{fila.motivo}</small>}</span>
         {fila.estado === "no_evaluado" ? <span className="pcs-verdict-neutral"><CircleHelp aria-hidden="true" className="size-4 flex-none" strokeWidth={2.25} />No evaluado</span> : <Verdict estado={fila.estado} />}
       </li>)}</ul>
-      <p className="pcs-encaje-frase">{fraseDeEncaje(evaluacion)}</p>
+      <p className="pcs-encaje-frase">{porComprar && evaluacion.verdict === "compatible" ? "Los componentes que elegiste encajan." : fraseDeEncaje(evaluacion)}</p>
       {nota && <p className="pcs-encaje-note">{nota}</p>}
     </>}
   </div>;
