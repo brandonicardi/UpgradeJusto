@@ -16,7 +16,7 @@ from sqlalchemy.dialects.postgresql import insert
 from upgradejusto.persistence.runtime import runtime_engine
 
 from .provider import tls_context
-from .rag import config, embed
+from .rag import MAX_CHUNKS_PER_SOURCE, config, embed
 from .tables import chunks
 
 
@@ -53,7 +53,7 @@ def extract(source, data):
                     content=content,
                 )
             )
-    if not result or len(result) > 200:
+    if not result or len(result) > MAX_CHUNKS_PER_SOURCE:
         raise ValueError("PDF chunk limit")
     return result
 

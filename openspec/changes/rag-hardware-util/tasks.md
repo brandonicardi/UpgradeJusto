@@ -10,16 +10,16 @@ Para Claude: planificación solicitada por Brandon, todavía sin implementar. Co
 
 ## 2. Manifiesto e ingesta (asistente-ia)
 
-- [ ] 2.1 Reemplazar singleton y constantes específicas de Kingston en `rag.py` por validación multifuente, metadatos de identidad y normalización del manifiesto antiguo. Verificar duplicados, hashes por fuente, límites y regresión antigua con `tests/test_assistant_rag_manifest.py`.
-- [ ] 2.2 Ajustar límites explícitos de páginas/fragmentos/tamaño total a los manuales seleccionados, manteniendo rechazo de archivos alterados, cifrados o sin texto útil. Verificar límites y extracción con `tests/test_assistant_rag_ingest.py`; documentar valores elegidos en `docs/RAG.md`.
+- [x] 2.1 Reemplazar singleton y constantes específicas de Kingston en `rag.py` por validación multifuente, metadatos de identidad y normalización del manifiesto antiguo. Verificar duplicados, hashes por fuente, límites y regresión antigua con `tests/test_assistant_rag_manifest.py`.
+- [x] 2.2 Ajustar límites explícitos de páginas/fragmentos/tamaño total a los manuales seleccionados, manteniendo rechazo de archivos alterados, cifrados o sin texto útil. Verificar límites y extracción con `tests/test_assistant_rag_ingest.py`; documentar valores elegidos en `docs/RAG.md`.
 - [ ] 2.3 Verificar ingesta multifuente idempotente y fallo de documento sin publicación parcial de ese archivo en `tests/test_assistant_rag_postgres.py`, con PostgreSQL de test y encoder real. Conservar la fuente general y registrar recuentos por fuente/revisión.
 
 ## 3. Recuperación y MCP (asistente-ia)
 
-- [ ] 3.1 Consultar todos los pares fuente/revisión activos y excluir retirados/reemplazados; conservar el documento general vigente. Verificar con casos PostgreSQL de alta, reemplazo, retiro y reingesta en `tests/test_assistant_rag_postgres.py`.
-- [ ] 3.2 Incorporar resolución de modelo/aliases curados y separar alcance exacto, familia y general; no usar substring como prueba de identidad. Verificar modelo parecido, sufijos distintos y consulta general en `tests/test_assistant_rag_identity.py`.
-- [ ] 3.3 Conservar campos de citas y transportar alcance en `search_public_docs` y su proyección. Adaptar validación de publicación solo donde sea necesario para citas multifuente. Verificar MCP, citas e historial y regresiones de grounding: fuente general no concede veredicto ni precio.
-- [ ] 3.4 Ejecutar los doce casos con embeddings reales y PostgreSQL; ajustar recuperación sin rebajar umbrales ni cambiar silenciosamente respuestas esperadas. Entregar prueba `tests/test_assistant_rag_quality_postgres.py` y resultado por pregunta: al menos 7/8 positivas con evidencia esperada top-5 y 4/4 negativas sin atribución falsa; registrar latencia.
+- [x] 3.1 Consultar todos los pares fuente/revisión activos y excluir retirados/reemplazados; conservar el documento general vigente. Verificar con casos PostgreSQL de alta, reemplazo, retiro y reingesta en `tests/test_assistant_rag_postgres.py`.
+- [x] 3.2 Incorporar resolución de modelo/aliases curados y separar alcance exacto, familia y general; no usar substring como prueba de identidad. Verificar modelo parecido, sufijos distintos y consulta general en `tests/test_assistant_rag_identity.py`.
+- [x] 3.3 Conservar campos de citas y transportar alcance en `search_public_docs` y su proyección. Adaptar validación de publicación solo donde sea necesario para citas multifuente. Verificar MCP, citas e historial y regresiones de grounding: fuente general no concede veredicto ni precio.
+- [x] 3.4 Ejecutar los doce casos con embeddings reales y PostgreSQL; ajustar recuperación sin rebajar umbrales ni cambiar silenciosamente respuestas esperadas. Entregar prueba `tests/test_assistant_rag_quality_postgres.py` y resultado por pregunta: al menos 7/8 positivas con evidencia esperada top-5 y 4/4 negativas sin atribución falsa; registrar latencia. Resultado real: 7/8 positivas (falla b550m-steel-legend-lan), 4/4 negativas, umbral 0.55, búsqueda ~5-10 ms por pregunta.
 
 ## 4. Preparación reproducible y documentación (infra/documentador, secuencial)
 

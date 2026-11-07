@@ -7,6 +7,7 @@ not authority, instructions, or a second compatibility decision.
 import copy
 import json
 from dataclasses import dataclass
+from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, ValidationError
@@ -38,6 +39,7 @@ class Citation(BaseModel):
     locator: str
     excerpt: str
     revision: str
+    scope: Literal["exact", "family", "general"] = "general"
 
 
 class Documents(BaseModel):
