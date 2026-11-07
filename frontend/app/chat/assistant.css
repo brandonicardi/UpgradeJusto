@@ -49,8 +49,6 @@
 .is-compact .assistant-messages { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-4); }
 .is-compact .assistant-composer-area { flex: none; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); border-top: 1px solid var(--linea);  }
 .is-compact .assistant-composer-area > * { margin: 0; }
-.is-compact .assistant-suggest > div { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-.is-compact .assistant-suggest button { flex: none; }
 .is-compact .assistant-privacy-note { text-align: left; font-size: 12px; line-height: 16px; }
 .is-compact .assistant-composer { border-radius: var(--radius-pill); }
 .assistant-manage { flex: none; position: relative; padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--linea); }
@@ -147,3 +145,16 @@
 .assistant-conversations li button.assistant-delete:hover { background: var(--no-encaja-fondo); color: var(--no-encaja); }
 .assistant-delete-ask { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
 .assistant-conversations .assistant-delete-ask button { width: auto; padding: var(--space-1) var(--space-2); font-weight: 600; color: var(--pino); }
+
+/* Panel flotante: lo primero es la conversación, todo lo demás ocupa lo mínimo. */
+.assistant-workspace.is-compact .assistant-manage { width: 100%; box-sizing: border-box; }
+.is-compact .assistant-welcome { gap: var(--space-2); padding-block: var(--space-2); }
+.is-compact .assistant-welcome h2 { font-size: 20px; line-height: 26px; }
+.is-compact .assistant-welcome p { font-size: 14px; line-height: 20px; }
+.is-compact .assistant-suggest > div { flex-wrap: wrap; gap: var(--space-1); }
+.is-compact .assistant-suggest button { min-height: 32px; padding: var(--space-1) var(--space-3); font-size: 13px; line-height: 18px; }
+.is-compact .assistant-suggest button:nth-child(n + 3) { display: none; }
+.is-compact .assistant-pc-ask { display: grid; gap: var(--space-1); }
+.is-compact .assistant-pc-ask p { margin: 0; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--tinta-suave); }
+.is-compact .assistant-pc-ask .row { gap: var(--space-1); }
+.is-compact .assistant-pc-ask button { min-height: 32px; max-width: 100%; padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); font-size: 13px; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -45,7 +45,7 @@ export function AssistantSelection() {
 /** Arriba del campo de texto: con varias PCs el asistente pregunta; sin PCs avisa; con una dice de cuál habla. */
 export function PcPrompt() {
   const c = useAssistant(), t = c.towerSelection, pcs = chatEligible(t.list?.items);
-  if (t.choice === "ask") return <div className="assistant-pc-ask" role="group" aria-label="Elegir PC"><p>¿De cuál PC hablamos?</p><div className="row wrap">{pcs.map(pc => <button key={pc.id} type="button" className="secondary" disabled={c.busy || c.conflict} onClick={() => { void t.choose(pc.id); }}>{pc.name}</button>)}<button type="button" className="text-button" disabled={c.busy || c.conflict} onClick={() => { void t.choose(""); }}>De ninguna</button></div></div>;
+  if (t.choice === "ask") return <div className="assistant-pc-ask" role="group" aria-label="Elegir PC"><p>¿De cuál PC hablamos?</p><div className="row wrap">{pcs.map(pc => <button key={pc.id} type="button" className="secondary" disabled={c.busy || c.conflict} onClick={() => { void t.choose(pc.id); }}>{pc.name.replace(/^Armado propuesto \(por comprar\) · /, "")}</button>)}<button type="button" className="text-button" disabled={c.busy || c.conflict} onClick={() => { void t.choose(""); }}>De ninguna</button></div></div>;
   if (t.choice === "none") return <p className="assistant-help">Todavía no cargaste una PC. <Link href="/pcs">Cargar mi PC</Link></p>;
   if (t.selected) return <p className="assistant-help">Hablando de: {t.selected.name}</p>;
   return null;
@@ -85,7 +85,7 @@ export default function AssistantWorkspace({ pathname, compact = false }: { path
       <div className="assistant-composer-area">
         {c.streaming && <button type="button" className="assistant-stop" onClick={c.stop}><Square aria-hidden="true" size={14} /> Detener respuesta</button>}
         {(!compact || !c.history?.items.length) && <div className="assistant-suggest"><ChatSuggestions sugerencias={screen.questions} onElegir={question => { c.editContent(question); input.current?.focus(); }} /></div>}
-        {compact && <p className="assistant-help assistant-privacy-note">No escribas contraseñas ni datos personales. El asistente puede equivocarse.</p>}
+        {compact && <p className="assistant-help assistant-privacy-note">No escribas datos personales. Puede equivocarse.</p>}
         <PcPrompt />
         <form aria-label="Enviar mensaje al asistente" className="assistant-composer" onSubmit={c.send}>
           <label className="sr-only" htmlFor="assistant-message">Mensaje al asistente</label><textarea ref={input} id="assistant-message" rows={1} required maxLength={8000} value={c.content} disabled={c.busy || c.conflict} onChange={event => c.editContent(event.target.value)} placeholder="Preguntá sobre tu PC" />
