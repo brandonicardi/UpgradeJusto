@@ -65,7 +65,7 @@ describe("tarjeta para empezar", () => {
   });
   it("con «Armar mi primera PC» navega a /build con el mismo objetivo y presupuesto", async () => {
     const host = await mount(<HomeStart />);
-    await click(button(host, /^Armar mi primera PC/)); await click(button(host, "Jugar mejor")); await click(button(host, "$ 1 millón"));
+    await click(button(host, /^Armar mi primera PC/)); await click(button(host, "Jugar")); await click(button(host, "$ 1 millón"));
     await click(button(host, "Armar mi PC con $ 1.000.000"));
     expect(push).toHaveBeenCalledWith("/build?objetivo=gaming&presupuesto=1000000");
   });

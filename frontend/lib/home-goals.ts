@@ -3,11 +3,11 @@
 export type GoalKey = "gaming" | "work" | "creative" | "everyday";
 export type ApiObjective = "general" | "gaming" | "productivity";
 
-export const homeGoals: ReadonlyArray<{ key: GoalKey; text: string; objective: ApiObjective }> = [
-  { key: "gaming", text: "Jugar mejor", objective: "gaming" },
-  { key: "work", text: "Trabajar más rápido", objective: "productivity" },
-  { key: "creative", text: "Editar fotos y video", objective: "productivity" },
-  { key: "everyday", text: "Que abra todo más rápido", objective: "general" },
+export const homeGoals: ReadonlyArray<{ key: GoalKey; text: string; textoArmar: string; objective: ApiObjective }> = [
+  { key: "gaming", text: "Jugar mejor", textoArmar: "Jugar", objective: "gaming" },
+  { key: "work", text: "Trabajar más rápido", textoArmar: "Trabajar o estudiar", objective: "productivity" },
+  { key: "creative", text: "Editar fotos y video", textoArmar: "Editar fotos y video", objective: "productivity" },
+  { key: "everyday", text: "Que abra todo más rápido", textoArmar: "Uso de todos los días", objective: "general" },
 ];
 
 // Enteros guardados como texto, como pide el sistema de diseño: nunca `float`.
