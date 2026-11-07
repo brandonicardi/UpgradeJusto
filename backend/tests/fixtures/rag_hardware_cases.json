@@ -1,0 +1,247 @@
+{
+  "version": "rag-hardware-v1",
+  "corpus_version": "sprint32-public-v2",
+  "language": "es",
+  "notes": "Doce casos para evaluar recuperación y grounding del asistente. 'page' es la página 1-based del PDF y 'quote' es un fragmento literal del texto extraído de esa página. Los casos 'variant' y 'no_evidence' son negativos: no deben atribuir una respuesta a una fuente del corpus. 'tempting_source_ids' indica la fuente parecida que no debe usarse para responder.",
+  "cases": [
+    {
+      "id": "b550m-pro4-max-ram",
+      "kind": "answerable",
+      "question": "¿Cuál es la capacidad máxima de memoria RAM que admite la ASRock B550M Pro4?",
+      "expected": {
+        "behavior": "responder_con_cita",
+        "answer": "La ASRock B550M Pro4 admite un máximo de 128 GB de memoria de sistema.",
+        "answer_contains": [
+          "128 GB"
+        ],
+        "sources": [
+          {
+            "source_id": "asrock-b550m-pro4-manual",
+            "page": 8,
+            "quote": "Max. capacity of system memory: 128GB"
+          }
+        ],
+        "must_not_attribute": false
+      }
+    },
+    {
+      "id": "b550m-steel-legend-lan",
+      "kind": "answerable",
+      "question": "¿Qué controlador y velocidad de red tiene la ASRock B550M Steel Legend?",
+      "expected": {
+        "behavior": "responder_con_cita",
+        "answer": "Incluye LAN de 2.5 Gigabit (10/100/1000/2500 Mb/s) con controlador Dragon RTL8125BG.",
+        "answer_contains": [
+          "2.5 Gigabit",
+          "RTL8125BG"
+        ],
+        "sources": [
+          {
+            "source_id": "asrock-b550m-steel-legend-manual",
+            "page": 10,
+            "quote": "2.5 Gigabit LAN 10/100/1000/2500 Mb/s"
+          },
+          {
+            "source_id": "asrock-b550m-steel-legend-manual",
+            "page": 10,
+            "quote": "Dragon RTL8125BG"
+          }
+        ],
+        "must_not_attribute": false
+      }
+    },
+    {
+      "id": "b550-pro4-video-outputs",
+      "kind": "answerable",
+      "question": "¿Qué salidas de video integradas ofrece la ASRock B550 Pro4?",
+      "expected": {
+        "behavior": "responder_con_cita",
+        "answer": "Ofrece salidas HDMI y D-Sub mediante controladores de pantalla independientes.",
+        "answer_contains": [
+          "HDMI",
+          "D-Sub"
+        ],
+        "sources": [
+          {
+            "source_id": "asrock-b550-pro4-manual",
+            "page": 9,
+            "quote": "Dual graphics output: support HDMI and D-Sub ports by independent display controllers"
+          }
+        ],
+        "must_not_attribute": false
+      }
+    },
+    {
+      "id": "kingston-kvr32n22s8-8-specs",
+      "kind": "answerable",
+      "question": "¿Qué capacidad, organización y latencia tiene el módulo Kingston KVR32N22S8/8?",
+      "expected": {
+        "behavior": "responder_con_cita",
+        "answer": "Es un módulo DDR4-3200 de 8 GB, 1Rx8 (1G x 64-bit), con latencia CL22.",
+        "answer_contains": [
+          "8 GB",
+          "1Rx8",
+          "CL22"
+        ],
+        "sources": [
+          {
+            "source_id": "kingston-kvr32n22s8-8",
+            "page": 1,
+            "quote": "KVR32N22S8/8 8GB 1Rx8 1G x 64-Bit PC4-3200 CL22 288-Pin DIMM"
+          }
+        ],
+        "must_not_attribute": false
+      }
+    },
+    {
+      "id": "corsair-cx550-warranty",
+      "kind": "answerable",
+      "question": "¿Qué garantía tiene la fuente Corsair CX550 de 550 W de la serie CX/CX-M?",
+      "expected": {
+        "behavior": "responder_con_cita",
+        "answer": "Los modelos CX y CX-M de 450 W, 550 W, 650 W, 750 W y 850 W tienen garantía de 5 años.",
+        "answer_contains": [
+          "5 años",
+          "550 W"
+        ],
+        "sources": [
+          {
+            "source_id": "corsair-generic-psu-manual",
+            "page": 3,
+            "quote": "Wattages of 450W, 550W, 650W, 750W, and 850W have a 5 year warranty"
+          }
+        ],
+        "must_not_attribute": false
+      }
+    },
+    {
+      "id": "fractal-pop-2-air-gpu-length",
+      "kind": "answerable",
+      "question": "¿Cuál es la longitud máxima de tarjeta gráfica que admite el gabinete Fractal Pop 2 Air?",
+      "expected": {
+        "behavior": "responder_con_cita",
+        "answer": "El Pop 2 Air admite tarjetas gráficas de hasta 416 mm de longitud.",
+        "answer_contains": [
+          "416 mm"
+        ],
+        "sources": [
+          {
+            "source_id": "fractal-pop-2-air-product-sheet",
+            "page": 6,
+            "quote": "GPU max length 416 mm 416 mm 416 mm"
+          }
+        ],
+        "must_not_attribute": false
+      }
+    },
+    {
+      "id": "msi-rtx-4060-specs",
+      "kind": "answerable",
+      "question": "¿Cuánta memoria y qué consumo declara la MSI GeForce RTX 4060 GAMING X 8G?",
+      "expected": {
+        "behavior": "responder_con_cita",
+        "answer": "Declara 8 GB de memoria GDDR6 y un consumo de 115 W o 120 W.",
+        "answer_contains": [
+          "8 GB",
+          "GDDR6",
+          "115 W",
+          "120 W"
+        ],
+        "sources": [
+          {
+            "source_id": "msi-rtx-4060-gaming-x-datasheet",
+            "page": 1,
+            "quote": "Memory 8GB GDDR6"
+          },
+          {
+            "source_id": "msi-rtx-4060-gaming-x-datasheet",
+            "page": 1,
+            "quote": "Power consumption 115 W or 120 W"
+          }
+        ],
+        "must_not_attribute": false
+      }
+    },
+    {
+      "id": "asus-rtx-4060-ryzen5-psu",
+      "kind": "answerable",
+      "question": "Según la tabla de fuentes recomendadas de ASUS, ¿qué fuente se recomienda para una RTX 4060 combinada con un AMD Ryzen 5?",
+      "expected": {
+        "behavior": "responder_con_cita",
+        "answer": "ASUS recomienda una fuente de 550 W para una RTX 4060 con un AMD Ryzen 5.",
+        "answer_contains": [
+          "550 W"
+        ],
+        "sources": [
+          {
+            "source_id": "asus-recommended-psu-table",
+            "page": 1,
+            "quote": "Intel i5 AMD Ryzen5 Intel Core Ultra 5 / i7 AMD Ryzen7 Intel Core Ultra 7 / i9 AMD Ryzen9 Intel Core Ultra 9 / HEDT AMD ThreadRipper"
+          },
+          {
+            "source_id": "asus-recommended-psu-table",
+            "page": 1,
+            "quote": "RTX 4060 550W 550W 550W 650W"
+          }
+        ],
+        "must_not_attribute": false
+      }
+    },
+    {
+      "id": "b550m-pro4-se-max-ram",
+      "kind": "variant",
+      "question": "¿Cuánta memoria RAM máxima soporta la ASRock B550M Pro4 SE?",
+      "expected": {
+        "behavior": "limitar_alcance",
+        "answer": "El corpus no contiene documentación de la variante B550M Pro4 SE. El manual disponible corresponde a la B550M Pro4 original; no corresponde atribuirle los datos de la SE ni asumir que son idénticos.",
+        "sources": [],
+        "must_not_attribute": true,
+        "tempting_source_ids": [
+          "asrock-b550m-pro4-manual"
+        ]
+      }
+    },
+    {
+      "id": "fractal-pop-air-gpu-length",
+      "kind": "variant",
+      "question": "¿Cuál es la longitud máxima de GPU que admite el gabinete Fractal Pop Air (el modelo anterior, no el Pop 2 Air)?",
+      "expected": {
+        "behavior": "limitar_alcance",
+        "answer": "El corpus cubre el Pop 2 Air, no el Pop Air anterior. No hay evidencia para trasladar el límite de 416 mm al Pop Air.",
+        "sources": [],
+        "must_not_attribute": true,
+        "tempting_source_ids": [
+          "fractal-pop-2-air-product-sheet"
+        ]
+      }
+    },
+    {
+      "id": "rtx-4060-fps-cyberpunk",
+      "kind": "no_evidence",
+      "question": "¿Cuántos FPS promedio da la GeForce RTX 4060 en Cyberpunk 2077 a 1440p?",
+      "expected": {
+        "behavior": "sin_evidencia",
+        "answer": "El corpus no contiene mediciones de FPS ni resultados de juegos. No se puede responder con una cifra verificable.",
+        "sources": [],
+        "must_not_attribute": true,
+        "tempting_source_ids": [
+          "msi-rtx-4060-gaming-x-datasheet"
+        ]
+      }
+    },
+    {
+      "id": "b550m-pro4-price-ars",
+      "kind": "no_evidence",
+      "question": "¿Qué precio en pesos argentinos tiene la ASRock B550M Pro4 según su manual oficial?",
+      "expected": {
+        "behavior": "sin_evidencia",
+        "answer": "El manual no incluye precios. El corpus no contiene un precio en ARS para la B550M Pro4, así que no corresponde inventarlo.",
+        "sources": [],
+        "must_not_attribute": true,
+        "tempting_source_ids": [
+          "asrock-b550m-pro4-manual"
+        ]
+      }
+    }
+  ]
+}

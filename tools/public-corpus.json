@@ -1,16 +1,277 @@
 {
-  "version": "sprint32-public-v1",
+  "version": "sprint32-public-v2",
+  "updated": "2026-11-07",
   "documents": [
     {
       "id": "kingston-kvr32n22s8-8",
       "url": "https://www.kingston.com/datasheets/KVR32N22S8_8.pdf",
       "title": "Kingston ValueRAM KVR32N22S8/8 datasheet",
+      "category": "memory",
+      "models": [
+        "KVR32N22S8/8"
+      ],
+      "aliases": [
+        "Kingston ValueRAM 8GB DDR4-3200 CL22",
+        "KVR32N22S8/8 8GB"
+      ],
       "scope": "Exact catalogue RAM model, DDR4 module specifications; not a compatibility verdict",
+      "scope_type": "exact",
+      "catalog_models": [
+        "Kingston KVR32N22S8/8"
+      ],
+      "catalog_link": "Coincide con el modelo de memoria del catálogo.",
       "consulted_date": "2026-10-24",
       "sha256": "b2a2357e5f8d805aa5a2113fbdf9f0d28b97e6a23238b05b57990a988b8345b1",
       "format": "pdf",
       "locator": "page",
+      "byte_length": 149893,
+      "page_count": 2,
+      "text_chars": 2063,
+      "extractable_text": true,
       "rights": "Manufacturer copyright; public technical datasheet, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    },
+    {
+      "id": "kingston-kvr32n22d8-16",
+      "url": "https://www.kingston.com/datasheets/KVR32N22D8_16.pdf",
+      "title": "Kingston ValueRAM KVR32N22D8/16 datasheet",
+      "category": "memory",
+      "models": [
+        "KVR32N22D8/16"
+      ],
+      "aliases": [
+        "Kingston ValueRAM 16GB DDR4-3200 CL22",
+        "KVR32N22D8/16 16GB"
+      ],
+      "scope": "Exact catalogue RAM model, DDR4 module specifications; not a compatibility verdict",
+      "scope_type": "exact",
+      "catalog_models": [
+        "Kingston KVR32N22D8/16"
+      ],
+      "catalog_link": "Coincide con el modelo de memoria del catálogo.",
+      "consulted_date": "2026-11-07",
+      "sha256": "83266bbf3df3195618bce45d8311944f72fc95429a9b482624836051edae7880",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 126607,
+      "page_count": 2,
+      "text_chars": 2078,
+      "extractable_text": true,
+      "rights": "Manufacturer copyright; public technical datasheet, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    },
+    {
+      "id": "asrock-b550m-pro4-manual",
+      "url": "https://download.asrock.com/Manual/B550M%20Pro4.pdf",
+      "title": "ASRock B550M Pro4 motherboard manual",
+      "category": "motherboard",
+      "models": [
+        "ASRock B550M Pro4"
+      ],
+      "aliases": [
+        "B550M Pro4",
+        "ASRock B550M Pro4 original"
+      ],
+      "scope": "Official motherboard manual: memory capacity, expansion, video outputs, LAN, audio and layout. It documents the original B550M Pro4, not the Pro SE variant; not a compatibility verdict.",
+      "scope_type": "exact",
+      "catalog_models": [
+        "ASRock B550M Pro4 original, no Pro SE"
+      ],
+      "catalog_link": "Coincide con la placa B550M Pro4 original del catálogo; el catálogo aclara que no es la Pro SE.",
+      "consulted_date": "2026-11-07",
+      "sha256": "51e64b0c82ce2e77236a89500e42b5f05858920e248d436bb0e931733ab2b319",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 5277162,
+      "page_count": 93,
+      "text_chars": 63157,
+      "extractable_text": true,
+      "rights": "Manufacturer copyright; public technical manual, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    },
+    {
+      "id": "asrock-b550-pro4-manual",
+      "url": "https://download.asrock.com/Manual/B550%20Pro4.pdf",
+      "title": "ASRock B550 Pro4 motherboard manual",
+      "category": "motherboard",
+      "models": [
+        "ASRock B550 Pro4"
+      ],
+      "aliases": [
+        "B550 Pro4",
+        "ASRock B550 Pro4 ATX"
+      ],
+      "scope": "Official motherboard manual for the ATX B550 Pro4 (not the B550M Pro4): memory, expansion, video outputs, LAN and layout. Not a compatibility verdict.",
+      "scope_type": "exact",
+      "catalog_models": [
+        "ASRock B550 Pro4"
+      ],
+      "catalog_link": "Coincide con la placa B550 Pro4 del catálogo.",
+      "consulted_date": "2026-11-07",
+      "sha256": "9e2d07a097022f1aeed7e60195e161ddb2135bb1ff7bac3a7ab5719c53496a0c",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 4902904,
+      "page_count": 90,
+      "text_chars": 63364,
+      "extractable_text": true,
+      "rights": "Manufacturer copyright; public technical manual, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    },
+    {
+      "id": "asrock-b550m-steel-legend-manual",
+      "url": "https://download.asrock.com/Manual/B550M%20Steel%20Legend.pdf",
+      "title": "ASRock B550M Steel Legend motherboard manual",
+      "category": "motherboard",
+      "models": [
+        "ASRock B550M Steel Legend"
+      ],
+      "aliases": [
+        "B550M Steel Legend",
+        "ASRock B550M Steel Legend original"
+      ],
+      "scope": "Official motherboard manual: memory, expansion, 2.5 Gigabit LAN, audio and layout. It documents the original B550M Steel Legend; not a compatibility verdict.",
+      "scope_type": "exact",
+      "catalog_models": [
+        "ASRock B550M Steel Legend original"
+      ],
+      "catalog_link": "Coincide con la placa B550M Steel Legend original del catálogo.",
+      "consulted_date": "2026-11-07",
+      "sha256": "4cb9cda943557ae1595374d969900e0fd6c78a7f458414cf6118ca0fa5fd53db",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 5885364,
+      "page_count": 94,
+      "text_chars": 64671,
+      "extractable_text": true,
+      "rights": "Manufacturer copyright; public technical manual, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    },
+    {
+      "id": "msi-rtx-4060-gaming-x-datasheet",
+      "url": "https://storage-asset.msi.com/datasheet/vga/global/GeForce-RTX-4060-GAMING-X-8G.pdf",
+      "title": "MSI GeForce RTX 4060 GAMING X 8G datasheet",
+      "category": "gpu",
+      "models": [
+        "MSI GeForce RTX 4060 GAMING X 8G",
+        "NVIDIA GeForce RTX 4060"
+      ],
+      "aliases": [
+        "RTX 4060 GAMING X 8G",
+        "GeForce RTX 4060 8GB GDDR6"
+      ],
+      "scope": "Official GPU datasheet for the MSI RTX 4060 GAMING X 8G: VRAM, clocks, power, outputs and dimensions. Family-level reference for the RTX 4060, not the exact ASUS DUAL-RTX4060-O8G-EVO in the catalogue; not a compatibility verdict.",
+      "scope_type": "family",
+      "catalog_models": [],
+      "catalog_link": "Alternativa de la familia RTX 4060; el catálogo usa ASUS DUAL-RTX4060-O8G-EVO, no este modelo MSI.",
+      "consulted_date": "2026-11-07",
+      "sha256": "6709971e8a02b91dc23316165fa22c9d0e190ad0fb6e9ed76d059a679b5ac909",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 1319408,
+      "page_count": 1,
+      "text_chars": 2251,
+      "extractable_text": true,
+      "rights": "Manufacturer copyright; public technical datasheet, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    },
+    {
+      "id": "asus-recommended-psu-table",
+      "url": "https://dlcdnets.asus.com/pub/ASUS/Accessory/Power_Supply/Manual/RECOMMENDED_PSU_TABLE.pdf",
+      "title": "ASUS Recommended PSU Table",
+      "category": "power_supply",
+      "models": [
+        "ASUS Recommended PSU Table",
+        "NVIDIA GeForce RTX 40 Series",
+        "NVIDIA GeForce RTX 50 Series"
+      ],
+      "aliases": [
+        "ASUS recommended power supply table",
+        "tabla de fuentes recomendadas ASUS"
+      ],
+      "scope": "Official ASUS table of recommended PSU wattages by GPU and CPU combination. Family-level guidance, not a measured power draw and not a compatibility verdict.",
+      "scope_type": "general",
+      "catalog_models": [],
+      "catalog_link": "Referencia transversal para GPUs y CPUs del catálogo; no documenta un producto concreto.",
+      "consulted_date": "2026-11-07",
+      "sha256": "43ab2ef70ecd8a076c73035c19bbce7c698fb9bdb9af3c6cdb65cf7e46eeb619",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 162384,
+      "page_count": 2,
+      "text_chars": 2362,
+      "extractable_text": true,
+      "rights": "Manufacturer copyright; public technical table, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    },
+    {
+      "id": "corsair-generic-psu-manual",
+      "url": "https://assets.corsair.com/image/upload/corsairmedia/sys_master/productcontent/WW_Generic_PSU_Manual_WEB.pdf",
+      "title": "Corsair generic PSU manual",
+      "category": "power_supply",
+      "models": [
+        "Corsair CX Series",
+        "Corsair CX-M Series"
+      ],
+      "aliases": [
+        "CX550",
+        "CX-M 550W",
+        "CP-9020277"
+      ],
+      "scope": "Official Corsair PSU manual: installation, safety and warranty terms by series. Covers the CX/CX-M 550 W warranty; not a compatibility verdict.",
+      "scope_type": "family",
+      "catalog_models": [
+        "Corsair CX550 2023 CP-9020277 RPS0127"
+      ],
+      "catalog_link": "El manual es genérico de las series CX/CX-M; el catálogo usa la CX550 2023.",
+      "consulted_date": "2026-11-07",
+      "sha256": "8c4e70aebc1ca3b0db7d7e61d89c0342bd7bf0138d11eff769a59b67d532baf8",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 354516,
+      "page_count": 32,
+      "text_chars": 145216,
+      "extractable_text": true,
+      "rights": "Manufacturer copyright; public technical manual, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    },
+    {
+      "id": "fractal-pop-2-air-product-sheet",
+      "url": "https://www.fractal-design.com/app/uploads/2026/01/Pop-2-Air_Product-Sheet_EN.pdf",
+      "title": "Fractal Design Pop 2 Air product sheet",
+      "category": "case",
+      "models": [
+        "Fractal Pop 2 Air Solid",
+        "Fractal Pop 2 Air TG",
+        "Fractal Pop 2 Air RGB"
+      ],
+      "aliases": [
+        "Pop 2 Air",
+        "FD-C-POA2A-01"
+      ],
+      "scope": "Official product sheet: dimensions and clearances for the Pop 2 Air family. It does not cover the earlier Pop Air; not a compatibility verdict.",
+      "scope_type": "family",
+      "catalog_models": [
+        "Fractal Pop 2 Air Black Solid FD-C-POA2A-01"
+      ],
+      "catalog_link": "Coincide con la variante Pop 2 Air Black Solid del catálogo.",
+      "consulted_date": "2026-11-07",
+      "sha256": "1ca3898d1ddaa10dd00c913efb2ed049847716c1138efbce4957c45bde3cb8eb",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 1561575,
+      "page_count": 8,
+      "text_chars": 5524,
+      "extractable_text": true,
+      "rights": "Manufacturer copyright; public product sheet, no open redistribution license verified. Keep full source local; cite short attributed excerpts only."
+    }
+  ],
+  "rejected": [
+    {
+      "id": "asus-graphics-card-qsg",
+      "url": "https://dlcdnets.asus.com/pub/ASUS/Graphic%20Card/Manual/Q28702_ASUS_Graphics_Card_QSG_V5_WEB.pdf",
+      "title": "ASUS Graphics Card Quick Start Guide Q28702 V5 WEB",
+      "category": "gpu",
+      "consulted_date": "2026-11-07",
+      "sha256": "ae70abb96b48bdc4914994c9043f8b4d11e7c7fca9ea729913dcf911da5d9842",
+      "format": "pdf",
+      "locator": "page",
+      "byte_length": 4642658,
+      "page_count": 62,
+      "encrypted": true,
+      "reason": "PDF cifrado (is_encrypted=true). ingest.extract rechaza archivos cifrados, así que no se usa como fuente; se eligió el datasheet oficial de MSI para la familia RTX 4060."
     }
   ]
 }
