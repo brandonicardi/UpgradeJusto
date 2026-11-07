@@ -47,7 +47,7 @@ describe("armado de «Mi plan»", () => {
     expect(actions).not.toMatch(/\bBIOS\b/i);
     const editor = renderToStaticMarkup(createElement(TowerPlanEditor, { pc, onSaved: () => {}, seed: { name: "Plan", pc_id: pc.id, expected_pc_revision: 1, expected_catalog_version: "v1", objective: "general", workload: null, budget_ars: "400000", price_condition: "cash", stages: [{ name: "Etapa 1", budget_ars: "400000", materials: [], actions: [] }] } }));
     expect(editor).not.toMatch(/\bBIOS\b/i);
-    expect(editor).toContain("Borrador de compras: no guardado");
+    expect(editor).toContain("Compra 1"); expect(editor).not.toContain("Borrador de compras");
   });
   it("muestra la BIOS histórica de un plan guardado sin afirmar que se revisó", () => {
     const pc = { id: "11111111-1111-4111-8111-111111111111", name: "La de casa", revision: 1, lines: [], category_status: {} } as unknown as Tower;

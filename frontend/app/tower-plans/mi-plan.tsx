@@ -198,7 +198,7 @@ export default function MiPlan({ initialId }: { initialId?: string }) {
       </div>
     </>}
 
-    {edit && <section id="borrador-plan" className="mp-draft" aria-labelledby="mp-borrador"><h2 id="mp-borrador">Cambiar tu plan</h2><Notice tono="info" titulo="Todavía no se guardó nada">Revisá las compras, sumá lo que falte y confirmá. Guardar actualiza tu plan y no toca tu PC guardada.</Notice><TowerPlanEditor key={edit.key} seed={edit.draft} pc={edit.pc} planId={plan.id} revision={plan.revision} onSaved={saved => { setPlan(saved); setEdit(null); setProgress(null); setOffer(null); }} /></section>}
+    {edit && <section id="borrador-plan" className="mp-draft" aria-labelledby="mp-borrador"><h2 id="mp-borrador">Cambiar tu plan</h2><p className="mp-draft-sub">Sumá, sacá o reordená compras. Nada cambia hasta que guardes, y tu PC guardada no se toca.</p><TowerPlanEditor key={edit.key} seed={edit.draft} pc={edit.pc} planId={plan.id} revision={plan.revision} onSaved={saved => { setPlan(saved); setEdit(null); setProgress(null); setOffer(null); }} /></section>}
 
     {deleting && <div className="mp-danger"><TowerPlanDeactivation busy={busy} onCancel={() => setDeleting(false)} onConfirm={event => void remove(event)} /></div>}
 

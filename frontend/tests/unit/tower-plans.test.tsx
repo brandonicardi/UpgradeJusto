@@ -65,7 +65,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     expect(seed.stages).toHaveLength(1); expect(seed.stages[0].actions).toEqual([]); expect(seed.stages[0].materials).toEqual([]); expect(JSON.stringify(own)).toBe(before);
     expect(() => towerPlanInput(seed, id)).toThrow();
     const html = renderToStaticMarkup(<TowerPlanEditor pc={own} seed={seed} onSaved={() => {}} />);
-    expect(html).toContain("Sumá al menos un cambio a cada compra"); expect(html).toContain("Guardar mi plan"); expect(html).not.toContain('checked=""');
+    expect(html).toContain("Sumá un componente para guardar."); expect(html).toContain("Todavía está vacía"); expect(html).toContain("¿Qué querés comprar?"); expect(html).toContain("Guardar mi plan"); expect(html).not.toContain('checked=""');
     expect(() => emptyManualPlan(own, { objective: "general", budget_ars: "", price_condition: "cash", workload: null, thermal_available: false }, "synthetic")).toThrow();
   });
   it("consume omisión canónica line_id sólo en replace_category/add_line y emite null sin mutar origen", () => {
@@ -109,7 +109,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     expect(() => planActions([{ ...action(), category: "ram", action: "add_line" }])).toThrow();
     expect(() => planActions([{ ...action(), candidates: [{ component_id: null, declared_model: "Synthetic", quantity: null as unknown as number }] }])).toThrow();
     expect(planActions([{ ...action(), category: "motherboard" }])[0].candidate_context).toEqual({ bios_version: null });
-    const html = renderToStaticMarkup(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={() => {}} />); expect(html).toMatch(/type="number"[^>]*value=""/); expect(html).not.toMatch(/type="number"[^>]*value="1"/);
+    const html = renderToStaticMarkup(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={() => {}} />); expect(html).not.toContain("type=\"number\"");
   });
   it("autocompleta el modelo propio con el catálogo, sin elegir la primera coincidencia", async () => {
     vi.useFakeTimers();
@@ -122,7 +122,9 @@ describe("CU07 private tower plans: structural requests and operation identity",
     });
     vi.stubGlobal("fetch", request);
     const host = await mount(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={() => {}} />);
-    await type(byLabel(host, "Qué componente querés cambiar"), "gpu");
+    await act(async () => { button(host, "Placa de video")!.click(); });
+    await act(async () => { button(host, "No lo encuentro, escribir el modelo")!.click(); });
+    request.mockClear();
     const input = byLabel(host, "Modelo del componente") as HTMLInputElement;
     await type(input, "RTX");
     expect(request).not.toHaveBeenCalled();
@@ -140,9 +142,10 @@ describe("CU07 private tower plans: structural requests and operation identity",
   it("deja el texto libre como modelo declarado si no se elige una sugerencia", async () => {
     const onAdd = vi.fn();
     const host = await mount(<TowerPlanActionEditor pc={pc()} disabled={false} onAdd={onAdd} />);
+    await click(button(host, "Placa madre"));
+    await click(button(host, "No lo encuentro, escribir el modelo"));
     await type(byLabel(host, "Modelo del componente"), "Placa rara sin ficha");
-    await type(byLabel(host, "Cantidad del componente 1"), "1");
-    await click(button(host, "Sumar el cambio a esta compra"));
+    await click(button(host, "Sumar a esta compra"));
     expect(onAdd).toHaveBeenCalledTimes(1);
     expect(onAdd.mock.calls[0][0].candidates[0]).toMatchObject({ component_id: null, declared_model: "Placa rara sin ficha", quantity: 1 });
   });

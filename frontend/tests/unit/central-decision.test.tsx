@@ -119,8 +119,8 @@ describe("central decision presentation, no domain inference", () => {
     const pc: Tower = { ...emptyTower(), id: "12345678-1234-1234-1234-123456789abc", revision: 1, origin_schema: 2 };
     const html = renderToStaticMarkup(<TowerPlanEditor pc={pc} onSaved={() => {}} seed={{ name: "Plan sintético", pc_id: pc.id, expected_pc_revision: 1, expected_catalog_version: "synthetic", objective: "general", workload: null, budget_ars: "10.00", price_condition: "cash", stages: [1, 2].map(index => ({ name: `Etapa ${index}`, budget_ars: "5.00", materials: [], actions: [{ category: "storage", action: "replace_category", line_id: null, candidates: [{ component_id: null, declared_model: "Disco declarado sin ficha", quantity: 1 }] }] })) }} />);
     expect(html).toContain('aria-label="Editor de plan de torre"'); expect(html).toContain('aria-label="Compra 2"');
-    expect(html).toContain("Almacenamiento"); expect(html).toContain("Almacenamiento: se cambia"); expect(html).not.toContain("Reemplazar conjunto completo"); expect(html).not.toContain("storage · replace_category");
-    expect(html).not.toContain("Revisé las compras"); expect(html).toContain("Más opciones"); expect(html).not.toContain("pasta térmica");
+    expect(html).toContain("Almacenamiento"); expect(html).not.toContain("se cambia"); expect(html).not.toContain("Reemplazar conjunto completo"); expect(html).not.toContain("storage · replace_category");
+    expect(html).not.toContain("Revisé las compras"); expect(html).toContain("Datos del plan"); expect(html).not.toContain("pasta térmica");
     expect(html).not.toContain('checked=""'); expect(html).toContain("Guardar mi plan");
   });
 });

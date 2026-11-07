@@ -4,10 +4,10 @@ import RemoteProductSelector from "./remote-product-selector";
 import { TowerProductPhoto } from "./tower-product-summary";
 import { remoteCatalog, type TowerCatalogPage, type TowerComponent } from "../lib/tower-catalog";
 import { towerCategories, towerKeys, type Tower, type TowerCategory } from "../lib/towers";
+import { categoryNames } from "../lib/conviene-view";
+import { isSingleUnitCategory, quantityLimit } from "../lib/catalog-offers";
 import type { TowerAction } from "../lib/tower-compatibility";
 import { planActions } from "../lib/tower-plans";
-
-type Candidate = { mode: "declared" | "catalog"; component_id: string | null; declared_model: string | null; quantity: number | null };
 
 /**
  * Sugerencias mientras se escribe un modelo propio. Consulta el catálogo real y
@@ -63,26 +63,43 @@ export function ModelAutocomplete({ category, value, disabled, onTextChange, onS
   </div>;
 }
 
-// New candidatas have no quantity until the user enters it. This form adds
-// explicit actions, never a simulated verdict or locally generated future UUID.
-export default function TowerPlanActionEditor({ pc, disabled, onAdd }: { pc: Tower; disabled: boolean; onAdd: (action: TowerAction) => void }) {
-  const uid = useId(), [category, setCategory] = useState<TowerCategory>("cpu"), [kind, setKind] = useState<TowerAction["action"]>("replace_category"), [lineId, setLineId] = useState("");
-  const [candidates, setCandidates] = useState<Candidate[]>([{ mode: "declared", component_id: null, declared_model: "", quantity: null }]), [error, setError] = useState("");
-  function reset() { setCandidates([{ mode: "declared", component_id: null, declared_model: "", quantity: null }]); setLineId(""); setError(""); }
-  function update(index: number, patch: Partial<Candidate>) { setCandidates(candidates.map((candidate, i) => i === index ? { ...candidate, ...patch } : candidate)); setError(""); }
-  const target = kind === "replace_line" || kind === "remove_line", limit = category === "ram" ? 4 : category === "storage" ? 16 : category === "fan" ? 8 : 1;
-  return <fieldset disabled={disabled} className="stack-sm"><legend>Sumar un cambio a esta compra</legend><p>La memoria reemplaza todos los módulos. Las cantidades son de módulos, no de GB. Lo revisamos todo al guardar; tu PC no cambia.</p>
-    <label htmlFor={`${uid}-category`}>Qué componente querés cambiar</label><select id={`${uid}-category`} value={category} onChange={event => { setCategory(event.target.value as TowerCategory); setKind("replace_category"); reset(); }}>{towerKeys.map(key => <option key={key} value={key}>{towerCategories[key]}</option>)}</select>
-    <label htmlFor={`${uid}-kind`}>Cómo lo cambiás</label><select id={`${uid}-kind`} value={kind} onChange={event => { setKind(event.target.value as TowerAction["action"]); reset(); }}><option value="replace_category">Cambiar todos los de este tipo</option>{category !== "ram" && <><option value="replace_line">Cambiar uno solo</option><option value="remove_line">Sacar uno solo</option></>}{["storage", "fan"].includes(category) && <option value="add_line">Sumar uno más</option>}</select>
-    {target && <><label htmlFor={`${uid}-line`}>Componente que ya tenés</label><select id={`${uid}-line`} value={lineId} onChange={event => setLineId(event.target.value)}><option value="">Elegí un componente que ya tenés</option>{pc.lines.filter(line => line.category === category).map(line => <option key={line.line_id} value={line.line_id ?? ""}>{line.declared_model ?? "Componente del catálogo"} · {line.quantity} {line.quantity === 1 ? "unidad" : "unidades"}</option>)}</select><p>Si ya lo cambiaste en una compra anterior, elegí cambiar todos los de este tipo.</p></>}
-    {kind !== "remove_line" && candidates.map((candidate, index) => <section key={`${category}-${index}`} className="stack-sm"><label htmlFor={`${uid}-mode-${index}`}>Cómo elegís el componente {index + 1}</label><select id={`${uid}-mode-${index}`} value={candidate.mode} onChange={event => update(index, event.target.value === "declared" ? { mode: "declared", component_id: null, declared_model: "" } : { mode: "catalog", component_id: null, declared_model: null })}><option value="declared">Escribir el modelo</option><option value="catalog">Buscar en el catálogo</option></select>
-      {candidate.mode === "declared"
-        ? <ModelAutocomplete category={category} value={candidate.declared_model ?? ""} disabled={disabled} onTextChange={text => update(index, { declared_model: text, component_id: null })} onSelect={part => update(index, { mode: "catalog", component_id: part.id, declared_model: null })} />
-        : <RemoteProductSelector category={category} value={candidate.component_id} onChange={id => update(index, { component_id: id, declared_model: null })} onClear={() => update(index, { component_id: null, declared_model: null })} />}
-      <label>Cantidad del componente {index + 1}<input type="number" min={1} max={category === "ram" ? 16 : category === "storage" ? 16 : category === "fan" ? 32 : 1} step={1} value={candidate.quantity ?? ""} onChange={event => update(index, { quantity: Number.isNaN(event.target.valueAsNumber) ? null : event.target.valueAsNumber })} /></label>{candidates.length > 1 && <button type="button" onClick={() => { setCandidates(candidates.filter((_, i) => i !== index)); setError(""); }}>Sacar el componente {index + 1}</button>}
-    </section>)}
-    {kind === "replace_category" && limit > 1 && <button type="button" disabled={candidates.length >= limit} onClick={() => setCandidates([...candidates, { mode: "declared", component_id: null, declared_model: "", quantity: null }])}>Sumar otro componente a este cambio</button>}
-    <button type="button" onClick={() => { try { const action = planActions([{ action: kind, category, line_id: target ? lineId || null : null, candidates: candidates.map(candidate => ({ component_id: candidate.component_id, declared_model: candidate.declared_model, quantity: candidate.quantity })) as TowerAction["candidates"] }])[0]; onAdd(action); reset(); } catch (failure) { setError(failure instanceof Error ? failure.message : "Revisá el cambio."); } }}>Sumar el cambio a esta compra</button>
-    {error && <p role="alert">{error}</p>}
+/**
+ * Flujo guiado para sumar un componente a una compra, una decisión por vez:
+ * qué se compra, cuál es, cuántos (solo si puede haber varios) y, si ya tiene
+ * de ese tipo, si reemplaza o suma. No emite veredictos: eso lo decide el servidor al guardar.
+ */
+export default function TowerPlanActionEditor({ pc, disabled, onAdd, onCancel }: { pc: Tower; disabled: boolean; onAdd: (action: TowerAction) => void; onCancel?: () => void }) {
+  const uid = useId(), [category, setCategory] = useState<TowerCategory | null>(null), [componentId, setComponentId] = useState<string | null>(null);
+  const [typing, setTyping] = useState(false), [model, setModel] = useState(""), [quantity, setQuantity] = useState<number | null>(1), [kind, setKind] = useState<"replace_category" | "add_line">("replace_category"), [error, setError] = useState("");
+  const owned = category ? pc.lines.filter(line => line.category === category) : [];
+  const asksKind = !!category && ["storage", "fan"].includes(category) && owned.length > 0;
+  const hasQuantity = !!category && !isSingleUnitCategory(category);
+  const ready = !!category && (typing ? model.trim().length > 0 : !!componentId);
+  function clear() { setCategory(null); setComponentId(null); setTyping(false); setModel(""); setQuantity(1); setKind("replace_category"); setError(""); }
+  function pick(next: TowerCategory) { clear(); setCategory(next); }
+  function submit() {
+    if (!category) return;
+    try {
+      const candidate = { component_id: typing ? null : componentId, declared_model: typing ? model : null, quantity: hasQuantity ? quantity : 1 } as TowerAction["candidates"][number];
+      onAdd(planActions([{ action: asksKind ? kind : "replace_category", category, line_id: null, candidates: [candidate] }])[0]); clear();
+    } catch (failure) { setError(failure instanceof Error ? failure.message : "Revisá lo que elegiste."); }
+  }
+  return <fieldset disabled={disabled} className="tpe-flow"><legend className="tpe-q">¿Qué querés comprar?</legend>
+    <div className="tpe-chips" role="group" aria-label="Tipo de componente">{towerKeys.map(key => <button key={key} type="button" className="mp-btn mp-btn-secundario mp-btn-chico tpe-chip" aria-pressed={category === key} onClick={() => pick(key)}>{categoryNames[key]}</button>)}</div>
+    {category && <>
+      <div className="tpe-step"><p className="tpe-q">{typing ? "¿Cuál es el modelo?" : "¿Cuál querés? Buscalo en el catálogo."}</p>
+        {typing
+          ? <ModelAutocomplete category={category} value={model} disabled={disabled} onTextChange={text => { setModel(text); setError(""); }} onSelect={part => { setTyping(false); setModel(""); setComponentId(part.id); setError(""); }} />
+          : <RemoteProductSelector key={category} category={category} value={componentId} onChange={id => { setComponentId(id); setError(""); }} onClear={() => setComponentId(null)} />}
+        <button type="button" className="mp-link tpe-switch" onClick={() => { setTyping(!typing); setComponentId(null); setModel(""); setError(""); }}>{typing ? "Mejor buscarlo en el catálogo" : "No lo encuentro, escribir el modelo"}</button>
+      </div>
+      {hasQuantity && ready && <label className="mp-field tpe-qty">Cantidad<input type="number" inputMode="numeric" min={1} max={quantityLimit(category)} step={1} value={quantity ?? ""} onChange={event => { setQuantity(Number.isNaN(event.target.valueAsNumber) ? null : event.target.valueAsNumber); setError(""); }} />{category === "ram" && <small>Módulos iguales. Un kit de 2 cuenta como 1.</small>}</label>}
+      {asksKind && <fieldset className="tpe-kind"><legend className="tpe-q">Ya tenés {categoryNames[category].toLowerCase()}. ¿Qué hacemos?</legend>
+        <label><input type="radio" name={`${uid}-kind`} checked={kind === "replace_category"} onChange={() => setKind("replace_category")} /> Reemplazar los que tengo</label>
+        <label><input type="radio" name={`${uid}-kind`} checked={kind === "add_line"} onChange={() => setKind("add_line")} /> Sumar uno más</label>
+      </fieldset>}
+    </>}
+    {error && <p role="alert" className="tpe-msg is-bad">{error}</p>}
+    <div className="mp-row"><button type="button" className="mp-btn mp-btn-principal mp-btn-chico" disabled={!ready} onClick={submit}>Sumar a esta compra</button>{onCancel && <button type="button" className="mp-btn mp-btn-quieto mp-btn-chico" onClick={onCancel}>Cancelar</button>}</div>
   </fieldset>;
 }

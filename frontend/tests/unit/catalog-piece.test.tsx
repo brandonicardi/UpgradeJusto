@@ -108,7 +108,7 @@ describe("ficha y simulación", () => {
     await click(button(host, "Preparar borrador")); await settle();
     const section = host.querySelector('section[aria-label="Borrador de plan desde este componente"]');
     expect(section).not.toBeNull(); expect(section?.querySelector('section[aria-label="Borrador del plan por compras"]')).not.toBeNull();
-    expect(section?.textContent).toContain("Placa de video: se cambia"); expect(section?.textContent).not.toContain("Componente del catálogo × 1"); expect(section?.textContent).not.toContain("Reemplazar conjunto completo"); expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(section?.textContent).toContain("Placa de video"); expect(section?.textContent).not.toContain("Componente del catálogo × 1"); expect(section?.textContent).not.toContain("Reemplazar conjunto completo"); expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(fetcher.mock.calls.slice(calls).every(([, init]) => !init?.method || init.method === "GET")).toBe(true);
   });
   it("presupuesto inválido muestra una alerta y no abre el editor", async () => {
