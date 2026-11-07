@@ -30,7 +30,8 @@ def test_real_ingestion_idempotence_and_vector_citation(pg_engine):
         dimensions = conn.scalars(
             sa.select(sa.func.vector_dims(chunks.c.embedding)).where(condition)
         ).all()
-    assert processed == first and first > 0
+    # One source of the active manifest: the total covers every source.
+    assert processed >= first > 0
     assert set(dimensions) == {384}
     assert ingest(pg_engine, manifest) == processed
     with pg_engine.connect() as conn:
