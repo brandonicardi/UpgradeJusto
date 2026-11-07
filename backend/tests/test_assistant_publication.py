@@ -7,6 +7,7 @@ from upgradejusto.assistant.evidence import TurnEvidence
 from upgradejusto.assistant.grounding import validate_candidate
 from upgradejusto.assistant.publication import (
     NOTHING_VERIFIED,
+    plain_words,
     publish,
 )
 
@@ -128,3 +129,14 @@ def test_index_figure_needs_to_be_spoken_of_as_an_index():
         0
     ].failed
     assert validate_candidate(evidence, "Tu PC consume 25384.")[0].failed
+
+
+def test_internal_names_never_reach_the_person():
+    text = (
+        "Tu PC tiene Falta un dato para completar.\n"
+        "El motor detectó esto: RAM (`ram.presence`, `ram.modules`) y `fan`."
+    )
+    shown = plain_words(text)
+    assert "`" not in shown and "ram.presence" not in shown and "motor" not in shown
+    assert "tiene datos por completar" in shown and "La revisión detectó" in shown
+    assert "ventiladores" in shown

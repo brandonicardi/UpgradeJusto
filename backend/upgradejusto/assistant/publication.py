@@ -5,6 +5,8 @@ turn's evidence, the failed ones get a single rewrite, and whatever still cannot
 proved is left out. The draft is never sent, stored or logged.
 """
 
+import re
+
 from .grounding import validate_candidate
 
 NOTHING_VERIFIED = (
@@ -18,6 +20,33 @@ REPAIR_POLICY = (
     "queda nada útil, respondé vacío. No avises que sacaste algo, no agregues "
     "advertencias ni digas que los datos no son fiables. Devolvé solo el texto."
 )
+
+
+CATEGORY_WORDS = {
+    "cpu": "procesador",
+    "motherboard": "placa madre",
+    "ram": "memoria",
+    "gpu": "placa de video",
+    "psu": "fuente",
+    "case": "gabinete",
+    "storage": "almacenamiento",
+    "cooler": "cooler",
+    "fan": "ventiladores",
+}
+FIELD_LIST = re.compile(r"\s*\(\s*`[\w.]+`(?:\s*,\s*`[\w.]+`)*\s*\)")
+CODE = re.compile(r"`([\w.]+)`")
+ENGINE = re.compile(r"\b(el|El) motor\b")
+VERDICT_AS_NOUN = re.compile(r"\btiene Falta un dato\b")
+
+
+def plain_words(text):
+    """The prompt asks for this, but a small model slips: never show internal names."""
+    text = FIELD_LIST.sub("", text)
+    text = CODE.sub(lambda code: CATEGORY_WORDS.get(code[1], code[1]), text)
+    text = ENGINE.sub(
+        lambda word: f"{'la' if word[1] == 'el' else 'La'} revisión", text
+    )
+    return VERDICT_AS_NOUN.sub("tiene datos por completar", text)
 
 
 def passed(results):
@@ -46,5 +75,5 @@ async def publish(evidence, draft, emit, repair=None):
     if not parts:
         await emit("delta", {"text": NOTHING_VERIFIED})
         return len(results)
-    await emit("delta", {"text": "\n\n".join(parts)})
+    await emit("delta", {"text": plain_words("\n\n".join(parts))})
     return omitted
