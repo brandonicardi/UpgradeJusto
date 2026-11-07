@@ -31,7 +31,7 @@ export function Notice({ tono, titulo, children }: NoticeProps) {
       <Icono aria-hidden="true" className={`mt-[2px] size-5 flex-none ${acento}`} strokeWidth={2.25} />
       <div>
         <strong className={`block text-cuerpo-fuerte font-bold ${acento}`}>{titulo}</strong>
-        {children && <p className="m-0 mt-[2px] text-cuerpo text-tinta">{children}</p>}
+        {children && <div className="m-0 mt-[2px] text-cuerpo text-tinta">{children}</div>}
       </div>
     </div>
   );

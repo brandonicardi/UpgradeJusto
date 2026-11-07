@@ -9,6 +9,14 @@
 .build-hero h1 { margin: 0; font: 700 48px/52px var(--font-display); letter-spacing: -.02em; }
 .build-hero p { margin: 0; font-size: 18px; line-height: 28px; color: var(--tinta-suave); }
 
+/* El aviso ocupa el ancho de las dos tarjetas de abajo; las comprobaciones van en dos columnas. */
+.build-notice:not(:empty) { margin-bottom: var(--space-5); }
+.build-notice [role="status"], .build-notice [role="alert"] { max-width: none; }
+.build-notice ul { margin: var(--space-3) 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-6); }
+@media (max-width: 700px) { .build-notice ul { grid-template-columns: 1fr; } }
+.build-rebuild { margin-top: var(--space-4); display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.build-rebuild small { color: var(--tinta-suave); font-size: 14px; }
+
 .build-ask { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin: 0; padding: 0; border: 0; min-width: 0; }
 .build-panel { background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
 .build-step { font: 700 13px/16px var(--font-sans-uj); letter-spacing: .02em; color: var(--tinta-suave); }
@@ -41,16 +49,16 @@
 .build-price { font-weight: 700; font-size: 15px; line-height: 22px; white-space: nowrap; }
 .build-line-side .text-button { font-size: 13px; }
 
-.build-picker { border-top: 1px solid var(--linea); padding-top: var(--space-1); }
-.build-picker > summary { display: flex; align-items: center; min-height: 40px; cursor: pointer; color: var(--pino); font-weight: 600; }
-.build-picker > summary:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
-.build-picker > fieldset { padding: var(--space-4); background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radius-md); }
+.build-picker { padding-top: var(--space-1); }
+.build-picker-toggle { display: flex; align-items: center; width: 100%; min-height: 40px; padding: 0; border: 0; border-top: 1px solid var(--linea); border-radius: 0; background: none; cursor: pointer; color: var(--pino); font: 600 15px/20px var(--font-sans-uj); text-align: left; }
+.build-picker-toggle:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.build-picker > fieldset { min-width: 0; padding: 0; border: 0; }
 
 .build-sum { position: sticky; top: var(--space-5); display: grid; gap: var(--space-4); align-content: start; background: var(--papel-alto); border: 1px solid var(--linea); border-radius: var(--radius-md); padding: var(--space-5); min-width: 0; }
 .build-total { display: grid; gap: var(--space-2); padding: var(--space-5); border-radius: var(--radius-lg); background: var(--tinta); color: var(--papel); }
 .build-total-label { font: 700 13px/16px var(--font-sans-uj); letter-spacing: .02em; opacity: .8; }
 .build-total-value { font: 700 32px/36px var(--font-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.build-total small { font-size: 14px; line-height: 20px; opacity: .8; }
+.build-total small { font-size: 14px; line-height: 20px; color: inherit; opacity: .8; }
 .build-sum [aria-label="Coste de compras seleccionadas"] > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .build-note { margin: 0; font-size: 14px; line-height: 20px; color: var(--tinta-suave); }
 
@@ -67,3 +75,5 @@
   .build-line > .tower-product-photo { width: 48px; height: 48px; }
   .build-line-side { grid-column: 1 / -1; justify-items: start; text-align: left; }
 }
+.build-quantity { display: grid; gap: var(--space-1); max-width: 160px; }
+.build-quantity input { min-height: 48px; }

@@ -4,12 +4,12 @@ import Link from "next/link";
 import RemoteProductSelector from "./remote-product-selector";
 import { TowerProductPhoto } from "./tower-product-summary";
 import { parseCatalogTowerComponent, parseCatalogTowerPage } from "../lib/catalog-tower-consumer";
-import { catalogBoundOffers } from "../lib/catalog-offers";
-import { remoteCatalog, type TowerComponent } from "../lib/tower-catalog";
+import { bestOffer, isSingleUnitCategory, quantityLimit } from "../lib/catalog-offers";
+import { remoteCatalog } from "../lib/tower-catalog";
 import { towerCategories, towerKeys, towerRequest, type Tower, type TowerCategory } from "../lib/towers";
-import { displayRetailDate, formatRetailARS } from "../lib/retail-presentation";
+import { formatRetailARS } from "../lib/retail-presentation";
 import { purchaseAdd, purchaseInput, purchasePlan, purchaseSubtotal, type PurchaseLine } from "../lib/purchase-draft";
-import PurchaseCostSummary, { PurchaseLineQuote } from "./purchase-cost-summary";
+import PurchaseCostSummary from "./purchase-cost-summary";
 import type { RecommendationDraft } from "../lib/tower-recommendations";
 import type { TowerPlanDraft, TowerPlanRead } from "../lib/tower-plans";
 import TowerCompatibility from "../app/pcs/tower-compatibility";
@@ -21,24 +21,32 @@ import { Field } from "./uj/field";
 import { GoalPicker } from "./uj/goal-picker";
 import { BUILD_OBJECTIVES, emptyBuildCriteria, isBuildObjective, withBudget, withObjective, withWorkload } from "../lib/build-criteria";
 import { Notice } from "./uj/notice";
-import { firstBuildRequest, loadFirstBuild } from "../lib/first-build";
+import { firstBuildReason, firstBuildRequest, loadFirstBuild, proposalBudget, type FirstBuildGoal } from "../lib/first-build";
 import "./purchase-builder.css";
 
 const SELECCION = "block w-full min-h-12 rounded-sm border-[1.5px] border-solid border-linea-fuerte bg-papel-alto px-space-4 py-space-3 text-cuerpo text-tinta font-sans-uj focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
 
-function PurchaseSelector({ category, condition, disabled, onAdd }: { category: TowerCategory; condition: "cash" | "list"; disabled: boolean; onAdd: (line: PurchaseLine, mode: "replace_category" | "add_line") => void }) {
-  const [id, setId] = useState(""), [part, setPart] = useState<TowerComponent | null>(null), [quantity, setQuantity] = useState(""), [offerId, setOfferId] = useState(""), [mode, setMode] = useState<"replace_category" | "add_line">("replace_category"), [error, setError] = useState("");
+function PurchaseSelector({ category, condition, disabled, current, onAdd, onRemove }: { category: TowerCategory; condition: "cash" | "list"; disabled: boolean; current: PurchaseLine | null; onAdd: (line: PurchaseLine, mode: "replace_category" | "add_line") => void; onRemove: () => void }) {
+  const [error, setError] = useState(""), [qtyText, setQtyText] = useState<{ id: string; text: string } | null>(null);
   const active = useRef<AbortController | null>(null), generation = useRef(0);
   useEffect(() => () => { generation.current++; active.current?.abort(); }, []);
+  // Elegir es un clic: se busca la ficha completa y el componente entra al armado con cantidad 1 y su mejor oferta vigente.
   async function choose(value: string) {
     active.current?.abort(); const ticket = ++generation.current, abort = new AbortController(); active.current = abort;
-    setId(value); setPart(null); setQuantity(""); setOfferId(""); setError(""); if (!value) return;
-    try { const result = parseCatalogTowerComponent(await remoteCatalog<unknown>(`/${encodeURIComponent(value)}`, abort.signal)); if (result.category !== category) throw new Error(); if (ticket === generation.current && !abort.signal.aborted) setPart(result); }
-    catch { if (ticket === generation.current && !abort.signal.aborted) setError("No se pudo confirmar el componente. No se agregó ninguna compra."); }
+    setError(""); setQtyText(null); if (!value) return;
+    try { const result = parseCatalogTowerComponent(await remoteCatalog<unknown>(`/${encodeURIComponent(value)}`, abort.signal)); if (result.category !== category) throw new Error(); if (ticket === generation.current && !abort.signal.aborted) onAdd({ part: result, quantity: 1, offer: bestOffer(result, condition) }, "replace_category"); }
+    catch { if (ticket === generation.current && !abort.signal.aborted) setError("No se pudo confirmar el componente. No se agregó nada."); }
   }
-  const offers = part ? catalogBoundOffers(part).filter(offer => offer.condition === condition) : [];
-  return <fieldset disabled={disabled} className="stack-sm"><RemoteProductSelector category={category} value={id || null} onChange={value => { void choose(value); }} />
-    {part && <><label>Cantidad explícita de {towerCategories[category]}<input type="number" min={1} max={category === "fan" ? 32 : category === "ram" || category === "storage" ? 16 : 1} value={quantity} onChange={event => setQuantity(event.target.value)} /></label><label>Cotización para subtotal de {towerCategories[category]}<select value={offers.some(offer => offer.offer_id === offerId) ? offerId : ""} onChange={event => setOfferId(event.target.value)}><option value="">Sin cotización elegida; coste pendiente</option>{offers.map(offer => <option key={offer.offer_id} value={offer.offer_id}>{offer.store} · {formatRetailARS(offer.amount)} · guardado {displayRetailDate(offer.observed_at)}</option>)}</select></label>{["storage", "fan"].includes(category) && <label>Acción de compra<select value={mode} onChange={event => setMode(event.target.value as typeof mode)}><option value="replace_category">Reemplazar selección completa de categoría</option><option value="add_line">Añadir otra línea</option></select></label>}<p>{category === "ram" ? "RAM: cantidad de módulos; reemplaza todo el conjunto. No se deduce capacidad." : "Cantidad de unidades, no capacidad ni rendimiento."}</p><button type="button" onClick={() => { try { if (!/^[1-9]\d*$/.test(quantity)) throw new Error("Indicá una cantidad explícita."); onAdd({ part, quantity: Number(quantity), offer: offers.find(offer => offer.offer_id === offerId) ?? null }, mode); setError(""); } catch (failure) { setError(failure instanceof Error ? failure.message : "Revisá la selección."); } }}>Agregar compra de {towerCategories[category]}</button></>}{error && <p role="alert">{error}</p>}</fieldset>;
+  function remove() { generation.current++; active.current?.abort(); setError(""); setQtyText(null); onRemove(); }
+  const max = quantityLimit(category), shown = current && qtyText?.id === current.part.id ? qtyText.text : String(current?.quantity ?? 1);
+  function changeQuantity(text: string) {
+    if (!current) return;
+    setQtyText({ id: current.part.id, text });
+    if (/^[1-9]\d?$/.test(text) && Number(text) <= max) onAdd({ ...current, quantity: Number(text) }, "replace_category");
+  }
+  return <fieldset disabled={disabled} className="stack-sm"><RemoteProductSelector category={category} value={current?.part.id ?? null} onChange={value => { void choose(value); }} onClear={remove} />
+    {current && !isSingleUnitCategory(category) && <label className="build-quantity">Cantidad<input type="number" inputMode="numeric" min={1} max={max} step={1} value={shown} onChange={event => changeQuantity(event.target.value)} />{category === "ram" && <small>Módulos iguales</small>}</label>}
+    {error && <p role="alert">{error}</p>}</fieldset>;
 }
 
 export default function PurchaseBuilder() {
@@ -50,26 +58,41 @@ export default function PurchaseBuilder() {
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   // Viene de Inicio con objetivo y presupuesto: arranca con una PC completa que ya encaja, editable.
   const [auto, setAuto] = useState<{ state: "working" | "ready" | "none" | "error"; notices: string[] } | null>(null);
+  const [edited, setEdited] = useState(false), [opened, setOpened] = useState<TowerCategory | null>(null);
+  const proposing = useRef<AbortController | null>(null), lastAsked = useRef("");
+  async function propose(goal: FirstBuildGoal, keepOnFailure: boolean) {
+    proposing.current?.abort();
+    const controller = new AbortController(); proposing.current = controller;
+    lastAsked.current = JSON.stringify(goal);
+    setAuto({ state: "working", notices: [] });
+    try {
+      const { proposal, lines: proposed } = await loadFirstBuild(goal, controller.signal);
+      if (controller.signal.aborted) return;
+      const found = proposal.status === "proposed";
+      if (found || !keepOnFailure) { setLines(proposed); setEdited(false); setConfirmed(false); }
+      setAuto({ state: found ? "ready" : "none", notices: proposal.notices });
+    } catch { if (!controller.signal.aborted) setAuto({ state: "error", notices: [] }); }
+  }
+  useEffect(() => () => proposing.current?.abort(), []);
   useEffect(() => {
     const wanted = firstBuildRequest(window.location.search);
     if (!wanted) return;
-    const controller = new AbortController();
-    async function start(goal: NonNullable<typeof wanted>) {
-      await Promise.resolve();
-      if (controller.signal.aborted) return;
+    void Promise.resolve().then(() => {
       setAuto({ state: "working", notices: [] });
-      setCriteria(current => withBudget(withObjective(current, goal.objective), goal.budget));
-      try {
-        const { proposal, lines: proposed } = await loadFirstBuild(goal.objective, goal.budget, controller.signal);
-        if (controller.signal.aborted) return;
-        setLines(proposed);
-        setAuto({ state: proposal.status === "proposed" ? "ready" : "none", notices: proposal.notices });
-      } catch { if (!controller.signal.aborted) setAuto({ state: "error", notices: [] }); }
-    }
-    void start(wanted);
-    return () => controller.abort();
+      setCriteria(current => withBudget(withObjective(current, wanted.objective), wanted.budget));
+    });
   }, []);
-  function changeLines(next: PurchaseLine[]) { setLines(next); setConfirmed(false); setError(""); }
+  // La propuesta sigue a los datos de arriba. Si la persona ya tocó componentes, no se pisa: decide con el botón.
+  const budget = proposalBudget(criteria.budget_ars), following = auto !== null && !edited && !saved;
+  const goal: FirstBuildGoal | null = budget ? { objective: criteria.objective, budget, condition: criteria.price_condition } : null;
+  useEffect(() => {
+    if (!following || !budget) return;
+    const next: FirstBuildGoal = { objective: criteria.objective, budget, condition: criteria.price_condition };
+    if (JSON.stringify(next) === lastAsked.current) return;
+    const timer = setTimeout(() => { void propose(next, false); }, lastAsked.current ? 500 : 0);
+    return () => clearTimeout(timer);
+  }, [following, budget, criteria.objective, criteria.price_condition]);
+  function changeLines(next: PurchaseLine[]) { setLines(next); setEdited(true); setConfirmed(false); setError(""); }
   function changeCriteria(next: RecommendationDraft) { setCriteria(next); setConfirmed(false); }
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (lock.current || !confirmed || !lines.length || saved || uncertain) return;
@@ -85,18 +108,21 @@ export default function PurchaseBuilder() {
     catch { if (alive.current) setError("No se pudo confirmar el catálogo. No se preparó ni guardó un plan."); }
     finally { lock.current = false; if (alive.current) setBusy(false); }
   }
+  const proposed = auto?.state === "ready" && !edited;
   const subtotal = purchaseSubtotal(lines, criteria.price_condition);
   const totalVisible = subtotal.selected_subtotal_ars === null ? (lines.length ? "Subtotal parcial" : "Todavía no hay compras") : formatRetailARS(subtotal.selected_subtotal_ars);
   return <section className="build-screen" aria-label="Armado desde cero">
     <header className="build-hero">
       <h1>Armemos una PC nueva</h1>
-      <p>{auto?.state === "ready" ? "Esta es la PC que te proponemos. Nada se guarda hasta que vos lo confirmes." : "Contanos para qué la querés y cuánto querés gastar. Después elegí los componentes que pensás comprar. Elegir no guarda nada ni revisa si encajan: eso viene después de guardar."}</p>
+      <p>{auto?.state === "ready" ? "Esta es la PC que te proponemos. Nada se guarda hasta que vos lo confirmes." : "Contanos para qué la querés y cuánto querés gastar. Después elegí los componentes que pensás comprar. Elegir no guarda nada. Si los componentes encajan entre sí lo revisamos en el resumen, después de guardar."}</p>
     </header>
 
-    {auto?.state === "working" && <div role="status"><Notice tono="info" titulo="Estamos armando tu PC">Buscamos los componentes que mejor rinden con tu presupuesto y revisamos que encajen.</Notice></div>}
-    {auto?.state === "ready" && <Notice tono="encaja" titulo="Te armamos una PC completa que encaja">Revisamos que los componentes encajen según datos de referencia. Podés cambiar cualquiera más abajo. Chequeá stock antes de comprar.{auto.notices.length > 0 && <ul>{auto.notices.map(text => <li key={text}>{text}</li>)}</ul>}</Notice>}
-    {auto?.state === "none" && <Notice tono="info" titulo="Con este presupuesto no llegamos a una PC completa">Probá con un monto mayor o elegí los componentes a mano.</Notice>}
-    {auto?.state === "error" && <Notice tono="revisar" titulo="No pudimos armar la propuesta">Podés elegir los componentes a mano.</Notice>}
+    <div className="build-notice">
+      {auto?.state === "working" && <Notice tono="info" titulo="Estamos armando tu PC">Buscamos los componentes que mejor rinden con tu presupuesto y revisamos que encajen.</Notice>}
+      {auto?.state === "ready" && <Notice tono="encaja" titulo="Te armamos una PC completa que encaja">{firstBuildReason(criteria.objective)} Podés cambiar cualquiera más abajo. Chequeá stock antes de comprar.{auto.notices.length > 0 && <ul>{auto.notices.map(text => <li key={text}>{text}</li>)}</ul>}</Notice>}
+      {auto?.state === "none" && <Notice tono="info" titulo="Con este presupuesto no llegamos a una PC completa">Probá con un monto mayor o elegí los componentes a mano.</Notice>}
+      {auto?.state === "error" && <Notice tono="revisar" titulo="No pudimos armar la propuesta">Podés elegir los componentes a mano.</Notice>}
+    </div>
 
     <fieldset disabled={busy || !!saved} className="build-ask">
       <legend className="sr-only">Para qué la querés y cuánto querés gastar</legend>
@@ -113,12 +139,14 @@ export default function PurchaseBuilder() {
       </div>
     </fieldset>
 
+    {goal && !following && !saved && auto?.state !== "working" && <div className="build-rebuild"><button type="button" disabled={busy} onClick={() => { void propose(goal, true); }}>{lines.length ? "Volver a armar con estos datos" : "Armar una PC con estos datos"}</button>{lines.length > 0 && <small>Reemplaza los componentes que elegiste.</small>}</div>}
+
     {error && <p role="alert">{error}</p>}
 
     <div className="build-result">
       <section aria-label="Compras seleccionadas" className="build-main">
         <div className="build-head">
-          <div><h2>Tu armado manual, por comprar</h2><p>Nueve categorías para elegir a mano. Son componentes que pensás comprar, no los de una PC que ya tenés.</p></div>
+          {proposed ? <div><h2>Los componentes de tu PC</h2><p>Si querés otro, tocá la X y elegilo de la lista.</p></div> : <div><h2>Tu armado manual, por comprar</h2><p>Nueve categorías para elegir a mano. Son componentes que pensás comprar, no los de una PC que ya tenés.</p></div>}
         </div>
         <div className="build-list">
           {towerKeys.map(category => {
@@ -127,24 +155,22 @@ export default function PurchaseBuilder() {
             return <article key={category} id={`purchase-${category}`} className={`build-part${elegidas.length ? " is-chosen" : " is-empty"}`}>
               <div className="build-part-top">
                 <span className="build-part-photo"><HardwareArt category={category} /></span>
-                <div><h3>{towerCategories[category]}</h3><p>{elegidas.length ? "Compra seleccionada" : "Todavía sin elegir"}</p></div>
+                <div><h3>{towerCategories[category]}</h3>{!elegidas.length && <p>Todavía sin elegir</p>}</div>
               </div>
-              {elegidas.map(({ line, index }) => <div key={`${line.part.id}-${index}`} className="build-line">
+              {saved && elegidas.map(({ line, index }) => <div key={`${line.part.id}-${index}`} className="build-line">
                 <TowerProductPhoto part={line.part} />
-                <div><p>{line.part.name}</p><small>Cantidad explícita: {line.quantity} {category === "ram" ? "módulos" : "unidades"}</small><PurchaseLineQuote line={line} condition={criteria.price_condition} /></div>
-                <div className="build-line-side">
-                  <span className="build-price">{line.offer?.amount ? formatRetailARS(line.offer.amount) : "Precio sin cotizar"}</span>
-                  {!saved && <button type="button" className="text-button" disabled={busy} onClick={() => changeLines(lines.filter((_, i) => i !== index))}>Quitar compra {index + 1}</button>}
-                </div>
+                <div><p>{line.part.name}</p>{!isSingleUnitCategory(category) && <small>Cantidad: {line.quantity}</small>}</div>
+                <span className="build-price">{line.offer?.amount ? formatRetailARS(line.offer.amount) : "Sin precio por ahora"}</span>
               </div>)}
-              {!saved && <details className="build-picker"><summary>{elegidas.length ? `Cambiar ${nombre}` : `Elegir ${nombre} del catálogo`}</summary><PurchaseSelector category={category} condition={criteria.price_condition} disabled={busy || uncertain} onAdd={(line, mode) => changeLines(purchaseAdd(lines, line, mode))} /></details>}
+              {!saved && !elegidas.length && <button type="button" className="build-picker-toggle" aria-expanded={opened === category} onClick={() => setOpened(opened === category ? null : category)}>Elegir {nombre} del catálogo</button>}
+              {!saved && (elegidas.length > 0 || opened === category) && <div className="build-picker"><PurchaseSelector category={category} condition={criteria.price_condition} disabled={busy || uncertain} current={elegidas[0]?.line ?? null} onAdd={(line, mode) => changeLines(purchaseAdd(lines, line, mode))} onRemove={() => { setOpened(category); changeLines(lines.filter(item => item.part.category !== category)); }} /></div>}
             </article>;
           })}
         </div>
       </section>
 
       <aside className="build-sum purchase-summary" aria-label="Resumen de compras">
-        <p className="m-0 justify-self-start rounded-pill bg-pino-suave px-space-3 py-space-1 text-etiqueta text-pino">Armado manual · por comprar</p>
+        <p className="m-0 justify-self-start rounded-pill bg-pino-suave px-space-3 py-space-1 text-etiqueta text-pino">{proposed ? "PC propuesta" : "Armado manual"} · por comprar</p>
         <p className="purchase-objective">{criteria.objective === "gaming" ? "Para jugar" : criteria.objective === "productivity" ? "Para trabajar" : "Para uso general"}</p>
         <div className="build-total">
           <span className="build-total-label">Subtotal de compras seleccionadas</span>

@@ -20,23 +20,16 @@ export function TowerProductPhoto({ part }: { part: TowerComponent }) {
   </div>;
 }
 
-export default function TowerProductSummary({ part, now }: { part: TowerComponent; now?: number }) {
-  const [clock, setClock] = useState(Date.now);
-  useEffect(() => {
-    if (now !== undefined || !part.offers?.some(offer => offer.status === "fresh")) return;
-    const timer = setInterval(() => setClock(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, [now, part.offers]);
+export function TowerProductProvenance({ part, now, clock }: { part: TowerComponent; now?: number; clock?: number }) {
   const evidence = part.image_evidence, source = retailSourceURL(evidence?.source_url);
   const offers = part.offers?.filter(offer => offer.component_id === part.id) ?? [];
-  return <div className="tower-product-summary stack-sm">
-    <div className="row"><TowerProductPhoto key={part.id} part={part} /><div><p>{part.name}</p><small>{Object.keys(part.attributes).length ? "Atributos del catálogo; cobertura técnica no evaluada aquí" : "Identificación técnica y atributos pendientes de evidencia"}</small></div></div>
+  return (
     <details><summary>Foto, procedencia y ofertas</summary><div className="stack-sm">
       <p>Una foto o publicación comercial no prueba atributos técnicos, reemplazabilidad ni compatibilidad.</p>
       {evidence ? <><p>Imagen: {displayImage(part) ? "URL asociada a la variante exacta por la fuente" : "No disponible para mostrar"}. {evidence.photo_bytes_verified === true ? "El servidor informa verificación de bytes; no certifica hardware." : "Bytes de la foto no verificados por el servidor."}</p><p>Consulta de imagen: {displayRetailDate(evidence.retrieved_at)}</p><p>Derechos/condiciones: {evidence.rights_note || "No informados"}</p>{source && <a href={source} target="_blank" rel="noopener noreferrer">Publicación de origen de la imagen (otra pestaña)</a>}</> : <p>Sin evidencia fotográfica publicada.</p>}
       {!offers.length && <p>No hay ofertas publicadas para esta referencia. Importe y stock desconocidos, no cero.</p>}
       {offers.map(offer => {
-        const state = offerDisplayStatus(offer, now ?? clock), link = retailSourceURL(offer.source_url);
+        const state = offerDisplayStatus(offer, now ?? clock ?? 0), link = retailSourceURL(offer.source_url);
         return <section key={offer.offer_id} className="tower-offer"><h4>{offer.store === "compragamer" ? "Compra Gamer" : "Venex"} · {offer.condition === "cash" ? "Contado" : "Lista (no cuotas)"}</h4>
           <p>{referencePriceLabel(offer)} · {state === "fresh" ? "Dentro del plazo de consulta" : state === "stale" ? "Consulta vencida; no es precio vigente" : "Oferta no disponible para cotizar"}</p>
           <p>{stockLabel(offer)}. No garantiza stock futuro.</p><p>Observado: {displayRetailDate(offer.observed_at)} · Vence: {displayRetailDate(offer.expires_at)}</p>
@@ -45,5 +38,18 @@ export default function TowerProductSummary({ part, now }: { part: TowerComponen
       })}
       <p>Las ofertas no sustituyen los precios históricos ni constituyen un presupuesto completo. Envío, financiación y mano de obra excluidos. No se calculó compatibilidad.</p>
     </div></details>
+  );
+}
+
+export default function TowerProductSummary({ part, now }: { part: TowerComponent; now?: number }) {
+  const [clock, setClock] = useState(Date.now);
+  useEffect(() => {
+    if (now !== undefined || !part.offers?.some(offer => offer.status === "fresh")) return;
+    const timer = setInterval(() => setClock(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [now, part.offers]);
+  return <div className="tower-product-summary stack-sm">
+    <div className="row"><TowerProductPhoto key={part.id} part={part} /><div><p>{part.name}</p><small>{Object.keys(part.attributes).length ? "Datos del catálogo" : "Identificación técnica y atributos pendientes de evidencia"}</small></div></div>
+    <TowerProductProvenance part={part} now={now} clock={clock} />
   </div>;
 }

@@ -20,7 +20,8 @@ from .tower_references import line_specs
 WEIGHTS = {
     "gaming": (Decimal("0.75"), Decimal("0.25")),
     "productivity": (Decimal("0.3"), Decimal("0.7")),
-    "general": (Decimal("0.4"), Decimal("0.6")),
+    # Everyday use barely touches the GPU, so it only gets what the CPU leaves over.
+    "general": (Decimal("0.1"), Decimal("0.9")),
 }
 MEMORY_GB = {"gaming": 16, "productivity": 32, "general": 16}
 STORAGE_GB = 500

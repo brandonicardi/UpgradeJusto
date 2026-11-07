@@ -15,9 +15,23 @@ export function firstBuildRequest(search: string) {
   return goal && /^[1-9]\d{0,11}$/.test(budget) ? { objective: goal.objective, budget } : null;
 }
 
+export type FirstBuildGoal = { objective: string; budget: string; condition: "cash" | "list" };
+
+/** El monto que escribió la persona, si alcanza para pedir una propuesta. */
+export function proposalBudget(text: string) {
+  const budget = text.trim();
+  return /^\d{1,12}(\.\d{1,2})?$/.test(budget) && Number(budget) > 0 ? budget : null;
+}
+
+/** Cómo se decidió, en palabras de la persona. Debe coincidir con los pesos de first_build.py. */
+export function firstBuildReason(objective: string) {
+  const first = objective === "gaming" ? "la placa de video" : "el procesador";
+  return `Buscamos el mejor procesador y placa de video que entran en tu presupuesto según benchmarks publicados, con prioridad en ${first}. El resto es lo más barato que les sirve. Revisamos que todo encaje según datos de referencia.`;
+}
+
 /** La propuesta sale del servidor, ya revisada por el motor; acá solo se convierte en un borrador editable. */
-export async function loadFirstBuild(objective: string, budget: string, signal?: AbortSignal) {
-  const response = await fetch(`/api/catalog/components/first-build?${new URLSearchParams({ objective, budget_ars: budget })}`, { cache: "no-store", signal });
+export async function loadFirstBuild({ objective, budget, condition }: FirstBuildGoal, signal?: AbortSignal) {
+  const response = await fetch(`/api/catalog/components/first-build?${new URLSearchParams({ objective, budget_ars: budget, condition })}`, { cache: "no-store", signal });
   if (!response.ok) throw new Error("No pudimos armar la propuesta.");
   const proposal = await response.json() as FirstBuildProposal;
   const lines: PurchaseLine[] = await Promise.all(proposal.lines.map(async line => {

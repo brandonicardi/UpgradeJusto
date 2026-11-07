@@ -133,7 +133,7 @@ describe("CU07 private tower plans: structural requests and operation identity",
     await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })); });
     expect(input.getAttribute("aria-activedescendant")).toBe(host.querySelector('[role="option"]')?.id);
     await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); await Promise.resolve(); });
-    expect(host.textContent).toContain("Selección actual");
+    expect(button(host, "Quitar RTX 4060")).not.toBeNull();
     expect(request.mock.calls.some(([url]) => String(url) === "/api/catalog/components/gpu-1")).toBe(true);
     vi.useRealTimers();
   });

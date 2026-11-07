@@ -58,7 +58,7 @@ export default function EditorDePieza({ category, inicial, ocupado, error, texto
             <option value="catalogo">Elegirla del catálogo</option><option value="escrito">Escribir el modelo</option></select></div>
         {line.declared_model !== null
           ? <Field etiqueta="Modelo" maxLength={200} required value={line.declared_model} onChange={event => cambiarLinea(index, { declared_model: event.target.value })} ayuda="Si la escribís vos, no podemos comprobar si encaja: queda con «Falta un dato»." />
-          : <RemoteProductSelector category={category} value={line.component_id} onChange={id => cambiarLinea(index, { component_id: id, declared_model: null })} />}
+          : <RemoteProductSelector category={category} value={line.component_id} onChange={id => cambiarLinea(index, { component_id: id, declared_model: null })} onClear={() => cambiarLinea(index, { component_id: null, declared_model: null })} />}
       </>;
       return <fieldset key={index} className="pcs-line" disabled={ocupado}><legend>{lines.length > 1 ? `${nombre} ${index + 1}` : nombre}</legend>
         {/* Una pieza ya elegida no se vuelve a buscar: el selector queda a un clic, para cambiarla. */}

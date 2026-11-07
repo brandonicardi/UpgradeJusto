@@ -137,6 +137,27 @@ def test_small_budget_says_so_instead_of_inventing(monkeypatch):
     assert result["status"] == "not_enough" and result["lines"] == []
 
 
+def test_objective_decides_which_part_gets_the_money(monkeypatch):
+    patched(monkeypatch)
+    data = catalog()
+    cpu = data["cpu-0"]
+    data["cpu-2"] = SimpleNamespace(
+        **{
+            **vars(cpu),
+            "id": "cpu-2",
+            "name": "Procesador AMD Ryzen 9 5950X AM4 + Cooler",
+            "offers": (offer("cpu-2", 1100000),),
+        }
+    )
+
+    def chosen(objective):
+        result = first_build(data, "v", objective, Decimal(2000000), NOW)
+        return {line["category"]: line["component_id"] for line in result["lines"]}
+
+    assert chosen("gaming")["gpu"] == "gpu-1"
+    assert chosen("general")["cpu"] == "cpu-2"
+
+
 def test_storage_size_reads_terabytes_and_gigabytes():
     assert storage_gb("SSD Team 1TB") == 1000
     assert storage_gb("SSD Kingston 480GB") == 480

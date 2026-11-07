@@ -57,6 +57,7 @@ def list_components(
 def propose_first_build(
     objective: Literal["general", "gaming", "productivity"],
     budget_ars: Annotated[Decimal, Query(gt=0, max_digits=14, decimal_places=2)],
+    condition: Literal["cash", "list"] = "cash",
     svc=Depends(service),
 ):
     """Public and read-only: nothing is saved until the person confirms it."""
@@ -66,6 +67,7 @@ def propose_first_build(
         objective,
         budget_ars,
         datetime.now(UTC),
+        condition,
     )
 
 
