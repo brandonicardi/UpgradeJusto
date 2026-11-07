@@ -12,4 +12,4 @@ if (-not (Test-Path $server) -or -not (Test-Path $path)) {
     throw 'Falta llama.cpp o el modelo en .tools/. Ver "IA local" en el README.'
 }
 & $server -m $path -ngl 99 -c $Context --jinja --host 127.0.0.1 --port 8081 `
-    --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0
+    --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --parallel 1

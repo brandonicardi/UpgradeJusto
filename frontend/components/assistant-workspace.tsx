@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Check, Loader2, Plus, SendHorizontal, Square, X } from "lucide-react";
+import { Check, Loader2, Plus, SendHorizontal, Square, Trash2, X } from "lucide-react";
 import { useAssistant } from "./assistant-provider";
 import { ChatSuggestions } from "./uj/chat-bubble";
 import Markdown from "./markdown";
@@ -27,11 +27,12 @@ export function AssistantConversations() {
     setAsking(false);
   }
   const now = new Date();
+  const [confirming, setConfirming] = useState<string | null>(null);
   return <aside className="assistant-conversations" aria-label="Tus charlas">
     <button type="button" className="assistant-new" aria-expanded={open} disabled={c.busy} onClick={() => setAsking(value => !value)}><Plus aria-hidden="true" size={18} />Nueva charla</button>
     {open && <form aria-label="Crear conversación" className="assistant-new-form" onSubmit={create}><fieldset disabled={c.busy}><legend className="sr-only">Nueva charla</legend><label htmlFor="assistant-title">Título de conversación</label><input id="assistant-title" value={c.title} required maxLength={100} onChange={event => c.setTitle(event.target.value)} placeholder="Ej. Más memoria para trabajar" /><button type="submit" className="secondary">Crear conversación privada</button></fieldset></form>}
     <h2>Tus charlas</h2>
-    {c.list?.items.length ? <ul>{c.list.items.map(item => <li key={item.id}><button type="button" disabled={c.busy} aria-current={c.selected?.id === item.id ? "true" : undefined} onClick={() => c.open(item.id)}><b>{item.title}</b><span>{conversationDay(item.updated_at, now)} · Charla privada</span></button></li>)}</ul> : <p className="muted">Todavía no hay charlas.</p>}
+    {c.list?.items.length ? <ul>{c.list.items.map(item => <li key={item.id}><button type="button" disabled={c.busy} aria-current={c.selected?.id === item.id ? "true" : undefined} onClick={() => c.open(item.id)}><b>{item.title}</b><span>{conversationDay(item.updated_at, now)} · Charla privada</span></button>{confirming === item.id ? <div className="assistant-delete-ask"><span>¿Eliminar esta charla?</span><button type="button" disabled={c.busy} onClick={() => { setConfirming(null); void c.erase(item.id); }}>Sí, eliminar</button><button type="button" onClick={() => setConfirming(null)}>No</button></div> : <button type="button" className="assistant-delete" aria-label={`Eliminar charla ${item.title}`} disabled={c.busy} onClick={() => setConfirming(item.id)}><Trash2 aria-hidden="true" size={16} /></button>}</li>)}</ul> : <p className="muted">Todavía no hay charlas.</p>}
     {c.list && <nav aria-label="Páginas de conversaciones">{c.list.page > 1 && <button type="button" className="secondary" disabled={c.busy} onClick={() => c.operation(() => c.loadList(c.list!.page - 1))}>Conversaciones anteriores</button>}{c.list.page * c.list.page_size < c.list.total && <button type="button" className="secondary" disabled={c.busy} onClick={() => c.operation(() => c.loadList(c.list!.page + 1))}>Conversaciones siguientes</button>}<button type="button" className="text-button" disabled={c.busy} onClick={() => c.operation(() => c.loadList(c.list!.page))}>Recargar conversaciones</button></nav>}
   </aside>;
 }

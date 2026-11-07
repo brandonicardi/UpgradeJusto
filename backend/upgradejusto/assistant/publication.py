@@ -2,15 +2,11 @@
 
 The model's text stays in a private buffer. Each paragraph is checked against this
 turn's evidence, the failed ones get a single rewrite, and whatever still cannot be
-proved is left out with a notice. The draft is never sent, stored or logged.
+proved is left out. The draft is never sent, stored or logged.
 """
 
 from .grounding import validate_candidate
 
-OMITTED_NOTICE = (
-    "Saqué una parte de la respuesta porque no pude comprobarla con los datos de "
-    "esta consulta."
-)
 NOTHING_VERIFIED = (
     "No pude comprobar esa respuesta con los datos de esta consulta. Elegí tu PC en "
     "la charla y preguntame de nuevo, o mirá «Lo que te conviene»."
@@ -50,7 +46,5 @@ async def publish(evidence, draft, emit, repair=None):
     if not parts:
         await emit("delta", {"text": NOTHING_VERIFIED})
         return len(results)
-    if omitted:
-        parts.append(OMITTED_NOTICE)
     await emit("delta", {"text": "\n\n".join(parts)})
     return omitted

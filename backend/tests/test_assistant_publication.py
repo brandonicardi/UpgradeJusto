@@ -7,7 +7,6 @@ from upgradejusto.assistant.evidence import TurnEvidence
 from upgradejusto.assistant.grounding import validate_candidate
 from upgradejusto.assistant.publication import (
     NOTHING_VERIFIED,
-    OMITTED_NOTICE,
     publish,
 )
 
@@ -36,7 +35,7 @@ def test_general_advice_is_published():
 
 def test_unproved_verdict_never_reaches_the_person():
     published = text(run(f"{ADVICE}\n\n{INVENTED}"))
-    assert ADVICE in published and OMITTED_NOTICE in published
+    assert ADVICE in published
     assert "compatible" not in published
 
 
@@ -54,7 +53,7 @@ def test_single_repair_replaces_the_failed_paragraph():
     published = text(run(f"{ADVICE}\n\n{INVENTED}", repair))
     assert calls == [INVENTED]
     assert "Revisá el modelo exacto" in published
-    assert "compatible" not in published and OMITTED_NOTICE not in published
+    assert "compatible" not in published
 
 
 def test_repair_is_validated_too():
@@ -62,7 +61,7 @@ def test_repair_is_validated_too():
         return "Las dos piezas son compatibles."
 
     published = text(run(f"{ADVICE}\n\n{INVENTED}", repair))
-    assert "compatibles" not in published and OMITTED_NOTICE in published
+    assert "compatibles" not in published
 
 
 def test_repair_failure_keeps_what_was_proved():

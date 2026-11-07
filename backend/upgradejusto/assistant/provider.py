@@ -77,7 +77,8 @@ def chat_model(client):
     if selected == "groq":
         return model(client, max_tokens=800)
     if selected == "llamacpp":
-        return llamacpp_model(client)
+        # About 12 tokens per second locally: the reply length is the wait.
+        return llamacpp_model(client, max_tokens=500)
     if selected != "ollama":
         raise ValueError("Invalid chat provider")
     if os.environ.get("UJ_OLLAMA_BASE_URL", "http://127.0.0.1:11434") != (

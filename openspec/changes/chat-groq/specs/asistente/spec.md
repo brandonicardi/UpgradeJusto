@@ -200,8 +200,7 @@ motor determinístico.
 
 ### Requirement: Reparación acotada y fallback
 El sistema SHALL intentar como máximo una reparación de los párrafos afectados, revalidarla y,
-si vuelve a fallar, SHALL publicar los párrafos verificados y un aviso breve sin datos no
-verificados. El turno SHALL terminar `completed` y la charla no SHALL bloquearse.
+si vuelve a fallar, SHALL publicar solo los párrafos verificados, sin datos no verificados. El turno SHALL terminar `completed` y la charla no SHALL bloquearse.
 
 #### Scenario: Reparación exitosa
 - **WHEN** la reparación corrige las afirmaciones no soportadas y la revalidación pasa
@@ -209,7 +208,7 @@ verificados. El turno SHALL terminar `completed` y la charla no SHALL bloquearse
 
 #### Scenario: Reparación que no mejora
 - **WHEN** después de la única reparación todavía hay afirmaciones no verificadas
-- **THEN** esos párrafos no se publican, se emite el aviso breve y el resto de la respuesta sí
+- **THEN** esos párrafos no se publican y el resto de la respuesta sí
 
 #### Scenario: Sin tiempo para reparar
 - **WHEN** el turno está por agotar sus 90 s

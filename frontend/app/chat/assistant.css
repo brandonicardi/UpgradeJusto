@@ -139,3 +139,11 @@
   .assistant-floating { right: var(--space-4); bottom: calc(var(--space-8) + var(--space-5) + env(safe-area-inset-bottom)); }
   .assistant-panel { max-height: calc(100dvh - 240px); border-radius: var(--radius-md); }
 }
+
+/* Eliminar una charla desde la lista: el ícono queda arriba a la derecha y pide confirmación en la misma fila. */
+.assistant-conversations li { position: relative; min-width: 0; }
+.assistant-conversations li > button:first-child { padding-right: 44px; }
+.assistant-conversations li button.assistant-delete { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; color: var(--tinta-suave); }
+.assistant-conversations li button.assistant-delete:hover { background: var(--no-encaja-fondo); color: var(--no-encaja); }
+.assistant-delete-ask { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
+.assistant-conversations .assistant-delete-ask button { width: auto; padding: var(--space-1) var(--space-2); font-weight: 600; color: var(--pino); }

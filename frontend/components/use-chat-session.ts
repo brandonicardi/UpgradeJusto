@@ -94,14 +94,15 @@ export function useChatSession() {
       setNotice("Conversación privada creada. Todavía no se envió una pregunta."); await loadList(1);
     });
   }
-  async function remove(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (!selected) return;
+  async function erase(id: string) {
     await operation(async () => {
-      const ticket = epoch.current; await request(`/${selected.id}`, "DELETE"); if (ticket !== epoch.current) return;
-      currentConversation.current = null; clearContext(); setSelected(null); setHistory(null); setLive(null); setDeleting(false); lastRequest.current = null;
+      const ticket = epoch.current; await request(`/${id}`, "DELETE"); if (ticket !== epoch.current) return;
+      if (selected?.id === id) { currentConversation.current = null; clearContext(); setSelected(null); setHistory(null); setLive(null); lastRequest.current = null; }
+      setDeleting(false);
       setNotice("Conversación eliminada. PCs y planes no se modificaron."); await loadList(1);
     });
   }
+  async function remove(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (selected) await erase(selected.id); }
   async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (busy || conflict || sending.current || operationLock.current) return;
     let target = selected;
@@ -190,5 +191,5 @@ export function useChatSession() {
   function editContent(value: string) { setContent(value); lastRequest.current = null; }
   function newQuestion() { editContent(""); setConflict(false); }
   function stop() { controller.current?.abort(); }
-  return { list, selected, history, live, title, setTitle, content, setContent, managementOpen, setManagementOpen, busy, streaming, deleting, setDeleting, conflict, setConflict, error, notice, setNotice, access, controller, lastRequest, turnContext, contextKey, lastMessageId, activate, reset, loadList, loadMessages, operation, open, create, remove, send, recover, towerSelection, editContent, newQuestion, changeContext, stop };
+  return { list, selected, history, live, title, setTitle, content, setContent, managementOpen, setManagementOpen, busy, streaming, deleting, setDeleting, conflict, setConflict, error, notice, setNotice, access, controller, lastRequest, turnContext, contextKey, lastMessageId, activate, reset, loadList, loadMessages, operation, open, create, remove, erase, send, recover, towerSelection, editContent, newQuestion, changeContext, stop };
 }
